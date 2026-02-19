@@ -1,56 +1,67 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Daftar Pelaksanaan Lapangan</title>
-</head>
-<body class="bg-light">
-    <div class="container-fluid mt-4">
-        <div class="card shadow">
-            <div class="card-header bg-success text-white d-flex justify-content-between">
-                <h5 class="mb-0">Daftar Realisasi Pelaksanaan Lapangan (Kolom 13-15)</h5>
-                <a href="{{ route('perencanaan.index') }}" class="btn btn-light btn-sm">Kembali ke Perencanaan</a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-dark text-center">
-                            <tr>
-                                <th>No</th>
-                                <th>Jenis MP</th>
-                                <th>Lokasi Pengambilan (Kolom 13)</th>
-                                <th>Jumlah Sampel (Kolom 14)</th>
-                                <th>Metode (Kolom 15)</th>
-                                <th>Koordinat (GIS)</th>
-                                <th>Tanggal Input</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($pelaksanaans as $key => $item)
-                            <tr>
-                                <td>{{ $key + 1 }}</td>
-                                <td>{{ $item->perencanaan->jenis_mp }}</td>
-                                <td>{{ $item->lokasi_pengambilan_sampel }}</td>
-                                <td class="text-center">{{ $item->jumlah_sampel }}</td>
-                                <td class="text-center">{{ $item->metode_pengambilan_sampel }}</td>
-                                <td class="small">
-                                    <a href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}" target="_blank">
-                                        {{ $item->latitude }}, {{ $item->longitude }}
-                                    </a>
-                                </td>
-                                <td>{{ $item->created_at->format('d/m/Y') }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center">Belum ada data pelaksanaan lapangan.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+@extends('layouts.app')
+
+@section('title', 'Pelaksanaan')
+@section('page_title', 'Modul Pelaksanaan')
+@section('page_subtitle', 'Data realisasi lapangan pemantauan HPIK')
+
+@section('content')
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Wilayah / Komoditas</th>
+                    <th>Lokasi Sampling</th>
+                    <th>Sampel</th>
+                    <th>Koordinat GPS</th>
+                    <th>Status Lab</th>
+                    <th>Tanggal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($pelaksanaans as $key => $item)
+                <tr>
+                    <td class="text-muted">{{ $key + 1 }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ $item->perencanaan->jenis_mp ?? '-' }}</div>
+                        <div class="text-muted small">{{ $item->perencanaan->kab_kota ?? '-' }}, {{ $item->perencanaan->provinsi ?? '-' }}</div>
+                    </td>
+                    <td>{{ $item->lokasi_pengambilan_sampel }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ $item->jumlah_sampel }}</div>
+                        <div class="text-muted small">{{ $item->metode_pengambilan_sampel }}</div>
+                    </td>
+                    <td>
+                        @if($item->latitude && $item->longitude)
+                            <a href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}" target="_blank" class="text-decoration-none">
+                                <span class="badge bg-azure-lt">
+                                    <i class="ti ti-map-pin me-1"></i>{{ number_format($item->latitude,4) }}, {{ number_format($item->longitude,4) }}
+                                </span>
+                            </a>
+                        @else
+                            <span class="text-muted small">—</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($item->laboratorium)
+                            <span class="badge bg-success-lt text-success">✅ {{ $item->laboratorium->hasil_uji }}</span>
+                        @else
+                            <span class="badge bg-warning-lt text-warning">⏳ Belum</span>
+                        @endif
+                    </td>
+                    <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="ti ti-map-pin" style="font-size:2rem;opacity:.3;"></i>
+                        <div class="mt-2">Belum ada data pelaksanaan lapangan.</div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+</div>
+@endsection

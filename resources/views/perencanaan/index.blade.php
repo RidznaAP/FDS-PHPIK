@@ -1,82 +1,107 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Perencanaan HPIK</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .table-custom th { background-color: #003366 !important; color: white; vertical-align: middle; font-size: 0.85rem; }
-        .table-custom td { font-size: 0.85rem; vertical-align: middle; }
-    </style>
-</head>
-<body class="bg-light">
-    <div class="container-fluid mt-4">
-        <div class="card shadow">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="fw-bold mb-0 text-primary">Daftar Perencanaan Pemantauan HPIK</h5>
-                <a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-sm">Tambah Perencanaan Baru</a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped text-center align-middle table-custom">
-                        <thead>
-                            <tr>
-                                <th rowspan="2">No</th>
-                                <th rowspan="2">Provinsi</th>
-                                <th rowspan="2">Kabupaten / Kota</th>
-                                <th rowspan="2">Jenis MP</th>
-                                <th rowspan="2">Jenis HPIK</th>
-                                <th rowspan="2">Kemampuan Uji UPT</th>
-                                <th rowspan="2">Metode Pengujian</th>
-                                <th rowspan="2">Lab Uji</th>
-                                <th rowspan="2">Target Uji</th>
-                                <th colspan="4">Waktu Pelaksanaan</th>
-                                <th rowspan="2">Total Pengujian</th>
-                                <th rowspan="2">Aksi</th>
-                            </tr>
-                            <tr>
-                                <th>TW 1</th>
-                                <th>TW 2</th>
-                                <th>TW 3</th>
-                                <th>TW 4</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($perencanaans as $key => $p)
-                            <tr>
-                                <td>{{ $key + 1 }}</td>
-                                <td>{{ $p->provinsi }}</td>
-                                <td>{{ $p->kab_kota }}</td>
-                                <td>{{ $p->jenis_mp }}</td>
-                                <td>{{ $p->jenis_hpik }}</td>
-                                <td>{{ $p->kemampuan_uji_upt }}</td>
-                                <td>{{ $p->metode_pengujian }}</td>
-                                <td>{{ $p->lab_uji }}</td>
-                                <td>{{ $p->target_uji }}</td>
-                                <td>{{ $p->tw1 }}</td>
-                                <td>{{ $p->tw2 }}</td>
-                                <td>{{ $p->tw3 }}</td>
-                                <td>{{ $p->tw4 }}</td>
-                                <td class="fw-bold text-primary">{{ $p->total_pengujian }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button class="btn btn-warning btn-sm" disabled title="Fitur Edit akan aktif setelah sistem role selesai">Edit</button>
-                                        <button class="btn btn-danger btn-sm" disabled title="Fitur Hapus akan aktif setelah sistem role selesai">Hapus</button>
-                                        <a href="{{ url('/pelaksanaan/tambah/'.$p->id) }}" class="btn btn-success btn-sm">Input Pelaksanaan</a>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="15" class="text-muted italic">Belum ada data perencanaan.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+@extends('layouts.app')
+
+@section('title', 'Perencanaan')
+@section('page_title', 'Modul Perencanaan')
+@section('page_subtitle', 'Daftar rencana pemantauan HPIK')
+
+@section('page_actions')
+    @if(Auth::user()->isUpt())
+        <a href="{{ route('perencanaan.create') }}" class="btn btn-primary d-none d-sm-inline-flex">
+            <i class="ti ti-plus me-1"></i> Perencanaan Baru
+        </a>
+    @endif
+@endsection
+
+@section('content')
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter table-mobile-md card-table">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Wilayah</th>
+                    <th>Jenis MP / HPIK</th>
+                    <th>Target Uji</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($perencanaans as $key => $p)
+                <tr>
+                    <td class="text-muted">{{ $key + 1 }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ $p->kab_kota }}</div>
+                        <div class="text-muted small">{{ $p->provinsi }}</div>
+                    </td>
+                    <td>
+                        <div>{{ $p->jenis_mp }}</div>
+                        <div class="text-muted small">{{ $p->jenis_hpik }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ $p->target_uji }}</div>
+                        <div class="text-muted small">TW: {{ $p->tw1 }}/{{ $p->tw2 }}/{{ $p->tw3 }}/{{ $p->tw4 }}</div>
+                    </td>
+                    <td>
+                        @if($p->status === 'draft')
+                            <span class="badge bg-secondary-lt text-secondary">Draft</span>
+                        @elseif($p->status === 'waiting')
+                            <span class="badge bg-warning-lt text-warning">Menunggu Validasi</span>
+                        @else
+                            <span class="badge bg-success-lt text-success">Disetujui</span>
+                        @endif
+                    </td>
+                    <td>
+                        <div class="btn-list flex-nowrap">
+                            {{-- UPT: Ajukan / Input Lapangan --}}
+                            @if(Auth::user()->isUpt())
+                                @if($p->status === 'draft')
+                                    <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-sm btn-warning" onclick="return confirm('Ajukan perencanaan ini untuk validasi?')">
+                                            <i class="ti ti-send me-1"></i>Ajukan
+                                        </button>
+                                    </form>
+                                @elseif($p->status === 'approved')
+                                    <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-sm btn-primary">
+                                        <i class="ti ti-plus me-1"></i>Input Lapangan
+                                    </a>
+                                @endif
+                            @endif
+
+                            {{-- BBKHIT/Pusat: Setujui / Evaluasi --}}
+                            @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
+                                @if($p->status === 'waiting')
+                                    <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-sm btn-success" onclick="return confirm('Setujui perencanaan ini?')">
+                                            <i class="ti ti-check me-1"></i>Setujui
+                                        </button>
+                                    </form>
+                                @elseif($p->status === 'approved' && !$p->evaluasi)
+                                    <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-orange">
+                                        <i class="ti ti-chart-bar me-1"></i>Evaluasi
+                                    </a>
+                                @elseif($p->evaluasi)
+                                    <span class="badge bg-green-lt">✅ Selesai Evaluasi</span>
+                                @endif
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="ti ti-clipboard-list" style="font-size:2rem; opacity:.3;"></i>
+                        <div class="mt-2">Belum ada data perencanaan.</div>
+                        @if(Auth::user()->isUpt())
+                            <a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-sm mt-2">Buat Perencanaan</a>
+                        @endif
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+</div>
+@endsection

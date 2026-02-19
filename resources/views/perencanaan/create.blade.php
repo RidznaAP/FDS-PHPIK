@@ -1,81 +1,90 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Perencanaan HPIK</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f4f7f6; }
-        .card-header { background-color: #003366; color: white; }
-    </style>
-</head>
-<body>
-    <div class="container mt-5 mb-5">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card shadow">
-                    <div class="card-header">
-                        <h4 class="mb-0">Form Perencanaan Pemantauan HPIK</h4>
-                    </div>
-                    <div class="card-body">
-                        @if(session('success'))
-                            <div class="alert alert-success">{{ session('success') }}</div>
-                        @endif
+@extends('layouts.app')
 
-                        <form action="{{ route('perencanaan.store') }}" method="POST">
-                            @csrf
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Provinsi</label>
-                                    <input type="text" name="provinsi" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Kabupaten/Kota</label>
-                                    <input type="text" name="kab_kota" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Jenis MP (Media Pembawa)</label>
-                                    <input type="text" name="jenis_mp" class="form-control" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Jenis HPIK (Target)</label>
-                                    <input type="text" name="jenis_hpik" class="form-control" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Kemampuan Uji UPT</label>
-                                    <input type="text" name="kemampuan_uji_upt" class="form-control" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Metode Pengujian</label>
-                                    <input type="text" name="metode_pengujian" class="form-control" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Lab Uji</label>
-                                    <input type="text" name="lab_uji" class="form-control" required>
-                                </div>
-                                <div class="col-md-12 border-top pt-3 mt-4">
-                                    <h6 class="text-primary fw-bold">Target Per Kuartal (TW)</h6>
-                                    <div class="row g-2 text-center">
-                                        <div class="col-3"><label>TW 1</label><input type="number" name="tw1" class="form-control" value="0"></div>
-                                        <div class="col-3"><label>TW 2</label><input type="number" name="tw2" class="form-control" value="0"></div>
-                                        <div class="col-3"><label>TW 3</label><input type="number" name="tw3" class="form-control" value="0"></div>
-                                        <div class="col-3"><label>TW 4</label><input type="number" name="tw4" class="form-control" value="0"></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold">Total Target Uji (Tahun)</label>
-                                    <input type="number" name="target_uji" class="form-control" required>
-                                </div>
-                                <div class="col-12 mt-4">
-                                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">SIMPAN DATA PERENCANAAN</button>
-                                </div>
-                            </div>
-                        </form>
+@section('title', 'Form Perencanaan')
+@section('page_title', 'Perencanaan Baru')
+@section('page_subtitle', 'Isi formulir rencana pemantauan HPIK')
+
+@section('content')
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <form action="{{ route('perencanaan.store') }}" method="POST">
+            @csrf
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Data Lokasi & Komoditas</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Provinsi</label>
+                            <input type="text" name="provinsi" class="form-control @error('provinsi') is-invalid @enderror" value="{{ old('provinsi') }}" placeholder="Contoh: Jawa Barat" required>
+                            @error('provinsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Kabupaten / Kota</label>
+                            <input type="text" name="kab_kota" class="form-control @error('kab_kota') is-invalid @enderror" value="{{ old('kab_kota') }}" placeholder="Contoh: Kota Bogor" required>
+                            @error('kab_kota')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Jenis MP (Media Pembawa)</label>
+                            <input type="text" name="jenis_mp" class="form-control" value="{{ old('jenis_mp') }}" placeholder="Contoh: Udang Vaname" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Jenis HPIK (Target)</label>
+                            <input type="text" name="jenis_hpik" class="form-control" value="{{ old('jenis_hpik') }}" placeholder="Contoh: White Spot Syndrome Virus" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Kemampuan Uji UPT</label>
+                            <input type="text" name="kemampuan_uji_upt" class="form-control" value="{{ old('kemampuan_uji_upt') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Metode Pengujian</label>
+                            <input type="text" name="metode_pengujian" class="form-control" value="{{ old('metode_pengujian') }}" placeholder="Contoh: PCR, ELISA" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Lab Uji</label>
+                            <input type="text" name="lab_uji" class="form-control" value="{{ old('lab_uji') }}" required>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Target Per Kuartal (TW)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">TW 1</label>
+                            <input type="number" name="tw1" class="form-control text-center" value="{{ old('tw1', 0) }}" min="0">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">TW 2</label>
+                            <input type="number" name="tw2" class="form-control text-center" value="{{ old('tw2', 0) }}" min="0">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">TW 3</label>
+                            <input type="number" name="tw3" class="form-control text-center" value="{{ old('tw3', 0) }}" min="0">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">TW 4</label>
+                            <input type="number" name="tw4" class="form-control text-center" value="{{ old('tw4', 0) }}" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Total Target Uji (Tahun)</label>
+                            <input type="number" name="target_uji" class="form-control" value="{{ old('target_uji') }}" required min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ti ti-device-floppy me-1"></i> Simpan Perencanaan
+                    </button>
+                    <a href="{{ route('perencanaan.index') }}" class="btn btn-link">Batal</a>
+                </div>
+            </div>
+        </form>
     </div>
-</body>
-</html>
+</div>
+@endsection

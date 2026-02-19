@@ -14,4 +14,9 @@ class Perencanaan extends Model
     {
         return $this->hasMany(Pelaksanaan::class);
     }
+
+    public function evaluasi()
+    {
+        return $this->hasOne(Evaluasi::class);
+    }
 }

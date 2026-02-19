@@ -15,10 +15,16 @@ class HomeController extends Controller
 
     public function index()
     {
-        $totalPerencanaan = Perencanaan::count();
-        $totalPelaksanaan = Pelaksanaan::count();
-        $totalGIS = Pelaksanaan::whereNotNull('latitude')->whereNotNull('longitude')->count();
+        // Mengambil jumlah data untuk statistik di dashboard
+        $totalPerencanaan = \App\Models\Perencanaan::count();
+        $totalPelaksanaan = \App\Models\Pelaksanaan::count();
+        
+        // Menghitung titik GIS (yang latitude & longitude-nya tidak kosong)
+        $totalGis = \App\Models\Pelaksanaan::whereNotNull('latitude')
+                                            ->whereNotNull('longitude')
+                                            ->count();
 
-        return view('home', compact('totalPerencanaan', 'totalPelaksanaan', 'totalGIS'));
+        // Kirim data ke view home.blade.php
+        return view('home', compact('totalPerencanaan', 'totalPelaksanaan', 'totalGis'));
     }
 }
