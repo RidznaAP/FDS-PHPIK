@@ -7,6 +7,13 @@ use App\Models\Pelaksanaan;
 
 class PelaksanaanController extends Controller
 {
+    // Menampilkan daftar pelaksanaan
+    public function index()
+    {
+        $pelaksanaans = Pelaksanaan::with('perencanaan')->latest()->get();
+        return view('pelaksanaan.index', compact('pelaksanaans'));
+    }
+
     // Form untuk mengisi pelaksanaan berdasarkan ID Perencanaan
     public function create($id)
     {

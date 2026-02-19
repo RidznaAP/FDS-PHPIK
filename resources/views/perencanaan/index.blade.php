@@ -61,10 +61,9 @@
                                 <td class="fw-bold text-primary">{{ $p->total_pengujian }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <button class="btn btn-warning btn-sm">Edit</button>
-                                        <button class="btn btn-danger btn-sm">Hapus</button><a href="{{ url('/pelaksanaan/tambah/'.$p->id) }}" class="btn btn-success btn-sm">
-   Input Pelaksanaan
-</a>
+                                        <button class="btn btn-warning btn-sm" disabled title="Fitur Edit akan aktif setelah sistem role selesai">Edit</button>
+                                        <button class="btn btn-danger btn-sm" disabled title="Fitur Hapus akan aktif setelah sistem role selesai">Hapus</button>
+                                        <a href="{{ url('/pelaksanaan/tambah/'.$p->id) }}" class="btn btn-success btn-sm">Input Pelaksanaan</a>
                                     </div>
                                 </td>
                             </tr>

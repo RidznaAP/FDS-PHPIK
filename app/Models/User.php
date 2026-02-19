@@ -21,7 +21,25 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'upt_asal',
     ];
+
+    // Helper methods untuk cek role
+    public function isUpt(): bool
+    {
+        return $this->role === 'upt';
+    }
+
+    public function isBbkhit(): bool
+    {
+        return $this->role === 'bbkhit';
+    }
+
+    public function isPusat(): bool
+    {
+        return $this->role === 'pusat';
+    }
 
     /**
      * The attributes that should be hidden for serialization.
