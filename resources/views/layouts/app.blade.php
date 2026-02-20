@@ -21,8 +21,8 @@
         .navbar-brand-text { font-weight: 700; letter-spacing: -0.5px; }
         .nav-link.active { background-color: rgba(255,255,255,0.1) !important; border-radius: 6px; }
         .role-badge { font-size: 0.7rem; }
-        @yield('styles')
     </style>
+    @yield('styles')
 </head>
 <body class="antialiased">
     <div class="wrapper">

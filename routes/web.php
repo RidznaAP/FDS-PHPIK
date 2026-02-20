@@ -27,7 +27,7 @@ Auth::routes();
 Route::middleware('auth')->group(function () {
 
     // Dashboard (setelah login)
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+   Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
     // --- Modul Perencanaan ---
     Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan.index');
