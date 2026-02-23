@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>@yield('title', 'Login') — FDS-HPIK</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}"/>
+    <title>@yield('title', 'Login') — SIP-HPIK</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {{-- HANYA icons, bukan tabler core CSS (menghindari konflik) --}}
@@ -165,7 +166,7 @@
         <div class="login-left">
             <div class="brand-box">
                 <span class="brand-icon">🐟</span>
-                <div class="brand-name">FDS-HPIK</div>
+                <div class="brand-name">SIP-HPIK</div>
                 <div class="brand-desc">
                     Sistem Informasi Pemantauan<br>
                     <strong>Hama & Penyakit Ikan Karantina</strong>
@@ -175,10 +176,10 @@
                     <li><i class="ti ti-flask"></i> Pencatatan hasil uji laboratorium</li>
                     <li><i class="ti ti-map"></i> Pemetaan GIS sebaran penyakit</li>
                     <li><i class="ti ti-file-spreadsheet"></i> Laporan & ekspor data Excel</li>
-                    <li><i class="ti ti-shield-check"></i> Multi-level role: UPT, BBKHIT, Pusat</li>
+                    <li><i class="ti ti-shield-check"></i> Multi-level role: BKHIT, BBKHIT, Pusat</li>
                 </ul>
             </div>
-            <div class="brand-copy">Direktorat Jenderal Perikanan &copy; {{ date('Y') }}</div>
+            <div class="brand-copy">Deputi Karantina Ikan &copy; {{ date('Y') }}</div>
         </div>
 
         <!-- ===== KANAN 50%: Form ===== -->

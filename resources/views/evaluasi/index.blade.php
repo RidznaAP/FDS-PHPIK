@@ -6,6 +6,10 @@
 
 @section('content')
 <div class="card">
+    <div class="card-header d-flex align-items-center">
+        <h3 class="card-title"><i class="ti ti-chart-bar me-2"></i>Data Evaluasi HPIK</h3>
+        <span class="badge bg-blue-lt ms-2">{{ $perencanaans->total() }} data</span>
+    </div>
     <div class="table-responsive">
         <table class="table table-vcenter card-table">
             <thead>
@@ -74,5 +78,34 @@
             </tbody>
         </table>
     </div>
+    @if($perencanaans->hasPages())
+    <div class="card-footer d-flex align-items-center">
+        <p class="m-0 text-secondary">
+            Menampilkan <span class="fw-semibold">{{ $perencanaans->firstItem() }}–{{ $perencanaans->lastItem() }}</span>
+            dari <span class="fw-semibold">{{ $perencanaans->total() }}</span> data
+        </p>
+        <ul class="pagination m-0 ms-auto">
+            <li class="page-item {{ $perencanaans->onFirstPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $perencanaans->previousPageUrl() }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
+                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18"/></svg>
+                    Sebelumnya
+                </a>
+            </li>
+            @foreach($perencanaans->getUrlRange(max(1,$perencanaans->currentPage()-2), min($perencanaans->lastPage(),$perencanaans->currentPage()+2)) as $page => $url)
+            <li class="page-item {{ $page === $perencanaans->currentPage() ? 'active' : '' }}">
+                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+            </li>
+            @endforeach
+            <li class="page-item {{ !$perencanaans->hasMorePages() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $perencanaans->nextPageUrl() }}">
+                    Berikutnya
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
+                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18"/></svg>
+                </a>
+            </li>
+        </ul>
+    </div>
+    @endif
 </div>
 @endsection

@@ -7,9 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Perencanaan extends Model
 {
-    protected $guarded = []; // Agar data bisa disimpan
+    protected $guarded = [];
 
-    // Tambahkan ini
+    // Relasi ke User yang membuat
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function pelaksanaans()
     {
         return $this->hasMany(Pelaksanaan::class);

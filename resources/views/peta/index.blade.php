@@ -69,37 +69,83 @@
 @section('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const map = L.map('map').setView([-2.5, 118.0], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    // === TILE LAYERS (bisa diganti-ganti) ===
+    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd', maxZoom: 20
+    });
+    const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd', maxZoom: 20
+    });
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri — Source: Esri, Maxar, GeoEye, Earthstar Geographics',
+        maxZoom: 19
+    });
 
+    const map = L.map('map', { zoomControl: true }).setView([-2.5, 118.0], 5);
+    voyager.addTo(map); // default: Voyager (bersih, modern)
+
+    // Layer control
+    L.control.layers({
+        '🗺️ Voyager (Modern)': voyager,
+        '🌙 Dark Matter (Gelap)': darkMatter,
+        '🛰️ Satellite (Esri)': satellite
+    }, {}, { position: 'topright', collapsed: false }).addTo(map);
+
+    // Data markers
     const markers = @json($markers);
-    const colorMap = { 'hijau':'#28a745', 'kuning':'#ffc107', 'merah':'#dc3545', 'abu-abu':'#6c757d' };
+    const colorMap = { 'hijau':'#22c55e', 'kuning':'#eab308', 'merah':'#ef4444', 'abu-abu':'#94a3b8' };
+    const shadowColor = { 'hijau':'rgba(34,197,94,0.4)', 'kuning':'rgba(234,179,8,0.4)', 'merah':'rgba(239,68,68,0.4)', 'abu-abu':'rgba(148,163,184,0.3)' };
 
     markers.forEach(function(item) {
-        const color = colorMap[item.warna] || '#6c757d';
-        const marker = L.circleMarker([item.lat, item.lng], {
-            radius: 12, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+        const color = colorMap[item.warna] || '#94a3b8';
+        const shadow = shadowColor[item.warna] || 'rgba(148,163,184,0.3)';
+
+        // Pakai circleMarker dengan efek glow
+        const circle = L.circleMarker([item.lat, item.lng], {
+            radius: 10,
+            fillColor: color,
+            color: 'white',
+            weight: 2.5,
+            opacity: 1,
+            fillOpacity: 0.95
         }).addTo(map);
 
-        marker.bindPopup(`
-            <div style="min-width:200px;font-family:Inter,sans-serif;">
-                <h6 style="color:${color};margin-bottom:6px;">● ${item.kesimpulan}</h6>
-                <hr style="margin:5px 0;">
-                <b>Lokasi:</b> ${item.lokasi}<br>
-                <b>Wilayah:</b> ${item.kab_kota}, ${item.provinsi}<br>
-                <b>Komoditas:</b> ${item.jenis_mp}<br>
-                <b>Target HPIK:</b> ${item.jenis_hpik}<br>
-                <b>Hasil Lab:</b> ${item.hasil_lab}
+        // Outer glow ring
+        L.circleMarker([item.lat, item.lng], {
+            radius: 17,
+            fillColor: color,
+            color: color,
+            weight: 1,
+            opacity: 0.25,
+            fillOpacity: 0.2
+        }).addTo(map);
+
+        circle.bindPopup(`
+            <div style="min-width:210px;font-family:'Inter',sans-serif;">
+                <div style="background:${color};color:white;padding:8px 12px;margin:-1px -1px 0 -1px;border-radius:6px 6px 0 0;font-weight:600;">
+                    ${item.kesimpulan}
+                </div>
+                <div style="padding:10px 12px;font-size:13px;line-height:1.7;">
+                    <div><b>📍 Lokasi:</b> ${item.lokasi}</div>
+                    <div><b>🏙️ Wilayah:</b> ${item.kab_kota}, ${item.provinsi}</div>
+                    <div><b>🐟 Komoditas:</b> ${item.jenis_mp}</div>
+                    <div><b>🦠 Target HPIK:</b> ${item.jenis_hpik}</div>
+                    <div><b>🔬 Hasil Lab:</b> ${item.hasil_lab}</div>
+                </div>
             </div>
-        `);
-        marker.bindTooltip('<b>' + item.lokasi + '</b><br><small>' + item.kab_kota + '</small>', { direction: 'top' });
+        `, { maxWidth: 280 });
+
+        circle.bindTooltip(
+            `<b>${item.lokasi}</b><br><small style="color:${color};">${item.kesimpulan}</small>`,
+            { direction: 'top', offset: [0, -8] }
+        );
     });
 
     if (markers.length > 0) {
         const group = L.featureGroup(markers.map(m => L.circleMarker([m.lat, m.lng])));
-        map.fitBounds(group.getBounds().pad(0.2));
+        map.fitBounds(group.getBounds().pad(0.25));
     }
 </script>
 @endsection

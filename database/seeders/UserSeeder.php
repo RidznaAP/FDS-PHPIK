@@ -28,12 +28,12 @@ class UserSeeder extends Seeder
             'upt_asal' => 'BBKHIT Jakarta',
         ]);
 
-        // Admin UPT (Lokal)
+        // Admin BKHIT (Lokal)
         User::create([
-            'name' => 'Admin UPT Aceh',
-            'email' => 'upt@fds.go.id',
+            'name' => 'Admin BKHIT Aceh',
+            'email' => 'bkhit@sip.go.id',
             'password' => Hash::make('password123'),
-            'role' => 'upt',
+            'role' => 'bkhit',
             'upt_asal' => 'Balai KHIT Aceh',
         ]);
     }

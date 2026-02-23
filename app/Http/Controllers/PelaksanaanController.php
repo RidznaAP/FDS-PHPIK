@@ -7,11 +7,48 @@ use App\Models\Pelaksanaan;
 
 class PelaksanaanController extends Controller
 {
-    // Menampilkan daftar pelaksanaan
-    public function index()
+    // Menampilkan daftar pelaksanaan (dengan search, filter status, & tahun)
+    public function index(Request $request)
     {
-        $pelaksanaans = Pelaksanaan::with('perencanaan')->latest()->get();
-        return view('pelaksanaan.index', compact('pelaksanaans'));
+        $query = Pelaksanaan::with(['perencanaan', 'laboratorium'])->latest();
+
+        // ── #8: Filter Tahun ─────────────────────────────────────────────
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_pemantauan', $request->tahun);
+        }
+
+        // Filter status lab
+        if ($request->filled('lab')) {
+            if ($request->lab === 'done') {
+                $query->whereHas('laboratorium');
+            } elseif ($request->lab === 'pending') {
+                $query->whereDoesntHave('laboratorium');
+            }
+        }
+
+        // Search keyword
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('lokasi_pengambilan_sampel', 'like', "%{$search}%")
+                  ->orWhere('jenis_ikan', 'like', "%{$search}%")
+                  ->orWhereHas('perencanaan', function ($rq) use ($search) {
+                      $rq->where('provinsi', 'like', "%{$search}%")
+                        ->orWhere('kab_kota', 'like', "%{$search}%")
+                        ->orWhere('jenis_mp', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Tahun yang tersedia (dari tanggal_pemantauan, fallback ke created_at)
+        $years = Pelaksanaan::selectRaw('YEAR(COALESCE(tanggal_pemantauan, created_at)) as tahun')
+            ->groupBy('tahun')
+            ->orderByDesc('tahun')
+            ->pluck('tahun')
+            ->filter();
+
+        $pelaksanaans = $query->paginate(15)->withQueryString();
+        return view('pelaksanaan.index', compact('pelaksanaans', 'years'));
     }
 
     // Form untuk mengisi pelaksanaan berdasarkan ID Perencanaan
@@ -22,24 +59,30 @@ class PelaksanaanController extends Controller
     }
 
     // Simpan data lapangan
-    public function store(Request $request) {
-    // Validasi sederhana agar data tidak kosong
-    $request->validate([
-        'perencanaan_id' => 'required',
-        'lokasi_pengambilan_sampel' => 'required',
-        'jumlah_sampel' => 'required|numeric',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'perencanaan_id'           => 'required|exists:perencanaans,id',
+            'lokasi_pengambilan_sampel'=> 'required|string',
+            'tanggal_pemantauan'       => 'required|date',
+            'jenis_ikan'               => 'required|string',
+            'jumlah_sampel'            => 'required|integer|min:1',
+            'metode_pengambilan_sampel'=> 'required|string',
+            'jumlah_kematian'          => 'nullable|integer|min:0',
+            'panjang_cm'               => 'nullable|numeric|min:0',
+            'berat_gram'               => 'nullable|numeric|min:0',
+            'padat_tebar'              => 'nullable|integer|min:0',
+            'latitude'                 => 'nullable|numeric',
+            'longitude'                => 'nullable|numeric',
+        ]);
 
-    // Simpan semua data dari form (termasuk lat & lng)
-    \App\Models\Pelaksanaan::create([
-        'perencanaan_id' => $request->perencanaan_id,
-        'lokasi_pengambilan_sampel' => $request->lokasi_pengambilan_sampel,
-        'jumlah_sampel' => $request->jumlah_sampel,
-        'metode_pengambilan_sampel' => $request->metode_pengambilan_sampel,
-        'latitude' => $request->latitude,   // Sekarang kita tangkap
-        'longitude' => $request->longitude, // Sekarang kita tangkap
-    ]);
+        \App\Models\Pelaksanaan::create($request->only([
+            'perencanaan_id', 'lokasi_pengambilan_sampel', 'tanggal_pemantauan',
+            'jenis_ikan', 'nama_latin', 'panjang_cm', 'berat_gram',
+            'asal_benih_induk', 'padat_tebar', 'gejala_klinis', 'jumlah_kematian',
+            'jumlah_sampel', 'metode_pengambilan_sampel', 'latitude', 'longitude',
+        ]));
 
-    return redirect()->route('perencanaan.index')->with('success', 'Data Lapangan Berhasil Disimpan!');
-}
+        return redirect()->route('perencanaan.index')->with('success', 'Data Lapangan Berhasil Disimpan!');
+    }
 }   

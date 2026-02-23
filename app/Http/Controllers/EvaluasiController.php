@@ -12,8 +12,8 @@ class EvaluasiController extends Controller
     // Daftar perencanaan yang perlu dievaluasi
     public function index()
     {
-        // Ambil perencanaan yang memiliki data pelaksanaan dan hasil lab lengkap
-        $perencanaans = Perencanaan::with(['pelaksanaans.laboratorium', 'evaluasi'])->latest()->get();
+        // Ambil perencanaan dengan data pelaksanaan dan hasil lab
+        $perencanaans = Perencanaan::with(['pelaksanaans.laboratorium', 'evaluasi'])->latest()->paginate(15)->withQueryString();
         return view('evaluasi.index', compact('perencanaans'));
     }
 

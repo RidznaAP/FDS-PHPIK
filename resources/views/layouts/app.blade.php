@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-    <title>@yield('title', 'FDS-HPIK') — Dashboard Pemantauan HPIK</title>
+    <title>@yield('title', 'SIP-HPIK') — Dashboard Pemantauan HPIK</title>
 
     {{-- Tabler CSS --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,7 @@
                 <h1 class="navbar-brand navbar-brand-autodark">
                     <a href="{{ route('home') }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
                         <span style="font-size:1.5rem;">🐟</span>
-                        <span class="navbar-brand-text" style="font-size:1.1rem;">FDS-HPIK</span>
+                        <span class="navbar-brand-text" style="font-size:1.1rem;">SIP-HPIK</span>
                     </a>
                 </h1>
 
@@ -145,19 +145,49 @@
                                 <span class="nav-link-title">Laporan & Ekspor</span>
                             </a>
                         </li>
+
+                        {{-- Manajemen Akun — hanya Pusat --}}
+                        @if(Auth::user()->isPusat())
+                        <li class="nav-item mt-2">
+                            <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">ADMIN</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is('pengguna*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <i class="ti ti-users" style="font-size:1.2rem;"></i>
+                                </span>
+                                <span class="nav-link-title">Manajemen Akun</span>
+                            </a>
+                        </li>
+                        @endif
                     </ul>
 
                     {{-- Bottom: User Profile --}}
                     <div class="mt-auto border-top pt-3 pb-2" style="border-color: rgba(255,255,255,0.1) !important;">
+                        {{-- Notification badge for BBKHIT/Pusat --}}
+                        @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
+                            @php $pendingCount = \App\Models\Perencanaan::where('status', 'waiting')->count(); @endphp
+                            @if($pendingCount > 0)
+                                <a href="{{ route('perencanaan.index') }}?status=waiting" class="d-flex align-items-center gap-2 px-3 py-2 mb-2 text-decoration-none" style="background:rgba(251,191,36,0.12);border-radius:8px;">
+                                    <i class="ti ti-bell-ringing text-warning" style="font-size:1.2rem;"></i>
+                                    <span class="text-warning small fw-semibold">{{ $pendingCount }} menunggu approval</span>
+                                </a>
+                            @endif
+                        @endif
+
                         <div class="d-flex align-items-center gap-2 px-2">
-                            <span class="avatar avatar-sm flex-shrink-0" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                            </span>
+                            <a href="{{ route('profile.index') }}" class="text-decoration-none">
+                                <span class="avatar avatar-sm flex-shrink-0" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </span>
+                            </a>
                             <div class="flex-fill text-truncate" style="min-width:0;">
-                                <div class="text-white fw-semibold small text-truncate">{{ Auth::user()->name }}</div>
+                                <a href="{{ route('profile.index') }}" class="text-decoration-none">
+                                    <div class="text-white fw-semibold small text-truncate">{{ Auth::user()->name }}</div>
+                                </a>
                                 <div class="mt-1">
                                     @if(Auth::user()->isUpt())
-                                        <span class="badge badge-sm role-badge" style="background:#10b981;">UPT</span>
+                                        <span class="badge badge-sm role-badge" style="background:#10b981;">BKHIT</span>
                                     @elseif(Auth::user()->isBbkhit())
                                         <span class="badge badge-sm role-badge" style="background:#f59e0b;">BBKHIT</span>
                                     @else
@@ -191,7 +221,7 @@
                                 @yield('page_title', 'Dashboard')
                             </h2>
                             <div class="text-secondary mt-1 small">
-                                @yield('page_subtitle', 'Sistem Pemantauan HPIK — FDS')
+                                @yield('page_subtitle', 'Sistem Informasi Pemantauan HPIK')
                             </div>
                         </div>
                         <div class="col-auto ms-auto d-print-none">
@@ -205,19 +235,21 @@
             <div class="page-body">
                 <div class="container-xl">
 
-                    {{-- Flash Messages --}}
+                    {{-- Flash Messages (auto-dismiss 4s) --}}
                     @if(session('success'))
-                    <div class="alert alert-success alert-dismissible mb-3" role="alert">
-                        <div class="d-flex">
-                            <div><i class="ti ti-check me-2"></i>{{ session('success') }}</div>
+                    <div class="alert alert-success alert-dismissible mb-3" role="alert" id="flash-msg" style="animation: slideInDown .3s ease;">
+                        <div class="d-flex align-items-center">
+                            <span class="avatar avatar-sm me-3 bg-success" style="border-radius:8px;"><i class="ti ti-check"></i></span>
+                            <div>{{ session('success') }}</div>
                         </div>
                         <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
                     </div>
                     @endif
                     @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible mb-3" role="alert">
-                        <div class="d-flex">
-                            <div><i class="ti ti-alert-circle me-2"></i>{{ session('error') }}</div>
+                    <div class="alert alert-danger alert-dismissible mb-3" role="alert" id="flash-msg" style="animation: slideInDown .3s ease;">
+                        <div class="d-flex align-items-center">
+                            <span class="avatar avatar-sm me-3 bg-danger" style="border-radius:8px;"><i class="ti ti-alert-circle"></i></span>
+                            <div>{{ session('error') }}</div>
                         </div>
                         <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
                     </div>
@@ -232,7 +264,7 @@
                 <div class="container-xl">
                     <div class="row text-center align-items-center flex-row-reverse">
                         <div class="col-lg-auto ms-lg-auto">
-                            <small class="text-muted">FDS-HPIK &copy; {{ date('Y') }} — Direktorat Jenderal Perikanan</small>
+                            <small class="text-muted">SIP-HPIK &copy; {{ date('Y') }} — Deputi Karantina Ikan</small>
                         </div>
                     </div>
                 </div>

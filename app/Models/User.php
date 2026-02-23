@@ -26,9 +26,15 @@ class User extends Authenticatable
     ];
 
     // Helper methods untuk cek role
+    public function isBkhit(): bool
+    {
+        return $this->role === 'bkhit';
+    }
+
+    // Alias backward-compat
     public function isUpt(): bool
     {
-        return $this->role === 'upt';
+        return $this->isBkhit();
     }
 
     public function isBbkhit(): bool
