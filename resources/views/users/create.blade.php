@@ -79,13 +79,28 @@
                         </div>
 
                         {{-- Instansi --}}
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label">BKHIT / Instansi Asal</label>
                             <input type="text" name="upt_asal"
                                 class="form-control"
                                 value="{{ old('upt_asal') }}"
                                 placeholder="Contoh: Balai KHIT Aceh">
-                            <div class="text-muted small mt-1">Opsional — nama unit kerja atau instansi</div>
+                            <div class="text-muted small mt-1">Opsional — nama unit kerja</div>
+                        </div>
+
+                        {{-- Koordinator Selector (Hanya untuk BKHIT) --}}
+                        <div class="col-md-6" id="coordinator_container" style="{{ old('role') === 'bkhit' ? '' : 'display:none;' }}">
+                            <label class="form-label">Koordinator Wilayah (BBKHIT)</label>
+                            <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
+                                <option value="">— Pilih Koordinator (Optional) —</option>
+                                @foreach($coordinators as $c)
+                                    <option value="{{ $c->id }}" {{ old('parent_id') == $c->id ? 'selected' : '' }}>
+                                        {{ $c->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="text-muted small mt-1">Pilih BBKHIT yang membawahi unit ini</div>
+                            @error('parent_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         {{-- Password --}}
@@ -158,5 +173,19 @@ function togglePw(inputId, iconId) {
         ic.classList.replace('ti-eye-off', 'ti-eye');
     }
 }
+
+// Logic to show/hide coordinator field
+document.querySelectorAll('input[name="role"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        var container = document.getElementById('coordinator_container');
+        if (this.value === 'bkhit') {
+            container.style.display = '';
+        } else {
+            container.style.display = 'none';
+            // Optional: reset value if not BKHIT
+            container.querySelector('select').value = '';
+        }
+    });
+});
 </script>
 @endsection

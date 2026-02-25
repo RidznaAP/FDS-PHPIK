@@ -68,6 +68,21 @@
                         @error('upt_asal')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
+                    {{-- Koordinator Selector (Hanya untuk BKHIT) --}}
+                    <div class="mb-3" id="coordinator_container" style="{{ (old('role', $user->role) === 'bkhit') ? '' : 'display:none;' }}">
+                        <label class="form-label">Koordinator Wilayah (BBKHIT)</label>
+                        <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
+                            <option value="">— Pilih Koordinator (Optional) —</option>
+                            @foreach($coordinators ?? [] as $c)
+                                <option value="{{ $c->id }}" {{ old('parent_id', $user->parent_id) == $c->id ? 'selected' : '' }}>
+                                    {{ $c->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="text-muted small mt-1">Pilih BBKHIT yang membawahi unit ini</div>
+                        @error('parent_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
                     <div class="alert alert-info py-2">
                         <i class="ti ti-info-circle me-1"></i>
                         <strong>Password</strong> tidak berubah saat edit data. Gunakan tombol <em>Reset PW</em> di halaman daftar pengguna untuk mengubah password.
@@ -83,4 +98,24 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var roleSelect = document.querySelector('select[name="role"]');
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            var container = document.getElementById('coordinator_container');
+            if (this.value === 'bkhit') {
+                container.style.display = '';
+            } else {
+                container.style.display = 'none';
+                var select = container.querySelector('select');
+                if (select) select.value = '';
+            }
+        });
+    }
+});
+</script>
 @endsection

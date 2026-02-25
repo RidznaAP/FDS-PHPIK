@@ -23,13 +23,23 @@
 
             <div class="form-group">
                 <label class="form-lbl">Password</label>
-                <input type="password" name="password" class="form-input @error('password') error @enderror" placeholder="Minimal 8 karakter" required>
+                <div class="input-group-pw">
+                    <input type="password" name="password" id="password" class="form-input @error('password') error @enderror" placeholder="••••••••" required>
+                    <button type="button" class="pw-toggle" onclick="togglePassword('password', 'eye-icon-1')" title="Lihat password">
+                        <i class="ti ti-eye" id="eye-icon-1" style="font-size: 1.2rem;"></i>
+                    </button>
+                </div>
                 @error('password')<div class="error-msg">{{ $message }}</div>@enderror
             </div>
 
             <div class="form-group">
                 <label class="form-lbl">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" class="form-input" placeholder="Ulangi password" required>
+                <div class="input-group-pw">
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-input" placeholder="••••••••" required>
+                    <button type="button" class="pw-toggle" onclick="togglePassword('password_confirmation', 'eye-icon-2')" title="Lihat password">
+                        <i class="ti ti-eye" id="eye-icon-2" style="font-size: 1.2rem;"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn-submit">Buat Akun Baru</button>

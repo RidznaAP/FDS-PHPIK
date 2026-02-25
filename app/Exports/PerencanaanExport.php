@@ -16,7 +16,18 @@ class PerencanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
 {
     public function collection()
     {
-        return Perencanaan::all()->map(function ($p, $i) {
+        $user = auth()->user();
+        $query = Perencanaan::query();
+
+        if ($user->isBkhit()) {
+            $query->where('user_id', $user->id);
+        } elseif ($user->isBbkhit()) {
+            $query->whereIn('user_id', function($q) use ($user) {
+                $q->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+            });
+        }
+
+        return $query->get()->map(function ($p, $i) {
             return [
                 'No'                => $i + 1,
                 'Provinsi'          => $p->provinsi,

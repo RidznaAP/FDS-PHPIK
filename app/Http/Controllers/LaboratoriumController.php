@@ -11,15 +11,43 @@ class LaboratoriumController extends Controller
     // Tampilkan daftar sampel yang perlu diuji (ambil dari Pelaksanaan)
     public function index()
     {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium'])->latest();
+
+        // ── Auth-scoped Filtering ──────────────────────────────────────
+        if ($user->isBkhit()) {
+            $query->whereHas('perencanaan', fn($q) => $q->where('user_id', $user->id));
+        } elseif ($user->isBbkhit()) {
+            $query->whereHas('perencanaan', function($q) use ($user) {
+                $q->whereIn('user_id', function($rq) use ($user) {
+                    $rq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+                });
+            });
+        }
+
         // Ambil data pelaksanaan dengan info lab
-        $pelaksanaans = Pelaksanaan::with(['perencanaan', 'laboratorium'])->latest()->paginate(15)->withQueryString();
+        $pelaksanaans = $query->paginate(15)->withQueryString();
         return view('laboratorium.index', compact('pelaksanaans'));
     }
 
     // Form input hasil laboratorium
     public function create($id)
     {
-        $pelaksanaan = Pelaksanaan::with('perencanaan')->findOrFail($id);
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $pelaksanaan = Pelaksanaan::with(['perencanaan.user'])->findOrFail($id);
+
+        // ── Auth-scoped Check ──────────────────────────────────────
+        if ($user->isBkhit() && $pelaksanaan->perencanaan->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses ke data ini.');
+        }
+
+        if ($user->isBbkhit()) {
+            $owner = $pelaksanaan->perencanaan->user;
+            if ($pelaksanaan->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
+                abort(403, 'Data ini berada di luar wilayah koordinasi Anda.');
+            }
+        }
+
         return view('laboratorium.create', compact('pelaksanaan'));
     }
 
@@ -53,5 +81,12 @@ class LaboratoriumController extends Controller
         ]));
 
         return redirect()->route('laboratorium.index')->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
+    }
+
+    // ── Show Detail Laboratorium ─────────────────────────────────────────
+    public function show($id)
+    {
+        $lab = Laboratorium::with('pelaksanaan.perencanaan')->findOrFail($id);
+        return view('laboratorium.show', compact('lab'));
     }
 }

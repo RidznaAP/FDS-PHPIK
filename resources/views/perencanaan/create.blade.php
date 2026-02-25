@@ -17,7 +17,10 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label required">Provinsi</label>
-                            <input type="text" name="provinsi" class="form-control @error('provinsi') is-invalid @enderror" value="{{ old('provinsi') }}" placeholder="Contoh: Jawa Barat" required>
+                            <input type="text" name="provinsi" class="form-control @error('provinsi') is-invalid @enderror" 
+                                value="{{ old('provinsi', (Auth::user()->isBkhit() || Auth::user()->isBbkhit()) ? Auth::user()->name : '') }}" 
+                                placeholder="Contoh: Jawa Barat" required
+                                @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit()) readonly @endif>
                             @error('provinsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
@@ -27,11 +30,42 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Jenis MP (Media Pembawa)</label>
-                            <input type="text" name="jenis_mp" class="form-control" value="{{ old('jenis_mp') }}" placeholder="Contoh: Udang Vaname" required>
+                            <input type="text" name="jenis_mp" list="mp-list"
+                                class="form-control" value="{{ old('jenis_mp') }}"
+                                placeholder="Pilih atau ketik nama ikan/udang..." required autocomplete="off">
+                            <datalist id="mp-list">
+                                @foreach($mediaPembawas ?? [] as $mp)
+                                    <option value="{{ $mp->nama }}"
+                                        @if($mp->nama_latin) label="{{ $mp->nama_latin }}" @endif>
+                                @endforeach
+                            </datalist>
+                            @if(($mediaPembawas ?? collect())->isEmpty())
+                                <div class="form-hint text-warning">
+                                    <i class="ti ti-alert-triangle me-1"></i>
+                                    Belum ada master data. <a href="{{ route('master.media-pembawa.create') }}">Tambahkan</a> terlebih dahulu atau ketik manual.
+                                </div>
+                            @else
+                                <div class="form-hint">Pilih dari daftar atau ketik nama baru.</div>
+                            @endif
                         </div>
                         <div class="col-md-6">
                             <label class="form-label required">Jenis HPIK (Target)</label>
-                            <input type="text" name="jenis_hpik" class="form-control" value="{{ old('jenis_hpik') }}" placeholder="Contoh: White Spot Syndrome Virus" required>
+                            <input type="text" name="jenis_hpik" list="hpik-list"
+                                class="form-control" value="{{ old('jenis_hpik') }}"
+                                placeholder="Pilih atau ketik jenis penyakit..." required autocomplete="off">
+                            <datalist id="hpik-list">
+                                @foreach($jenisPenyakits ?? [] as $jp)
+                                    <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}">
+                                @endforeach
+                            </datalist>
+                            @if(($jenisPenyakits ?? collect())->isEmpty())
+                                <div class="form-hint text-warning">
+                                    <i class="ti ti-alert-triangle me-1"></i>
+                                    Belum ada master data. <a href="{{ route('master.jenis-penyakit.create') }}">Tambahkan</a> atau ketik manual.
+                                </div>
+                            @else
+                                <div class="form-hint">Pilih dari daftar atau ketik nama baru.</div>
+                            @endif
                         </div>
                         <div class="col-md-4">
                             <label class="form-label required">Kemampuan Uji UPT</label>

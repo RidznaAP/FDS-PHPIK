@@ -1,0 +1,187 @@
+/* 
+   SIP-HPIK Premium Design System 
+   Focus: Glassmorphism, Micro-interactions, and Modern Aesthetics
+*/
+
+:root {
+    --premium-blue: #206bc4;
+    --premium-glass: rgba(255, 255, 255, 0.7);
+    --premium-glass-border: rgba(255, 255, 255, 0.3);
+    --premium-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --premium-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glassmorphism Cards */
+.card-premium {
+    background: var(--premium-glass);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--premium-glass-border);
+    box-shadow: var(--premium-shadow);
+    transition: var(--premium-transition);
+}
+
+.card-premium:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+}
+
+/* Enhanced Table Rows */
+.table-vcenter tr {
+    transition: var(--premium-transition);
+}
+
+.table-vcenter tbody tr:hover {
+    background-color: rgba(32, 107, 196, 0.03) !important;
+}
+
+/* Smoother Buttons */
+.btn {
+    transition: var(--premium-transition) !important;
+    text-transform: none;
+    letter-spacing: 0.1px;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+/* Premium Sidebar Redesign V3 (Following Latest Reference Image) */
+.navbar-vertical {
+    background: #1e293b !important;
+    /* Deep Slate/Blue background */
+    border-right: none !important;
+}
+
+.navbar-vertical .nav-link {
+    color: #ffffff !important;
+    /* Pure white for all menu items */
+    font-weight: 500;
+    font-size: 1rem;
+    /* Larger font size */
+    margin: 6px 14px;
+    border-radius: 12px;
+    padding: 12px 18px !important;
+    transition: all 0.2s ease;
+}
+
+.navbar-vertical .nav-link:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-vertical .nav-link.active {
+    background: #3b82f6 !important;
+    /* Vibrant Solid Blue (As per image) */
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border: none !important;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Clear old active indicators */
+.navbar-vertical .nav-link.active::after {
+    display: none !important;
+}
+
+.navbar-vertical .nav-link.active .nav-link-icon,
+.navbar-vertical .nav-link.active i {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.navbar-vertical .nav-link .nav-link-icon,
+.navbar-vertical .nav-link i {
+    color: #ffffff;
+    /* Pure white icons */
+    font-size: 1.2rem;
+}
+
+/* Sidebar Section Headers */
+.navbar-vertical .nav-link-title.text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 0.8rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding-left: 32px !important;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* User Pill Top Sidebar */
+.user-pill {
+    background: #1f1f1f;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-pill:hover {
+    background: #282828;
+}
+
+/* Sidebar Status Card Bottom */
+.status-card {
+    background: #1f1f1f;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 10px 10px;
+}
+
+/* Modern Inputs */
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(32, 107, 196, 0.15);
+    border-color: #3b82f6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Animation Utilities */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fix for search bar container width */
+.col form.input-icon {
+    max-width: 400px;
+}
+
+/* Vertical Layout Fix */
+@media (min-width: 992px) {
+    .navbar-vertical.navbar-expand-lg {
+        display: block !important;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}

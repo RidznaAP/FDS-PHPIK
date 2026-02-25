@@ -5,7 +5,7 @@
 @section('page_subtitle', 'Daftar rencana pemantauan HPIK')
 
 @section('page_actions')
-    @if(Auth::user()->isBkhit())
+    @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
         <a href="{{ route('perencanaan.create') }}" class="btn btn-primary d-none d-sm-inline-flex">
             <i class="ti ti-plus me-1"></i> Perencanaan Baru
         </a>
@@ -105,31 +105,40 @@
                     </td>
                     <td>
                         <div class="btn-list flex-nowrap">
-                            {{-- BKHIT: Draft actions (Edit · Hapus · Ajukan) --}}
-                            @if(Auth::user()->isBkhit())
+                            <a href="{{ route('perencanaan.show', $p->id) }}"
+                               class="btn btn-sm btn-outline-primary" title="Detail">
+                                <i class="ti ti-eye"></i>
+                            </a>
+
+                            {{-- BKHIT/BBKHIT: Draft actions (Edit · Hapus · Ajukan) --}}
+                            @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
                                 @if($p->status === 'draft' && $p->user_id === Auth::id())
                                     {{-- Edit --}}
                                     <a href="{{ route('perencanaan.edit', $p->id) }}"
                                        class="btn btn-sm btn-outline-secondary" title="Edit">
                                         <i class="ti ti-pencil"></i>
                                     </a>
-                                    {{-- Hapus --}}
-                                    <form action="{{ route('perencanaan.destroy', $p->id) }}" method="POST" class="d-inline">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger" title="Hapus"
-                                            onclick="return confirm('Yakin hapus perencanaan ini?')">
-                                            <i class="ti ti-trash"></i>
-                                        </button>
-                                    </form>
-                                    {{-- Ajukan --}}
-                                    <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button class="btn btn-sm btn-warning"
-                                            onclick="return confirm('Ajukan perencanaan ini untuk validasi?')">
-                                            <i class="ti ti-send me-1"></i>Ajukan
-                                        </button>
-                                    </form>
-                                @elseif($p->status === 'approved')
+                                     {{-- Hapus --}}
+                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                         onclick="confirmAction(
+                                             '{{ route('perencanaan.destroy', $p->id) }}',
+                                             'Perencanaan untuk {{ $p->provinsi }} ({{ $p->jenis_hpik }}) akan dihapus permanen.',
+                                             'DELETE', 'btn-danger', '🗑️', 'Hapus Perencanaan'
+                                         )">
+                                         <i class="ti ti-trash"></i>
+                                     </button>
+                                     {{-- Ajukan --}}
+                                     <button type="button" class="btn btn-sm btn-warning"
+                                         onclick="confirmAction(
+                                             '{{ route('perencanaan.submit', $p->id) }}',
+                                             'Perencanaan ini akan diajukan untuk divalidasi. Pastikan data sudah lengkap.',
+                                             'POST', 'btn-warning', '📤', 'Ajukan Validasi'
+                                         )">
+                                         <i class="ti ti-send me-1"></i>Ajukan
+                                     </button>
+                                @endif
+                                
+                                @if(($p->user_id === Auth::id()) && $p->status === 'approved')
                                     <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-sm btn-primary">
                                         <i class="ti ti-plus me-1"></i>Input Lapangan
                                     </a>
@@ -139,13 +148,14 @@
                             {{-- BBKHIT/Pusat: Setujui / Evaluasi --}}
                             @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
                                 @if($p->status === 'waiting')
-                                    <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button class="btn btn-sm btn-success"
-                                            onclick="return confirm('Setujui perencanaan ini?')">
-                                            <i class="ti ti-check me-1"></i>Setujui
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-success"
+                                        onclick="confirmAction(
+                                            '{{ route('perencanaan.approve', $p->id) }}',
+                                            'Perencanaan untuk {{ $p->provinsi }} ({{ $p->jenis_hpik }}) akan disetujui dan BKHIT dapat mulai input lapangan.',
+                                            'POST', 'btn-success', '✅', 'Setujui Perencanaan'
+                                        )">
+                                        <i class="ti ti-check me-1"></i>Setujui
+                                    </button>
                                 @elseif($p->status === 'approved' && !$p->evaluasi)
                                     <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-orange">
                                         <i class="ti ti-chart-bar me-1"></i>Evaluasi
@@ -160,11 +170,11 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">
+                    <td colspan="7" class="text-center py-4 text-muted">
                         <i class="ti ti-clipboard-list" style="font-size:2.5rem; opacity:.2;"></i>
                         <div class="mt-2 fw-semibold">Belum ada data perencanaan</div>
                         <div class="text-muted small mb-3">@if(request('search') || request('status'))Tidak ada hasil yang cocok dengan filter.@else Belum ada perencanaan yang dibuat.@endif</div>
-                        @if(Auth::user()->isBkhit())
+                        @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
                             <a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-sm"><i class="ti ti-plus me-1"></i>Buat Perencanaan</a>
                         @endif
                     </td>

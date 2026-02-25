@@ -170,7 +170,52 @@
             </div>
 
             {{-- ============================================================ --}}
-            {{-- CARD 5: Koordinat GPS --}}
+            {{-- CARD 6: D. Identitas Pengambil Contoh Uji                   --}}
+            {{-- ============================================================ --}}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-user-check me-2"></i>D. Identitas Pengambil Contoh Uji
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        <i class="ti ti-info-circle me-1"></i>
+                        Masukkan nama seluruh petugas yang melakukan pengambilan contoh uji di lapangan.
+                    </p>
+                    <div id="petugas-list">
+                        {{-- Baris default: 3 nama petugas --}}
+                        @foreach(['1','2','3'] as $i)
+                        <div class="row g-2 mb-2 petugas-row align-items-center">
+                            <div class="col-auto" style="min-width:28px;">
+                                <span class="text-muted small fw-semibold">{{ $i }}.</span>
+                            </div>
+                            <div class="col">
+                                <input type="text" name="pengambil_sampel[]"
+                                    class="form-control form-control-sm"
+                                    placeholder="Nama Petugas {{ $i }}"
+                                    value="{{ old('pengambil_sampel.' . ($i-1)) }}">
+                            </div>
+                            @if($i !== '1')
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm btn-ghost-danger" onclick="removePetugas(this)" title="Hapus baris">
+                                    <i class="ti ti-x"></i>
+                                </button>
+                            </div>
+                            @else
+                            <div class="col-auto" style="width:38px;"></div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addPetugas()">
+                        <i class="ti ti-plus me-1"></i>Tambah Petugas
+                    </button>
+                </div>
+            </div>
+
+            {{-- ============================================================ --}}
+            {{-- CARD 7: Koordinat GPS --}}
             {{-- ============================================================ --}}
             <div class="card mb-3">
                 <div class="card-header">
@@ -215,6 +260,7 @@
 
 @section('scripts')
 <script>
+// ── GPS ───────────────────────────────────────────────────────────────────
 function getLocation() {
     var statusEl = document.getElementById('geo-status');
     statusEl.style.display = 'block';
@@ -236,6 +282,32 @@ function getLocation() {
         },
         { enableHighAccuracy: true, timeout: 10000 }
     );
+}
+
+// ── Petugas Pengambil Sampel ──────────────────────────────────────────────
+function addPetugas() {
+    var list = document.getElementById('petugas-list');
+    var rows = list.querySelectorAll('.petugas-row');
+    var num  = rows.length + 1;
+    var row  = document.createElement('div');
+    row.className = 'row g-2 mb-2 petugas-row align-items-center';
+    row.innerHTML =
+        '<div class="col-auto" style="min-width:28px;"><span class="text-muted small fw-semibold row-num">' + num + '.</span></div>' +
+        '<div class="col"><input type="text" name="pengambil_sampel[]" class="form-control form-control-sm" placeholder="Nama Petugas ' + num + '"></div>' +
+        '<div class="col-auto"><button type="button" class="btn btn-sm btn-ghost-danger" onclick="removePetugas(this)" title="Hapus baris"><i class="ti ti-x"></i></button></div>';
+    list.appendChild(row);
+}
+
+function removePetugas(btn) {
+    btn.closest('.petugas-row').remove();
+    // Re-number remaining rows
+    document.querySelectorAll('#petugas-list .petugas-row').forEach(function(row, idx) {
+        var num = idx + 1;
+        var label = row.querySelector('.row-num');
+        if (label) label.textContent = num + '.';
+        var input = row.querySelector('input');
+        if (input) input.placeholder = 'Nama Petugas ' + num;
+    });
 }
 </script>
 @endsection

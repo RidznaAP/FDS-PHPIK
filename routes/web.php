@@ -38,8 +38,8 @@ Route::middleware('auth')->group(function () {
 
     // --- Modul Perencanaan ---
     Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan.index');
-    // Hanya UPT yang bisa tambah perencanaan & ajukan validasi
-    Route::middleware('role:bkhit')->group(function () {
+    // Modul Perencanaan: BKHIT & BBKHIT bisa tambah/edit
+    Route::middleware('role:bkhit,bbkhit')->group(function () {
         Route::get('/perencanaan/tambah', [PerencanaanController::class, 'create'])->name('perencanaan.create');
         Route::post('/perencanaan/simpan', [PerencanaanController::class, 'store'])->name('perencanaan.store');
         Route::post('/perencanaan/submit/{id}', [PerencanaanController::class, 'submit'])->name('perencanaan.submit');
@@ -54,9 +54,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/perencanaan/approve/{id}', [PerencanaanController::class, 'approve'])->name('perencanaan.approve');
     });
 
+    // Detail Perencanaan (semua role bisa lihat)
+    Route::get('/perencanaan/{id}', [PerencanaanController::class, 'show'])->name('perencanaan.show');
+
     // --- Modul Pelaksanaan ---
     Route::get('/pelaksanaan', [PelaksanaanController::class, 'index'])->name('pelaksanaan.index');
-    Route::middleware('role:bkhit')->group(function () {
+    // Detail Pelaksanaan (semua role bisa lihat)
+    Route::get('/pelaksanaan/{id}/detail', [PelaksanaanController::class, 'show'])->name('pelaksanaan.show');
+    Route::middleware('role:bkhit,bbkhit')->group(function () {
         Route::get('/pelaksanaan/tambah/{id}', [PelaksanaanController::class, 'create'])->name('pelaksanaan.create');
         Route::post('/pelaksanaan/simpan', [PelaksanaanController::class, 'store'])->name('pelaksanaan.store');
     });
@@ -64,6 +69,8 @@ Route::middleware('auth')->group(function () {
     // --- Modul Laboratorium ---
     // Semua bisa lihat, tapi input dibatasi
     Route::get('/laboratorium', [LaboratoriumController::class, 'index'])->name('laboratorium.index');
+    Route::get('/laboratorium/{id}/detail', [LaboratoriumController::class, 'show'])->name('laboratorium.show');
+
     Route::middleware('role:bkhit,bbkhit')->group(function () {
         Route::get('/laboratorium/input/{id}', [LaboratoriumController::class, 'create'])->name('laboratorium.create');
         Route::post('/laboratorium/simpan', [LaboratoriumController::class, 'store'])->name('laboratorium.store');
@@ -72,6 +79,8 @@ Route::middleware('auth')->group(function () {
     // --- Modul Evaluasi ---
     // Semua bisa lihat hasil evaluasi
     Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
+    Route::get('/evaluasi/{id}/detail', [EvaluasiController::class, 'show'])->name('evaluasi.show');
+
     // Hanya BBKHIT & Pusat yang boleh evaluasi status akhir
     Route::middleware('role:bbkhit,pusat')->group(function () {
         Route::get('/evaluasi/input/{id}', [EvaluasiController::class, 'create'])->name('evaluasi.create');
@@ -84,6 +93,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/export/perencanaan', [\App\Http\Controllers\LaporanController::class, 'exportPerencanaan'])->name('laporan.export.perencanaan');
     Route::get('/laporan/export/pelaksanaan', [\App\Http\Controllers\LaporanController::class, 'exportPelaksanaan'])->name('laporan.export.pelaksanaan');
+    // #13 & #14: PDF print + per wilayah
+    Route::get('/laporan/pdf', [\App\Http\Controllers\LaporanController::class, 'exportPdf'])->name('laporan.pdf');
+    Route::get('/laporan/formulir', [\App\Http\Controllers\LaporanController::class, 'exportFormulir'])->name('laporan.formulir');
 
     // --- Manajemen Pengguna (hanya Pusat) ---
     Route::middleware('role:pusat')->group(function () {
@@ -95,5 +107,28 @@ Route::middleware('auth')->group(function () {
         // #5: Edit Pengguna
         Route::get('/pengguna/edit/{id}', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::put('/pengguna/update/{id}', [UserManagementController::class, 'update'])->name('users.update');
+    });
+
+    // --- Master Data (hanya Pusat) ---
+    Route::middleware('role:pusat')->group(function () {
+        // Media Pembawa Actions
+        Route::get('master/media-pembawa/export', [\App\Http\Controllers\MediaPembawaController::class, 'export'])->name('master.media-pembawa.export');
+        Route::get('master/media-pembawa/template', [\App\Http\Controllers\MediaPembawaController::class, 'downloadTemplate'])->name('master.media-pembawa.template');
+        Route::post('master/media-pembawa/import', [\App\Http\Controllers\MediaPembawaController::class, 'import'])->name('master.media-pembawa.import');
+        Route::post('master/media-pembawa/bulk-delete', [\App\Http\Controllers\MediaPembawaController::class, 'bulkDelete'])->name('master.media-pembawa.bulk-delete');
+
+        Route::resource('master/media-pembawa', \App\Http\Controllers\MediaPembawaController::class)
+            ->names('master.media-pembawa')
+            ->parameters(['media-pembawa' => 'mediaPembawa']);
+
+        // Jenis Penyakit Actions
+        Route::get('master/jenis-penyakit/export', [\App\Http\Controllers\JenisPenyakitController::class, 'export'])->name('master.jenis-penyakit.export');
+        Route::get('master/jenis-penyakit/template', [\App\Http\Controllers\JenisPenyakitController::class, 'downloadTemplate'])->name('master.jenis-penyakit.template');
+        Route::post('master/jenis-penyakit/import', [\App\Http\Controllers\JenisPenyakitController::class, 'import'])->name('master.jenis-penyakit.import');
+        Route::post('master/jenis-penyakit/bulk-delete', [\App\Http\Controllers\JenisPenyakitController::class, 'bulkDelete'])->name('master.jenis-penyakit.bulk-delete');
+
+        Route::resource('master/jenis-penyakit', \App\Http\Controllers\JenisPenyakitController::class)
+            ->names('master.jenis-penyakit')
+            ->parameters(['jenis-penyakit' => 'jenisPenyakit']);
     });
 });

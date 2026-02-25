@@ -18,14 +18,14 @@
             </div>
 
             <div class="form-group">
-                <label class="form-lbl">
-                    Password
-                    <a href="{{ route('password.request') }}">Lupa password?</a>
-                </label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label class="form-lbl" style="margin-bottom: 0;">Password</label>
+                    <a href="{{ route('password.request') }}" style="font-size: 0.8rem; color: #2563eb; text-decoration: none; font-weight: 600;">Lupa password?</a>
+                </div>
                 <div class="input-group-pw">
-                    <input type="password" name="password" id="password" class="form-input @error('password') error @enderror" placeholder="Password Anda" required>
+                    <input type="password" name="password" id="password" class="form-input @error('password') error @enderror" placeholder="••••••••" required>
                     <button type="button" class="pw-toggle" onclick="togglePassword()" title="Lihat password">
-                        <i class="ti ti-eye" id="eye-icon"></i>
+                        <i class="ti ti-eye" id="eye-icon" style="font-size: 1.2rem;"></i>
                     </button>
                 </div>
                 @error('password')
@@ -33,7 +33,7 @@
                 @enderror
             </div>
 
-            <div class="check-row">
+            <div class="check-row" onclick="document.getElementById('remember').click()">
                 <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
                 <label for="remember">Ingat Saya</label>
             </div>

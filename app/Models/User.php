@@ -23,12 +23,29 @@ class User extends Authenticatable
         'password',
         'role',
         'upt_asal',
+        'parent_id',
     ];
 
-    // Helper methods untuk cek role
+    /**
+     * Relasi ke Koordinator (BBKHIT)
+     */
+    public function coordinator()
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    /**
+     * Relasi ke Unit-Unit di bawah koordinasi (untuk BBKHIT)
+     */
+    public function units()
+    {
+        return $this->hasMany(User::class, 'parent_id');
+    }
+
+    // Helper methods untuk cek role (Normalized)
     public function isBkhit(): bool
     {
-        return $this->role === 'bkhit';
+        return trim(strtolower($this->role)) === 'bkhit';
     }
 
     // Alias backward-compat
@@ -39,12 +56,12 @@ class User extends Authenticatable
 
     public function isBbkhit(): bool
     {
-        return $this->role === 'bbkhit';
+        return trim(strtolower($this->role)) === 'bbkhit';
     }
 
     public function isPusat(): bool
     {
-        return $this->role === 'pusat';
+        return trim(strtolower($this->role)) === 'pusat';
     }
 
     /**

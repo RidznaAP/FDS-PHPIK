@@ -56,20 +56,28 @@
                         @endif
                     </td>
                     <td>
-                        @if(!$p->evaluasi && $p->status === 'approved')
-                            <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-warning">
-                                <i class="ti ti-chart-bar me-1"></i>Evaluasi
-                            </a>
-                        @elseif($p->evaluasi)
-                            <span class="text-muted small">—</span>
-                        @else
-                            <span class="badge bg-secondary-lt text-muted small">Belum Disetujui</span>
-                        @endif
+                        <div class="btn-list flex-nowrap">
+                            @if($p->evaluasi)
+                                <a href="{{ route('evaluasi.show', $p->evaluasi->id) }}" class="btn btn-sm btn-outline-info" title="Detail Evaluasi">
+                                    <i class="ti ti-chart-bar me-1"></i>Detail
+                                </a>
+                            @else
+                                <a href="{{ route('perencanaan.show', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Detail Perencanaan">
+                                    <i class="ti ti-eye me-1"></i>Rinci
+                                </a>
+                            @endif
+
+                            @if(!$p->evaluasi && $p->status === 'approved' && (Auth::user()->isBbkhit() || Auth::user()->isPusat()))
+                                <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-warning">
+                                    <i class="ti ti-plus me-1"></i>Evaluasi
+                                </a>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="text-center py-5 text-muted">
+                    <td colspan="8" class="text-center py-5 text-muted">
                         <i class="ti ti-chart-bar" style="font-size:2rem;opacity:.3;"></i>
                         <div class="mt-2">Belum ada data untuk dievaluasi.</div>
                     </td>

@@ -18,15 +18,30 @@ class HomeController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $isBkhit = $user->isBkhit();
+        
+        // ── Auth-scoped Data Selection ──────────────────────────────────
+        if ($user->isBkhit()) {
+            // BKHIT: data sendiri
+            $perencanaanQuery = Perencanaan::where('user_id', $user->id);
+            $pelaksanaanQuery = Pelaksanaan::whereHas('perencanaan', fn($q) => $q->where('user_id', $user->id));
+        } elseif ($user->isBbkhit()) {
+            // BBKHIT: data sendiri + unit di bawah koordinasinya
+            $perencanaanQuery = Perencanaan::whereIn('user_id', function($q) use ($user) {
+                $q->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+            });
+            $pelaksanaanQuery = Pelaksanaan::whereHas('perencanaan', function($q) use ($user) {
+                $q->whereIn('user_id', function($rq) use ($user) {
+                    $rq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+                });
+            });
+        } else {
+            // PUSAT/Lainnya: semua data
+            $perencanaanQuery = Perencanaan::query();
+            $pelaksanaanQuery = Pelaksanaan::query();
+        }
 
-        // ── #10: Scoped stats — BKHIT hanya lihat data miliknya ──────────
-        $totalPerencanaan = Perencanaan::when($isBkhit, fn($q) => $q->where('user_id', $user->id))->count();
-
-        // Pelaksanaan diambil via Perencanaan milik user (untuk BKHIT)
-        $pelaksanaanQuery = Pelaksanaan::when($isBkhit, fn($q) =>
-            $q->whereHas('perencanaan', fn($rq) => $rq->where('user_id', $user->id))
-        );
+        // Hitung Statistik
+        $totalPerencanaan = (clone $perencanaanQuery)->count();
         $totalPelaksanaan = (clone $pelaksanaanQuery)->count();
 
         // Titik GIS

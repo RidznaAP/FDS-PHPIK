@@ -8,6 +8,13 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     #map { height: 520px; width: 100%; border-radius: 0 0 6px 6px; }
+    @media print {
+        body * { visibility: hidden; }
+        .card, #map, #map * { visibility: visible; }
+        #map { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 9999; }
+        .card-header, .row-cards, .navbar, .header { display: none !important; }
+        .card { border: none !important; }
+    }
 </style>
 @endsection
 
@@ -53,11 +60,15 @@
 <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h3 class="card-title mb-0">Peta Interaktif</h3>
-        <div class="d-flex align-items-center gap-3 small text-muted">
-            <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#28a745;"></span> Bebas HPIK</span>
-            <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffc107;"></span> Waspada</span>
-            <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc3545;"></span> Positif HPIK</span>
-            <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#6c757d;"></span> Belum Evaluasi</span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-none d-lg-flex align-items-center gap-3 small text-muted me-3">
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#28a745;"></span> Bebas HPIK</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffc107;"></span> Waspada</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc3545;"></span> Positif HPIK</span>
+            </div>
+            <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
+                <i class="ti ti-download me-1"></i>Download Peta (PDF)
+            </button>
         </div>
     </div>
     <div class="card-body p-0">
@@ -124,15 +135,19 @@
 
         circle.bindPopup(`
             <div style="min-width:210px;font-family:'Inter',sans-serif;">
-                <div style="background:${color};color:white;padding:8px 12px;margin:-1px -1px 0 -1px;border-radius:6px 6px 0 0;font-weight:600;">
-                    ${item.kesimpulan}
+                <div style="background:${color};color:white;padding:8px 12px;margin:-1px -1px 0 -1px;border-radius:6px 6px 0 0;font-weight:600;display:flex;justify-content:between;align-items:center;">
+                    <span>${item.kesimpulan}</span>
                 </div>
                 <div style="padding:10px 12px;font-size:13px;line-height:1.7;">
-                    <div><b>📍 Lokasi:</b> ${item.lokasi}</div>
-                    <div><b>🏙️ Wilayah:</b> ${item.kab_kota}, ${item.provinsi}</div>
-                    <div><b>🐟 Komoditas:</b> ${item.jenis_mp}</div>
-                    <div><b>🦠 Target HPIK:</b> ${item.jenis_hpik}</div>
-                    <div><b>🔬 Hasil Lab:</b> ${item.hasil_lab}</div>
+                    <div class="mb-1"><b>📍 Lokasi:</b> ${item.lokasi}</div>
+                    <div class="mb-1"><b>🏙️ Wilayah:</b> ${item.kab_kota}, ${item.provinsi}</div>
+                    <div class="mb-1"><b>🐟 Komoditas:</b> ${item.jenis_mp}</div>
+                    <div class="mb-1"><b>🦠 Target:</b> ${item.jenis_hpik}</div>
+                    <div class="mb-2"><b>🔬 Hasil Lab:</b> <span class="badge ${item.hasil_lab === 'Positif' ? 'bg-danger-lt' : 'bg-success-lt'}">${item.hasil_lab}</span></div>
+                    
+                    <a href="/pelaksanaan/${item.id}/detail" class="btn btn-primary btn-sm w-100 mt-2" style="font-size:11px;">
+                        <i class="ti ti-eye me-1"></i>Lihat Detail Data
+                    </a>
                 </div>
             </div>
         `, { maxWidth: 280 });

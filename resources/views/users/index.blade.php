@@ -73,6 +73,7 @@
                     <th>Nama / Instansi</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Koordinator</th>
                     <th>Bergabung</th>
                     <th>Aksi</th>
                 </tr>
@@ -106,6 +107,19 @@
                             <span class="badge bg-purple-lt text-purple">PUSAT</span>
                         @endif
                     </td>
+                    <td>
+                        @if($u->role === 'bkhit')
+                            @if($u->coordinator)
+                                <div class="fw-semibold text-primary small">
+                                    <i class="ti ti-link me-1"></i>{{ $u->coordinator->name }}
+                                </div>
+                            @else
+                                <span class="text-muted italic small">Tanpa Koordinator</span>
+                            @endif
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </td>
                     <td class="text-muted small">{{ $u->created_at->format('d M Y') }}</td>
                     <td>
                         <div class="btn-list flex-nowrap">
@@ -127,8 +141,12 @@
                             @if($u->role !== 'pusat')
                             <form action="{{ route('users.destroy', $u->id) }}" method="POST" class="d-inline">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger"
-                                    onclick="return confirm('Hapus akun {{ $u->name }}? Tindakan ini tidak bisa dibatalkan.')">
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    onclick="confirmAction(
+                                        '{{ route('users.destroy', $u->id) }}',
+                                        'Akun {{ $u->name }} akan dihapus permanen dan tidak bisa dikembalikan.',
+                                        'DELETE', 'btn-danger', '🗑️', 'Hapus Akun'
+                                    )">
                                     <i class="ti ti-trash me-1"></i>Hapus
                                 </button>
                             </form>

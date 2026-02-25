@@ -19,7 +19,10 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        if (!in_array(auth()->user()->role, $roles)) {
+        $userRole = trim(strtolower(auth()->user()->role));
+        $allowedRoles = array_map(fn($r) => trim(strtolower($r)), $roles);
+
+        if (!in_array($userRole, $allowedRoles)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

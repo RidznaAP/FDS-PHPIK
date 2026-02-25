@@ -62,6 +62,7 @@
                     <th>Sampel</th>
                     <th>Koordinat GPS</th>
                     <th>Status Lab</th>
+                    <th>Tgl Input</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -120,20 +121,25 @@
                     </td>
                     <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
                     <td>
-                        @if($item->laboratorium)
-                            <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Hasil Lab">
-                                <i class="ti ti-eye me-1"></i>Lihat Lab
+                        <div class="btn-list flex-nowrap">
+                            <a href="{{ route('pelaksanaan.show', $item->id) }}" class="btn btn-sm btn-outline-info" title="Detail">
+                                <i class="ti ti-info-circle"></i>
                             </a>
-                        @else
-                            <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary">
-                                <i class="ti ti-flask me-1"></i>Input Lab
-                            </a>
-                        @endif
+                            @if($item->laboratorium)
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Hasil Lab">
+                                    <i class="ti ti-eye me-1"></i>Lihat Lab
+                                </a>
+                            @else
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary">
+                                    <i class="ti ti-flask me-1"></i>Input Lab
+                                </a>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="9" class="text-center py-5 text-muted">
                         <i class="ti ti-map-pin" style="font-size:2.5rem;opacity:.2;"></i>
                         <div class="mt-2 fw-semibold">Belum ada data pelaksanaan</div>
                         <div class="text-muted small">@if(request('search') || request('lab'))Tidak ada hasil sesuai filter.@else Belum ada input data lapangan.@endif</div>

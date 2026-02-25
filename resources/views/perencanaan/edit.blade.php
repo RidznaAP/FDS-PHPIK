@@ -20,7 +20,8 @@
                         <div class="col-md-6">
                             <label class="form-label required">Provinsi</label>
                             <input type="text" name="provinsi" class="form-control @error('provinsi') is-invalid @enderror"
-                                value="{{ old('provinsi', $perencanaan->provinsi) }}" required>
+                                value="{{ old('provinsi', $perencanaan->provinsi) }}" required
+                                @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit()) readonly @endif>
                             @error('provinsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">

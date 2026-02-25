@@ -74,18 +74,28 @@
                         @endif
                     </td>
                     <td>
-                        @if(!$item->laboratorium)
-                            <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary">
-                                <i class="ti ti-flask me-1"></i>Input Hasil
-                            </a>
-                        @else
-                            <span class="text-muted small">—</span>
-                        @endif
+                        <div class="btn-list flex-nowrap">
+                            @if($item->laboratorium)
+                                <a href="{{ route('laboratorium.show', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-info" title="Detail Lab">
+                                    <i class="ti ti-info-circle me-1"></i>Detail
+                                </a>
+                            @endif
+
+                            @if(!$item->laboratorium)
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary">
+                                    <i class="ti ti-flask me-1"></i>Input
+                                </a>
+                            @else
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Hasil Lab">
+                                    <i class="ti ti-pencil"></i>
+                                </a>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="12" class="text-center py-5 text-muted">
                         <i class="ti ti-flask" style="font-size:2rem;opacity:.3;"></i>
                         <div class="mt-2">Belum ada data sampel masuk.</div>
                     </td>

@@ -8,6 +8,10 @@ class Pelaksanaan extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'pengambil_sampel' => 'array',
+    ];
+
     // Relasi balik ke Perencanaan
     public function perencanaan()
     {

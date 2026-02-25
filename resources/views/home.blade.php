@@ -155,26 +155,26 @@
     $labProgress = $totalPelaksanaan > 0 ? round($labDone / $totalPelaksanaan * 100) : 0;
 @endphp
 
-<div class="row row-deck row-cards mb-4">
+<div class="row row-deck row-cards mb-4 animate-fade-in">
     {{-- Perencanaan --}}
     <div class="col-sm-6 col-lg-3">
-        <div class="card stat-card shadow-sm">
+        <div class="card stat-card card-premium shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div>
-                        <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.5px;">Perencanaan</div>
-                        <div class="stat-number mt-1">{{ $totalPerencanaan }}</div>
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:1px; font-size: 10px;">Perencanaan</div>
+                        <div class="stat-number mt-1 text-primary">{{ $totalPerencanaan }}</div>
                     </div>
-                    <div class="stat-icon" style="background:#dbeafe;">
-                        <i class="ti ti-clipboard-list" style="color:#2563eb;"></i>
+                    <div class="stat-icon" style="background: rgba(32, 107, 196, 0.1); border: 1px solid rgba(32, 107, 196, 0.1);">
+                        <i class="ti ti-clipboard-list text-primary"></i>
                     </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <div class="text-muted small">{{ $approved }} disetujui</div>
-                    <div class="text-muted small fw-semibold">{{ $progressPct }}%</div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="text-muted small">{{ $approved }} Disetujui</div>
+                    <div class="text-muted small fw-bold">{{ $progressPct }}%</div>
                 </div>
-                <div class="progress" style="height:6px;border-radius:4px;">
-                    <div class="progress-bar" style="width:{{ $progressPct }}%;background:#2563eb;border-radius:4px;"></div>
+                <div class="progress" style="height:5px; border-radius:10px; background: rgba(32, 107, 196, 0.1);">
+                    <div class="progress-bar bg-primary" style="width:{{ $progressPct }}%; border-radius:10px;"></div>
                 </div>
             </div>
         </div>
@@ -182,23 +182,23 @@
 
     {{-- Pelaksanaan --}}
     <div class="col-sm-6 col-lg-3">
-        <div class="card stat-card shadow-sm">
+        <div class="card stat-card card-premium shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div>
-                        <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.5px;">Pelaksanaan</div>
-                        <div class="stat-number mt-1">{{ $totalPelaksanaan }}</div>
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:1px; font-size: 10px;">Pelaksanaan</div>
+                        <div class="stat-number mt-1 text-success">{{ $totalPelaksanaan }}</div>
                     </div>
-                    <div class="stat-icon" style="background:#dcfce7;">
-                        <i class="ti ti-map-pin" style="color:#16a34a;"></i>
+                    <div class="stat-icon" style="background: rgba(47, 179, 68, 0.1); border: 1px solid rgba(47, 179, 68, 0.1);">
+                        <i class="ti ti-map-pin text-success"></i>
                     </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <div class="text-muted small">{{ $labDone }} sudah diuji lab</div>
-                    <div class="text-muted small fw-semibold">{{ $labProgress }}%</div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="text-muted small px-1">{{ $labDone }} Lab Selesai</div>
+                    <div class="text-muted small fw-bold">{{ $labProgress }}%</div>
                 </div>
-                <div class="progress" style="height:6px;border-radius:4px;">
-                    <div class="progress-bar" style="width:{{ $labProgress }}%;background:#16a34a;border-radius:4px;"></div>
+                <div class="progress" style="height:5px; border-radius:10px; background: rgba(47, 179, 68, 0.1);">
+                    <div class="progress-bar bg-success" style="width:{{ $labProgress }}%; border-radius:10px;"></div>
                 </div>
             </div>
         </div>
@@ -206,50 +206,46 @@
 
     {{-- Titik GIS --}}
     <div class="col-sm-6 col-lg-3">
-        <div class="card stat-card shadow-sm">
+        <div class="card stat-card card-premium shadow-sm">
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div>
-                        <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.5px;">Titik GIS</div>
-                        <div class="stat-number mt-1">{{ $totalGis }}</div>
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:1px; font-size: 10px;">Titik Peta</div>
+                        <div class="stat-number mt-1 text-azure">{{ $totalGis }}</div>
                     </div>
-                    <div class="stat-icon" style="background:#cffafe;">
-                        <i class="ti ti-world" style="color:#0891b2;"></i>
+                    <div class="stat-icon" style="background: rgba(66, 153, 225, 0.1); border: 1px solid rgba(66, 153, 225, 0.1);">
+                        <i class="ti ti-world text-azure"></i>
                     </div>
                 </div>
-                <div class="text-muted small mb-1">Lokasi GPS terpetakan</div>
-                <div class="progress" style="height:6px;border-radius:4px;">
-                    <div class="progress-bar" style="width:{{ $totalPelaksanaan > 0 ? round($totalGis/$totalPelaksanaan*100) : 0 }}%;background:#0891b2;border-radius:4px;"></div>
+                <div class="text-muted small mb-2">Lokasi Terpetakan</div>
+                <div class="progress" style="height:5px; border-radius:10px; background: rgba(66, 153, 225, 0.1);">
+                    <div class="progress-bar bg-azure" style="width:{{ $totalPelaksanaan > 0 ? round($totalGis/$totalPelaksanaan*100) : 0 }}%; border-radius:10px;"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Menunggu Validasi --}}
+    {{-- Alert Section --}}
     <div class="col-sm-6 col-lg-3">
-        <div class="card stat-card shadow-sm {{ $waiting > 0 ? 'border border-warning' : '' }}">
+        <div class="card stat-card card-premium shadow-sm {{ $waiting > 0 ? 'border-warning' : '' }}">
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div>
-                        <div class="text-muted small fw-semibold text-uppercase" style="letter-spacing:.5px;">Menunggu Approval</div>
-                        <div class="stat-number mt-1 {{ $waiting > 0 ? 'text-warning' : '' }}">{{ $waiting }}</div>
+                        <div class="text-muted small fw-bold text-uppercase" style="letter-spacing:1px; font-size: 10px;">Approval</div>
+                        <div class="stat-number mt-1 {{ $waiting > 0 ? 'text-warning' : 'text-muted' }}">{{ $waiting }}</div>
                     </div>
-                    <div class="stat-icon" style="background:#fef9c3;">
-                        @if($waiting > 0)
-                            <i class="ti ti-bell-ringing" style="color:#ca8a04; animation: ring 1.5s ease infinite;"></i>
-                        @else
-                            <i class="ti ti-bell-check" style="color:#ca8a04;"></i>
-                        @endif
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.1);">
+                        <i class="ti {{ $waiting > 0 ? 'ti-bell-ringing' : 'ti-bell-check' }} text-warning"></i>
                     </div>
                 </div>
                 @if($waiting > 0)
-                    <a href="{{ route('perencanaan.index') }}?status=waiting" class="btn btn-sm btn-warning w-100">
-                        <i class="ti ti-eye me-1"></i>Lihat Permintaan
+                    <a href="{{ route('perencanaan.index') }}?status=waiting" class="btn btn-warning btn-sm w-100 fw-bold shadow-sm">
+                        <i class="ti ti-eye me-1"></i>PROSES DATA
                     </a>
                 @else
-                    <div class="text-muted small">Tidak ada yang perlu disetujui</div>
-                    <div class="progress mt-1" style="height:6px;border-radius:4px;">
-                        <div class="progress-bar bg-success" style="width:100%;border-radius:4px;"></div>
+                    <div class="text-muted small">Semua data valid</div>
+                    <div class="progress mt-2" style="height:5px; border-radius:10px; background: rgba(43, 172, 83, 0.1);">
+                        <div class="progress-bar bg-success" style="width:100%; border-radius:10px;"></div>
                     </div>
                 @endif
             </div>
@@ -258,17 +254,17 @@
 </div>
 
 {{-- Peta + Sidebar --}}
-<div class="row row-cards mb-4">
+<div class="row row-cards mb-4 animate-fade-in" style="animation-delay: 0.1s;">
     {{-- Peta --}}
     <div class="col-lg-8">
-        <div class="card shadow-sm" style="border-radius:12px;overflow:hidden;">
-            <div class="card-header d-flex align-items-center justify-content-between" style="background:#f8fafc;">
+        <div class="card card-premium shadow-sm overflow-hidden" style="border-radius:16px;">
+            <div class="card-header d-flex align-items-center justify-content-between py-3">
                 <div>
-                    <h3 class="card-title mb-0"><i class="ti ti-map me-2 text-primary"></i>Peta Sebaran HPIK</h3>
-                    <div class="text-muted small">{{ $totalGis }} titik lokasi terpetakan</div>
+                    <h3 class="card-title mb-0 fw-bold text-primary"><i class="ti ti-map-pms me-2"></i>Visualisasi Sebaran HPIK</h3>
+                    <div class="text-muted small mt-1">{{ $totalGis }} titik aktif terpantau</div>
                 </div>
-                <a href="{{ route('peta.index') }}" class="btn btn-sm btn-primary">
-                    <i class="ti ti-external-link me-1"></i>Peta Penuh
+                <a href="{{ route('peta.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="ti ti-maximize me-1"></i>Peta Penuh
                 </a>
             </div>
             <div id="map"></div>
@@ -277,33 +273,40 @@
 
     {{-- Quick Actions --}}
     <div class="col-lg-4">
-        <div class="card shadow-sm h-100" style="border-radius:12px;">
-            <div class="card-header" style="background:#f8fafc;">
-                <h3 class="card-title mb-0"><i class="ti ti-bolt me-2 text-warning"></i>Menu Cepat</h3>
+        <div class="card card-premium shadow-sm h-100" style="border-radius:16px;">
+            <div class="card-header py-3">
+                <h3 class="card-title mb-0 fw-bold text-indigo"><i class="ti ti-layout-grid me-2"></i>Akses Pintas</h3>
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
+                <div class="vstack gap-3">
                     @if(Auth::user()->isUpt())
-                        <a href="{{ route('perencanaan.create') }}" class="btn btn-primary quick-action-btn">
-                            <i class="ti ti-plus me-2"></i>Buat Perencanaan Baru
+                        <a href="{{ route('perencanaan.create') }}" class="btn btn-primary d-flex align-items-center justify-content-between py-2 shadow-sm">
+                            <span><i class="ti ti-plus me-2"></i>Input Rencana Baru</span>
+                            <i class="ti ti-chevron-right op-5"></i>
                         </a>
                     @endif
-                    <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-primary quick-action-btn">
-                        <i class="ti ti-clipboard-list me-2"></i>Daftar Perencanaan
+                    <a href="{{ route('perencanaan.index') }}" class="btn btn-ghost-primary d-flex align-items-center justify-content-between py-2">
+                        <span><i class="ti ti-list-check me-2"></i>Daftar Perencanaan</span>
+                        <i class="ti ti-chevron-right op-5"></i>
                     </a>
-                    <a href="{{ route('pelaksanaan.index') }}" class="btn btn-outline-success quick-action-btn">
-                        <i class="ti ti-map-pin me-2"></i>Daftar Pelaksanaan
+                    <a href="{{ route('pelaksanaan.index') }}" class="btn btn-ghost-success d-flex align-items-center justify-content-between py-2">
+                        <span><i class="ti ti-map-pins me-2"></i>Data Pelaksanaan</span>
+                        <i class="ti ti-chevron-right op-5"></i>
                     </a>
-                    <a href="{{ route('laboratorium.index') }}" class="btn btn-outline-info quick-action-btn">
-                        <i class="ti ti-flask me-2"></i>Laboratorium
+                    <a href="{{ route('laboratorium.index') }}" class="btn btn-ghost-info d-flex align-items-center justify-content-between py-2">
+                        <span><i class="ti ti-flask-2 me-2"></i>Cek Laboratorium</span>
+                        <i class="ti ti-chevron-right op-5"></i>
                     </a>
                     @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
-                        <a href="{{ route('evaluasi.index') }}" class="btn btn-outline-warning quick-action-btn">
-                            <i class="ti ti-chart-bar me-2"></i>Evaluasi
+                        <a href="{{ route('evaluasi.index') }}" class="btn btn-ghost-warning d-flex align-items-center justify-content-between py-2">
+                            <span><i class="ti ti-chart-dots me-2"></i>Mulai Evaluasi</span>
+                            <i class="ti ti-chevron-right op-5"></i>
                         </a>
                     @endif
-                    <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary quick-action-btn">
-                        <i class="ti ti-file-spreadsheet me-2"></i>Laporan & Ekspor
+                    <div class="hr-text my-1 text-muted">Pelaporan</div>
+                    <a href="{{ route('laporan.index') }}" class="btn btn-ghost-secondary d-flex align-items-center justify-content-between py-2">
+                        <span><i class="ti ti-report-analytics me-2"></i>Laporan & Ekspor</span>
+                        <i class="ti ti-chevron-right op-5"></i>
                     </a>
                 </div>
             </div>

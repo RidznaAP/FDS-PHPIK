@@ -39,6 +39,25 @@
                     </div>
                 </div>
             </div>
+            {{-- Info Koordinasi --}}
+            @if(Auth::user()->isBkhit() && Auth::user()->coordinator)
+                <div class="card-body border-top bg-blue-lt">
+                    <div class="text-muted small"><i class="ti ti-link me-1"></i>Koordinator Wilayah</div>
+                    <div class="fw-bold text-primary">{{ Auth::user()->coordinator->name }}</div>
+                </div>
+            @elseif(Auth::user()->isBbkhit())
+                <div class="card-body border-top">
+                    <div class="text-muted small mb-2"><i class="ti ti-users me-1"></i>Unit di Bawah Koordinasi</div>
+                    @forelse(Auth::user()->units as $u)
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-success-lt badge-sm">BKHIT</span>
+                            <span class="small">{{ $u->name }}</span>
+                        </div>
+                    @empty
+                        <div class="text-muted italic small">Belum ada unit terhubung.</div>
+                    @endforelse
+                </div>
+            @endif
         </div>
     </div>
 

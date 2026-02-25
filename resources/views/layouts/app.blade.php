@@ -11,26 +11,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     <style>
         :root {
             --tblr-font-sans-serif: 'Inter', sans-serif;
-            --tblr-primary: #0d6efd;
+            --tblr-primary: #206bc4;
         }
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f6f8fb;
+        }
         .navbar-brand-text { font-weight: 700; letter-spacing: -0.5px; }
-        .nav-link.active { background-color: rgba(255,255,255,0.1) !important; border-radius: 6px; }
-        .role-badge { font-size: 0.7rem; }
+        .role-badge { font-size: 0.7rem; font-weight: 600; }
+        
+        /* Sidebar Styling Overrides */
+        .navbar-vertical {
+            background: #1e293b !important;
+        }
     </style>
     @yield('styles')
 </head>
-<body class="antialiased">
-    <div class="wrapper">
+<body class="antialiased layout-vertical">
+    <div class="page">
 
         {{-- ============================================================ --}}
         {{-- SIDEBAR                                                       --}}
         {{-- ============================================================ --}}
-        <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark" style="background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);">
+        <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
             <div class="container-fluid">
 
                 {{-- Logo / Brand --}}
@@ -70,7 +78,7 @@
 
                         {{-- Dashboard --}}
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                            <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <i class="ti ti-dashboard" style="font-size:1.2rem;"></i>
                                 </span>
@@ -146,27 +154,78 @@
                             </a>
                         </li>
 
+                        {{-- Manajemen Akun & Master Data --}}
+                        @php $user = Auth::user(); @endphp
+                        
+                        {{-- ADMIN Section Header — hanya Pusat --}}
+                        @if($user->isPusat())
+                            <li class="nav-item mt-2">
+                                <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">ADMIN</span>
+                            </li>
+                        @endif
+
                         {{-- Manajemen Akun — hanya Pusat --}}
-                        @if(Auth::user()->isPusat())
-                        <li class="nav-item mt-2">
-                            <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">ADMIN</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->is('pengguna*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-users" style="font-size:1.2rem;"></i>
-                                </span>
-                                <span class="nav-link-title">Manajemen Akun</span>
-                            </a>
-                        </li>
+                        @if($user->isPusat())
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('pengguna*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-users" style="font-size:1.2rem;"></i>
+                                    </span>
+                                    <span class="nav-link-title">Manajemen Akun</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        {{-- Master Data — hanya Pusat --}}
+                        @if($user->isPusat())
+                            <li class="nav-item dropdown {{ request()->is('master*') ? 'active' : '' }}">
+                                <a class="nav-link dropdown-toggle {{ request()->is('master*') ? 'active' : '' }}"
+                                   href="#masterSubmenu" data-bs-toggle="collapse"
+                                   aria-expanded="{{ request()->is('master*') ? 'true' : 'false' }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-database" style="font-size:1.2rem;"></i>
+                                    </span>
+                                    <span class="nav-link-title">Master Data</span>
+                                </a>
+                                <div class="collapse {{ request()->is('master*') ? 'show' : '' }}" id="masterSubmenu">
+                                    <ul class="nav nav-sm flex-column ms-3 border-start border-secondary ps-2 mt-1">
+                                        <li class="nav-item">
+                                            <a class="nav-link py-1 {{ request()->is('master/media-pembawa*') ? 'active' : '' }}"
+                                               href="{{ route('master.media-pembawa.index') }}">
+                                                <i class="ti ti-fish me-1" style="font-size:0.9rem;"></i>
+                                                Media Pembawa
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link py-1 {{ request()->is('master/jenis-penyakit*') ? 'active' : '' }}"
+                                               href="{{ route('master.jenis-penyakit.index') }}">
+                                                <i class="ti ti-virus me-1" style="font-size:0.9rem;"></i>
+                                                Jenis Penyakit
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
                         @endif
                     </ul>
 
                     {{-- Bottom: User Profile --}}
+                    {{-- Bottom: User Profile --}}
                     <div class="mt-auto border-top pt-3 pb-2" style="border-color: rgba(255,255,255,0.1) !important;">
                         {{-- Notification badge for BBKHIT/Pusat --}}
                         @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
-                            @php $pendingCount = \App\Models\Perencanaan::where('status', 'waiting')->count(); @endphp
+                            @php 
+                                $user = Auth::user();
+                                $pendingCount = \App\Models\Perencanaan::where('status', 'waiting')
+                                    ->when($user->isBbkhit(), function($q) use ($user) {
+                                        $q->whereIn('user_id', function($rq) use ($user) {
+                                            $rq->select('id')->from('users')
+                                              ->where('id', $user->id)
+                                              ->orWhere('parent_id', $user->id);
+                                        });
+                                    })
+                                    ->count(); 
+                            @endphp
                             @if($pendingCount > 0)
                                 <a href="{{ route('perencanaan.index') }}?status=waiting" class="d-flex align-items-center gap-2 px-3 py-2 mb-2 text-decoration-none" style="background:rgba(251,191,36,0.12);border-radius:8px;">
                                     <i class="ti ti-bell-ringing text-warning" style="font-size:1.2rem;"></i>
@@ -237,18 +296,18 @@
 
                     {{-- Flash Messages (auto-dismiss 4s) --}}
                     @if(session('success'))
-                    <div class="alert alert-success alert-dismissible mb-3" role="alert" id="flash-msg" style="animation: slideInDown .3s ease;">
-                        <div class="d-flex align-items-center">
-                            <span class="avatar avatar-sm me-3 bg-success" style="border-radius:8px;"><i class="ti ti-check"></i></span>
+                    <div class="alert alert-success alert-important alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg" style="background: rgba(43, 172, 83, 0.05); border: 1px solid rgba(43, 172, 83, 0.2); backdrop-filter: blur(10px);">
+                        <div class="d-flex">
+                            <i class="ti ti-circle-check fs-2 me-3 text-success"></i>
                             <div>{{ session('success') }}</div>
                         </div>
                         <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
                     </div>
                     @endif
                     @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible mb-3" role="alert" id="flash-msg" style="animation: slideInDown .3s ease;">
-                        <div class="d-flex align-items-center">
-                            <span class="avatar avatar-sm me-3 bg-danger" style="border-radius:8px;"><i class="ti ti-alert-circle"></i></span>
+                    <div class="alert alert-danger alert-important alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg" style="background: rgba(214, 57, 57, 0.05); border: 1px solid rgba(214, 57, 57, 0.2); backdrop-filter: blur(10px);">
+                        <div class="d-flex">
+                            <i class="ti ti-alert-triangle fs-2 me-3 text-danger"></i>
                             <div>{{ session('error') }}</div>
                         </div>
                         <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
@@ -275,5 +334,66 @@
     {{-- Tabler JS --}}
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
     @yield('scripts')
+
+    {{-- ── #12: Global Modal Konfirmasi ──────────────────────────────────────── --}}
+    <div class="modal modal-blur fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="mb-3" style="font-size:2.5rem;" id="confirmEmoji">⚠️</div>
+                        <h5 class="mb-2" id="confirmTitle">Konfirmasi</h5>
+                        <p class="text-muted mb-0 small" id="confirmMessage">Apakah Anda yakin?</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link flex-fill" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn flex-fill" id="confirmBtn" onclick="submitConfirmForm()">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- Hidden form untuk submit --}}
+    <form id="confirmForm" method="POST" style="display:none;">
+        @csrf
+        <input type="hidden" name="_method" id="confirmMethod" value="DELETE">
+    </form>
+
+    <script>
+    // Ganti semua onclick="confirm()" dengan confirmAction(url, msg, method, btnClass, emoji, title)
+    function confirmAction(url, message, method, btnClass, emoji, title) {
+        method   = method   || 'DELETE';
+        btnClass = btnClass || 'btn-danger';
+        emoji    = emoji    || '🗑️';
+        title    = title    || 'Hapus Data?';
+
+        document.getElementById('confirmMessage').textContent = message || 'Apakah Anda yakin?';
+        document.getElementById('confirmTitle').textContent   = title;
+        document.getElementById('confirmEmoji').textContent   = emoji;
+        document.getElementById('confirmMethod').value        = method.toUpperCase();
+        document.getElementById('confirmForm').action         = url;
+
+        var btn = document.getElementById('confirmBtn');
+        btn.className = 'btn flex-fill ' + btnClass;
+        btn.textContent = title;
+
+        var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        modal.show();
+    }
+
+    function submitConfirmForm() {
+        document.getElementById('confirmForm').submit();
+    }
+
+    // Auto-dismiss flash messages after 4 seconds
+    setTimeout(function() {
+        var flash = document.getElementById('flash-msg');
+        if (flash) {
+            var alert = bootstrap.Alert.getOrCreateInstance(flash);
+            if (alert) alert.close();
+        }
+    }, 4000);
+    </script>
+    {{-- ──────────────────────────────────────────────────────────────────────── --}}
 </body>
 </html>

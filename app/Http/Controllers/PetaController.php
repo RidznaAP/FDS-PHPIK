@@ -45,6 +45,7 @@ class PetaController extends Controller
                 'warna'     => $statusWarna, // hijau / kuning / merah / abu-abu
                 'badge'     => $badgeClass,
                 'kesimpulan'=> $item->perencanaan->evaluasi->kesimpulan ?? 'Belum Dievaluasi',
+                'id'        => $item->id,
             ];
         });
 

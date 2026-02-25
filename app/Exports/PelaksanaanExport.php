@@ -16,7 +16,20 @@ class PelaksanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
 {
     public function collection()
     {
-        return Pelaksanaan::with(['perencanaan', 'laboratorium'])->get()->map(function ($p, $i) {
+        $user = auth()->user();
+        $query = Pelaksanaan::with(['perencanaan', 'laboratorium']);
+
+        if ($user->isBkhit()) {
+            $query->whereHas('perencanaan', fn($q) => $q->where('user_id', $user->id));
+        } elseif ($user->isBbkhit()) {
+            $query->whereHas('perencanaan', function($q) use ($user) {
+                $q->whereIn('user_id', function($rq) use ($user) {
+                    $rq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+                });
+            });
+        }
+
+        return $query->get()->map(function ($p, $i) {
             return [
                 'No'                      => $i + 1,
                 'Provinsi'                => $p->perencanaan->provinsi ?? '-',

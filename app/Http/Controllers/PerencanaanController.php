@@ -6,12 +6,17 @@ use Illuminate\Http\Request;
 use App\Models\Perencanaan;
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\MediaPembawa;
+use App\Models\JenisPenyakit;
+
 class PerencanaanController extends Controller
 {
     // Menampilkan Form Tambah
     public function create()
     {
-        return view('perencanaan.create');
+        $mediaPembawas  = MediaPembawa::aktif()->orderBy('nama')->get();
+        $jenisPenyakits = JenisPenyakit::aktif()->orderBy('nama')->get();
+        return view('perencanaan.create', compact('mediaPembawas', 'jenisPenyakits'));
     }
 
     // Daftar Perencanaan (dengan search, filter status & tahun)
@@ -19,10 +24,20 @@ class PerencanaanController extends Controller
     {
         $query = Perencanaan::with(['evaluasi', 'pelaksanaans', 'user'])->latest();
 
-        // ── #2: User-scoped ──────────────────────────────────────────────
-        if (Auth::user()->isBkhit()) {
-            $query->where('user_id', Auth::id());
+        // ── Auth-scoped Filtering ──────────────────────────────────────
+        $user = Auth::user();
+        if ($user->isBkhit()) {
+            // BKHIT hanya lihat miliknya sendiri
+            $query->where('user_id', $user->id);
+        } elseif ($user->isBbkhit()) {
+            // BBKHIT lihat miliknya sendiri + milik BKHIT di bawah koordinasinya
+            $query->whereIn('user_id', function($q) use ($user) {
+                $q->select('id')->from('users')
+                  ->where('id', $user->id)
+                  ->orWhere('parent_id', $user->id);
+            });
         }
+        // PUSAT tidak difilter (lihat semua)
 
         // ── #8: Filter Tahun ─────────────────────────────────────────────
         if ($request->filled('tahun')) {
@@ -54,6 +69,28 @@ class PerencanaanController extends Controller
 
         $perencanaans = $query->paginate(15)->withQueryString();
         return view('perencanaan.index', compact('perencanaans', 'years'));
+    }
+
+    // ── Show Detail Perencanaan ───────────────────────────────────────────
+    public function show($id)
+    {
+        $p = Perencanaan::with(['user', 'pelaksanaans.laboratorium', 'evaluasi'])->findOrFail($id);
+        $user = Auth::user();
+
+        // BKHIT/BBKHIT Scoped Access
+        if ($user->isBkhit() && $p->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses ke data ini.');
+        } 
+        
+        if ($user->isBbkhit()) {
+            // BBKHIT boleh akses data sendiri atau data unit di bawahnya
+            $owner = \App\Models\User::find($p->user_id);
+            if ($p->user_id !== $user->id && $owner->parent_id !== $user->id) {
+                abort(403, 'Data ini berada di luar wilayah koordinasi Anda.');
+            }
+        }
+
+        return view('perencanaan.show', compact('p'));
     }
 
     // Menyimpan Data ke Database
@@ -157,6 +194,16 @@ class PerencanaanController extends Controller
     public function approve($id)
     {
         $perencanaan = Perencanaan::findOrFail($id);
+        $user = Auth::user();
+
+        // BBKHIT hanya bisa approve data di wilayahnya
+        if ($user->isBbkhit()) {
+            $owner = \App\Models\User::find($perencanaan->user_id);
+            if ($perencanaan->user_id !== $user->id && $owner->parent_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki wewenang memvalidasi data di luar wilayah koordinasi Anda.');
+            }
+        }
+
         if ($perencanaan->status === 'waiting') {
             $perencanaan->update(['status' => 'approved']);
             return back()->with('success', 'Perencanaan telah disetujui!');

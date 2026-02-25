@@ -16,14 +16,15 @@ class UserManagementController extends Controller
     // Daftar semua pengguna
     public function index()
     {
-        $users = User::orderBy('role')->orderBy('name')->get();
+        $users = User::with('coordinator')->orderBy('role')->orderBy('name')->get();
         return view('users.index', compact('users'));
     }
 
     // Form buat akun baru
     public function create()
     {
-        return view('users.create');
+        $coordinators = User::where('role', 'bbkhit')->orderBy('name')->get();
+        return view('users.create', compact('coordinators'));
     }
 
     // Simpan akun baru
@@ -34,6 +35,7 @@ class UserManagementController extends Controller
             'email'     => 'required|email|unique:users,email',
             'role'      => 'required|in:bkhit,bbkhit',
             'upt_asal'  => 'nullable|string|max:255',
+            'parent_id' => 'nullable|exists:users,id',
             'password'  => 'required|string|min:8|confirmed',
         ]);
 
@@ -42,6 +44,7 @@ class UserManagementController extends Controller
             'email'     => $request->email,
             'role'      => $request->role,
             'upt_asal'  => $request->upt_asal,
+            'parent_id' => $request->parent_id,
             'password'  => Hash::make($request->password),
         ]);
 
@@ -69,7 +72,8 @@ class UserManagementController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        return view('users.edit', compact('user'));
+        $coordinators = User::where('role', 'bbkhit')->orderBy('name')->get();
+        return view('users.edit', compact('user', 'coordinators'));
     }
 
     public function update(Request $request, $id)
@@ -77,10 +81,11 @@ class UserManagementController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $id,
-            'role'     => 'required|in:bkhit,bbkhit',
-            'upt_asal' => 'nullable|string|max:255',
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|email|unique:users,email,' . $id,
+            'role'      => 'required|in:bkhit,bbkhit',
+            'upt_asal'  => 'nullable|string|max:255',
+            'parent_id' => 'nullable|exists:users,id',
         ]);
 
         // Pusat tidak bisa diubah role-nya menjadi bukan pusat
@@ -89,10 +94,11 @@ class UserManagementController extends Controller
         }
 
         $user->update([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'role'     => $request->role,
-            'upt_asal' => $request->upt_asal,
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'role'      => $request->role,
+            'upt_asal'  => $request->upt_asal,
+            'parent_id' => $request->parent_id,
         ]);
 
         return redirect()->route('users.index')
