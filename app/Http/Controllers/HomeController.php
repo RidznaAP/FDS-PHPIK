@@ -56,8 +56,36 @@ class HomeController extends Controller
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get();
+
+        // ── Data untuk Grafik ──────────────────────────────────────────
+        // 1. Tren Perencanaan Bulanan (6 bulan terakhir)
+        $chartMonthlyLabels = [];
+        $chartMonthlyData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $chartMonthlyLabels[] = $month->translatedFormat('M Y');
+            $chartMonthlyData[] = (clone $perencanaanQuery)
+                ->whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $month->year)
+                ->count();
+        }
+
+        // 2. Distribusi Status (Donut Chart)
+        $statusCounts = [
+            'Draft' => (clone $perencanaanQuery)->where('status', 'draft')->count(),
+            'Waiting' => (clone $perencanaanQuery)->where('status', 'waiting')->count(),
+            'Approved' => (clone $perencanaanQuery)->where('status', 'approved')->count(),
+        ];
         // ─────────────────────────────────────────────────────────────────
 
-        return view('home', compact('totalPerencanaan', 'totalPelaksanaan', 'totalGis', 'listPelaksanaan'));
+        return view('home', compact(
+            'totalPerencanaan', 
+            'totalPelaksanaan', 
+            'totalGis', 
+            'listPelaksanaan',
+            'chartMonthlyLabels',
+            'chartMonthlyData',
+            'statusCounts'
+        ));
     }
 }

@@ -72,8 +72,8 @@
                         <span class="bg-blue text-white avatar"><i class="ti ti-clipboard-list"></i></span>
                     </div>
                     <div class="col">
-                        <div class="font-weight-medium">Data Perencanaan</div>
-                        <div class="text-muted small">Rekap seluruh perencanaan HPIK + status validasi</div>
+                        <div class="font-weight-medium">Laporan Perencanaan</div>
+                        <div class="text-muted small">Rekap dokumen perencanaan HPIK dan status validasi</div>
                     </div>
                 </div>
                 <div class="mt-3">
@@ -92,8 +92,8 @@
                         <span class="bg-green text-white avatar"><i class="ti ti-flask"></i></span>
                     </div>
                     <div class="col">
-                        <div class="font-weight-medium">Data Pelaksanaan & Lab</div>
-                        <div class="text-muted small">GPS, sampel, dan hasil uji laboratorium</div>
+                        <div class="font-weight-medium">Laporan Output Hasil</div>
+                        <div class="text-muted small">Data realisasi lapangan, hasil lab, dan kesimpulan akhir</div>
                     </div>
                 </div>
                 <div class="mt-3">

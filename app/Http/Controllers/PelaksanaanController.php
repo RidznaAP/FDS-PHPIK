@@ -12,7 +12,18 @@ class PelaksanaanController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium'])->latest();
+        $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium']);
+
+        // ── Sorting ──────────────────────────────────────────────────────
+        $sortBy = $request->get('sort_by', 'tanggal_pemantauan');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $allowedSorts = ['id', 'tanggal_pemantauan', 'lokasi_pengambilan_sampel', 'jenis_ikan', 'jumlah_sampel', 'created_at'];
+        
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->latest();
+        }
 
         // ── Auth-scoped Filtering ──────────────────────────────────────
         if ($user->isBkhit()) {
@@ -72,7 +83,14 @@ class PelaksanaanController extends Controller
     // Form untuk mengisi pelaksanaan berdasarkan ID Perencanaan
     public function create($id)
     {
-        $rencana = Perencanaan::findOrFail($id);
+        $user = Auth::user();
+        $rencana = Perencanaan::with('user')->findOrFail($id);
+
+        // ── Auth-scoped Check ──────────────────────────────────────
+        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         return view('pelaksanaan.create', compact('rencana'));
     }
 
@@ -117,6 +135,14 @@ class PelaksanaanController extends Controller
             'pengambil_sampel.*'       => 'nullable|string|max:100',
         ]);
 
+        $user = Auth::user();
+        $rencana = Perencanaan::with('user')->findOrFail($request->perencanaan_id);
+
+        // ── Auth-scoped Check ──────────────────────────────────────
+        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         // Bersihkan array pengambil_sampel: hapus entri kosong
         $pengambil = collect($request->input('pengambil_sampel', []))
             ->map('trim')
@@ -132,8 +158,46 @@ class PelaksanaanController extends Controller
         ]);
         $data['pengambil_sampel'] = !empty($pengambil) ? $pengambil : null;
 
-        \App\Models\Pelaksanaan::create($data);
+        Pelaksanaan::create($data);
 
         return redirect()->route('perencanaan.index')->with('success', 'Data Lapangan Berhasil Disimpan!');
     }
-}   
+
+    public function destroy($id)
+    {
+        $item = Pelaksanaan::findOrFail($id);
+        
+        // Jika bukan Pusat, pastikan pemilik data (lewat perencanaan)
+        if (!Auth::user()->isPusat()) {
+            if (!$item->perencanaan || $item->perencanaan->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
+        
+        $item->delete();
+        return back()->with('success', 'Data Pelaksanaan berhasil dihapus.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return back()->with('error', 'Pilih data yang akan dihapus.');
+        }
+
+        $query = Pelaksanaan::whereIn('id', $ids);
+
+        // Jika bukan Pusat, hanya boleh hapus milik sendiri (Berangkat dari Perencanaan)
+        if (!Auth::user()->isPusat()) {
+            $query->whereHas('perencanaan', fn($q) => $q->where('user_id', Auth::id()));
+        }
+
+        $count = $query->delete();
+        
+        if ($count == 0) {
+            return back()->with('error', 'Tidak ada data yang diizinkan untuk dihapus.');
+        }
+
+        return back()->with('success', $count . ' data pelaksanaan berhasil dihapus.');
+    }
+}

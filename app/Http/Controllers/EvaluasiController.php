@@ -10,22 +10,23 @@ use Illuminate\Support\Facades\Auth;
 class EvaluasiController extends Controller
 {
     // Daftar perencanaan yang perlu dievaluasi
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Perencanaan::with(['pelaksanaans.laboratorium', 'evaluasi', 'user'])->latest();
+        $query = Perencanaan::with(['pelaksanaans.laboratorium', 'evaluasi']);
 
-        // ── Auth-scoped Filtering ──────────────────────────────────────
-        if ($user->isBkhit()) {
-            $query->where('user_id', $user->id);
-        } elseif ($user->isBbkhit()) {
-            $query->whereIn('user_id', function($q) use ($user) {
-                $q->select('id')->from('users')
-                  ->where('id', $user->id)
-                  ->orWhere('parent_id', $user->id);
-            });
+        // ── Sorting ──────────────────────────────────────────────────────
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $allowedSorts = ['id', 'created_at', 'provinsi', 'kab_kota', 'jenis_mp'];
+        
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->latest();
         }
 
+        // Ambil perencanaan dengan data pelaksanaan dan hasil lab
         $perencanaans = $query->paginate(15)->withQueryString();
         return view('evaluasi.index', compact('perencanaans'));
     }
@@ -59,5 +60,43 @@ class EvaluasiController extends Controller
     {
         $evaluasi = Evaluasi::with('perencanaan')->findOrFail($id);
         return view('evaluasi.show', compact('evaluasi'));
+    }
+
+    public function destroy($id)
+    {
+        $item = Evaluasi::findOrFail($id);
+        
+        // Jika bukan Pusat, pastikan pemilik data (lewat perencanaan)
+        if (!Auth::user()->isPusat()) {
+            if (!$item->perencanaan || $item->perencanaan->user_id !== Auth::id()) {
+                abort(403);
+            }
+        }
+        
+        $item->delete();
+        return back()->with('success', 'Data Evaluasi berhasil dihapus.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return back()->with('error', 'Pilih data yang akan dihapus.');
+        }
+
+        $query = Evaluasi::whereIn('id', $ids);
+
+        // Jika bukan Pusat, hanya boleh hapus milik sendiri
+        if (!Auth::user()->isPusat()) {
+            $query->whereHas('perencanaan', fn($q) => $q->where('user_id', Auth::id()));
+        }
+
+        $count = $query->delete();
+        
+        if ($count == 0) {
+            return back()->with('error', 'Tidak ada data yang diizinkan untuk dihapus.');
+        }
+
+        return back()->with('success', $count . ' data evaluasi berhasil dihapus.');
     }
 }

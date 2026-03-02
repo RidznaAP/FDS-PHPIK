@@ -5,87 +5,96 @@
 @section('page_subtitle', 'Data realisasi lapangan pemantauan HPIK')
 
 @section('content')
-
-{{-- Search & Filter Bar --}}
-<div class="card mb-3">
-    <div class="card-body py-3">
-        <form method="GET" action="{{ route('pelaksanaan.index') }}">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <div class="input-icon">
-                        <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-                        <input type="text" name="search" class="form-control" placeholder="Cari lokasi, jenis ikan, provinsi..." value="{{ request('search') }}">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    {{-- #8 Filter Tahun --}}
-                    <select name="tahun" class="form-select">
-                        <option value="">Semua Tahun</option>
-                        @foreach($years as $y)
-                            <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="lab" class="form-select">
-                        <option value="">Semua Status Lab</option>
-                        <option value="done" {{ request('lab') == 'done' ? 'selected' : '' }}>✅ Sudah Diuji</option>
-                        <option value="pending" {{ request('lab') == 'pending' ? 'selected' : '' }}>⏳ Belum Diuji</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="ti ti-filter me-1"></i>Filter</button>
-                </div>
-                @if(request('search') || request('lab') || request('tahun'))
-                <div class="col-md-2">
-                    <a href="{{ route('pelaksanaan.index') }}" class="btn btn-outline-secondary w-100"><i class="ti ti-x me-1"></i>Reset</a>
-                </div>
-                @endif
-            </div>
+<div class="row g-2 mb-3">
+    <div class="col">
+        <form method="GET" action="{{ route('pelaksanaan.index') }}" class="input-icon" style="max-width:400px;">
+            <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+            <input type="text" name="search" class="form-control" placeholder="Cari lokasi, jenis ikan, provinsi…" value="{{ request('search') }}">
         </form>
+    </div>
+    <div class="col-auto d-flex gap-2">
+        <select name="tahun" form="filter-form-pelaksanaan" class="form-select" style="width:auto;" onchange="document.getElementById('filter-form-pelaksanaan').submit()">
+            <option value="">Semua Tahun</option>
+            @foreach($years as $y)
+                <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
+            @endforeach
+        </select>
+        <select name="lab" form="filter-form-pelaksanaan" class="form-select" style="width:auto;" onchange="document.getElementById('filter-form-pelaksanaan').submit()">
+            <option value="">Semua Status Lab</option>
+            <option value="done" {{ request('lab') == 'done' ? 'selected' : '' }}>✅ Sudah Diuji</option>
+            <option value="pending" {{ request('lab') == 'pending' ? 'selected' : '' }}>⏳ Belum Diuji</option>
+        </select>
+        <form id="filter-form-pelaksanaan" method="GET" action="{{ route('pelaksanaan.index') }}" class="d-none">
+            <input type="hidden" name="search" value="{{ request('search') }}">
+        </form>
+        <button type="button" id="btn-bulk-delete" class="btn btn-danger d-none" onclick="submitBulkDelete()">
+            <i class="ti ti-trash me-1"></i>Hapus Terpilih (<span id="count-selected">0</span>)
+        </button>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header d-flex align-items-center">
+    <div class="card-header d-flex align-items-center justify-content-between">
         <h3 class="card-title"><i class="ti ti-map-pin me-2"></i>Data Pelaksanaan Lapangan</h3>
-        <span class="badge bg-blue-lt ms-2">{{ $pelaksanaans->count() }} data</span>
+        <span class="badge bg-blue-lt">{{ $pelaksanaans->total() }} data</span>
     </div>
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+    <form id="form-bulk-delete" action="{{ route('pelaksanaan.bulk-delete') }}" method="POST">
+        @csrf
+        <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Wilayah / Komoditas</th>
-                    <th>Jenis Ikan</th>
-                    <th>Lokasi & Tanggal</th>
-                    <th>Sampel</th>
-                    <th>Koordinat GPS</th>
+                    <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            No <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'lokasi_pengambilan_sampel', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Wilayah / Lokasi <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jenis_ikan', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Jenis Ikan <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jumlah_sampel', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Sampel <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'tanggal_pemantauan', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Tgl Pantau <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
                     <th>Status Lab</th>
-                    <th>Tgl Input</th>
-                    <th>Aksi</th>
+                    <th class="w-1 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($pelaksanaans as $key => $item)
                 <tr>
-                    <td class="text-muted">{{ $key + 1 }}</td>
+                    <td><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="form-check-input check-item"></td>
+                    <td class="text-muted">{{ $pelaksanaans->firstItem() + $key }}</td>
                     <td>
                         <div class="fw-semibold">{{ $item->perencanaan->jenis_mp ?? '-' }}</div>
                         <div class="text-muted small">{{ $item->perencanaan->kab_kota ?? '-' }}, {{ $item->perencanaan->provinsi ?? '-' }}</div>
+                        <div class="small">{{ $item->lokasi_pengambilan_sampel }}</div>
+                        @if($item->latitude && $item->longitude)
+                            <a href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}" target="_blank" class="text-decoration-none">
+                                <span class="badge bg-azure-lt"><i class="ti ti-map-pin me-1"></i>Map</span>
+                            </a>
+                        @endif
                     </td>
                     <td>
                         @if($item->jenis_ikan)
                             <div class="fw-semibold">{{ $item->jenis_ikan }}</div>
                             @if($item->nama_latin)<div class="text-muted small fst-italic">{{ $item->nama_latin }}</div>@endif
                         @else
-                            <span class="text-muted small">—</span>
-                        @endif
-                    </td>
-                    <td>
-                        <div>{{ $item->lokasi_pengambilan_sampel }}</div>
-                        @if($item->tanggal_pemantauan)
-                            <div class="text-muted small">{{ \Carbon\Carbon::parse($item->tanggal_pemantauan)->format('d/m/Y') }}</div>
+                            <span class="text-muted">—</span>
                         @endif
                     </td>
                     <td>
@@ -96,87 +105,92 @@
                         @endif
                     </td>
                     <td>
-                        @if($item->latitude && $item->longitude)
-                            <a href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}" target="_blank" class="text-decoration-none">
-                                <span class="badge bg-azure-lt">
-                                    <i class="ti ti-map-pin me-1"></i>{{ number_format($item->latitude,4) }}, {{ number_format($item->longitude,4) }}
-                                </span>
-                            </a>
-                        @else
-                            <span class="text-muted small">—</span>
-                        @endif
+                        <div>{{ \Carbon\Carbon::parse($item->tanggal_pemantauan)->format('d/m/Y') }}</div>
+                        <div class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</div>
                     </td>
                     <td>
                         @if($item->laboratorium)
-                            <span class="badge bg-success-lt text-success">
-                                <span class="badge-dot bg-success"></span>
-                                {{ $item->laboratorium->hasil_uji }}
-                            </span>
+                            <span class="badge bg-success-lt text-success">{{ $item->laboratorium->hasil_uji }}</span>
                         @else
-                            <span class="badge bg-warning-lt text-warning">
-                                <span class="badge-dot bg-warning"></span>
-                                Belum Diuji
-                            </span>
+                            <span class="badge bg-warning-lt text-warning">Belum Diuji</span>
                         @endif
                     </td>
-                    <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
                     <td>
-                        <div class="btn-list flex-nowrap">
-                            <a href="{{ route('pelaksanaan.show', $item->id) }}" class="btn btn-sm btn-outline-info" title="Detail">
-                                <i class="ti ti-info-circle"></i>
-                            </a>
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('pelaksanaan.show', $item->id) }}" class="btn btn-sm btn-outline-primary" title="Detail"><i class="ti ti-eye"></i></a>
+                            @if(Auth::user()->isPusat())
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                    onclick="confirmAction('{{ route('pelaksanaan.destroy', $item->id) }}', 'Hapus data ini?', 'DELETE', 'btn-danger')">
+                                    <i class="ti ti-trash"></i>
+                                </button>
+                            @endif
                             @if($item->laboratorium)
-                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Hasil Lab">
-                                    <i class="ti ti-eye me-1"></i>Lihat Lab
-                                </a>
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Lihat Lab"><i class="ti ti-flask"></i></a>
                             @else
-                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary">
-                                    <i class="ti ti-flask me-1"></i>Input Lab
-                                </a>
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary"><i class="ti ti-flask me-1"></i>Input Lab</a>
                             @endif
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center py-5 text-muted">
-                        <i class="ti ti-map-pin" style="font-size:2.5rem;opacity:.2;"></i>
-                        <div class="mt-2 fw-semibold">Belum ada data pelaksanaan</div>
-                        <div class="text-muted small">@if(request('search') || request('lab'))Tidak ada hasil sesuai filter.@else Belum ada input data lapangan.@endif</div>
+                    <td colspan="9" class="text-center py-4 text-muted">
+                        <i class="ti ti-map-pin" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                        Belum ada data pelaksanaan.
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    </form>
     @if($pelaksanaans->hasPages())
-    <div class="card-footer d-flex align-items-center">
-        <p class="m-0 text-secondary">
-            Menampilkan <span class="fw-semibold">{{ $pelaksanaans->firstItem() }}–{{ $pelaksanaans->lastItem() }}</span>
-            dari <span class="fw-semibold">{{ $pelaksanaans->total() }}</span> data
-        </p>
-        <ul class="pagination m-0 ms-auto">
-            <li class="page-item {{ $pelaksanaans->onFirstPage() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $pelaksanaans->previousPageUrl() }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18"/></svg>
-                    Sebelumnya
-                </a>
-            </li>
-            @foreach($pelaksanaans->getUrlRange(max(1,$pelaksanaans->currentPage()-2), min($pelaksanaans->lastPage(),$pelaksanaans->currentPage()+2)) as $page => $url)
-            <li class="page-item {{ $page === $pelaksanaans->currentPage() ? 'active' : '' }}">
-                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-            </li>
-            @endforeach
-            <li class="page-item {{ !$pelaksanaans->hasMorePages() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $pelaksanaans->nextPageUrl() }}">
-                    Berikutnya
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18"/></svg>
-                </a>
-            </li>
-        </ul>
+    <div class="card-footer d-flex justify-content-center">
+        {{ $pelaksanaans->links() }}
     </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+    const checkAll = document.getElementById('check-all');
+    if (checkAll) {
+        checkAll.addEventListener('change', function() {
+            const checkItems = document.querySelectorAll('.check-item');
+            checkItems.forEach(item => item.checked = checkAll.checked);
+            updateBulkDeleteButton();
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('check-item')) {
+            updateBulkDeleteButton();
+        }
+    });
+
+    function updateBulkDeleteButton() {
+        const btnBulkDelete = document.getElementById('btn-bulk-delete');
+        const countSelected = document.getElementById('count-selected');
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        
+        if (btnBulkDelete) {
+            btnBulkDelete.classList.toggle('d-none', checkedCount === 0);
+            if (countSelected) countSelected.textContent = checkedCount;
+        }
+    }
+
+    function submitBulkDelete() {
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        if (checkedCount === 0) return;
+        Swal.fire({
+            title: 'Hapus Banyak Data?',
+            text: `Anda akan menghapus ${checkedCount} data pelaksanaan. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus Semua!', cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById('form-bulk-delete').submit();
+        });
+    }
+</script>
+@endpush
 @endsection

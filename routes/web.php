@@ -38,8 +38,13 @@ Route::middleware('auth')->group(function () {
 
     // --- Modul Perencanaan ---
     Route::get('/perencanaan', [PerencanaanController::class, 'index'])->name('perencanaan.index');
+    Route::get('/perencanaan/export', [PerencanaanController::class, 'export'])->name('perencanaan.export');
+    Route::get('/perencanaan/template', [PerencanaanController::class, 'downloadTemplate'])->name('perencanaan.template');
+    Route::post('/perencanaan/bulk-delete', [PerencanaanController::class, 'bulkDelete'])->name('perencanaan.bulk-delete');
+    
     // Modul Perencanaan: BKHIT & BBKHIT bisa tambah/edit
-    Route::middleware('role:bkhit,bbkhit')->group(function () {
+    Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
+        Route::post('/perencanaan/import', [PerencanaanController::class, 'import'])->name('perencanaan.import');
         Route::get('/perencanaan/tambah', [PerencanaanController::class, 'create'])->name('perencanaan.create');
         Route::post('/perencanaan/simpan', [PerencanaanController::class, 'store'])->name('perencanaan.store');
         Route::post('/perencanaan/submit/{id}', [PerencanaanController::class, 'submit'])->name('perencanaan.submit');
@@ -59,9 +64,11 @@ Route::middleware('auth')->group(function () {
 
     // --- Modul Pelaksanaan ---
     Route::get('/pelaksanaan', [PelaksanaanController::class, 'index'])->name('pelaksanaan.index');
+    Route::post('/pelaksanaan/bulk-delete', [PelaksanaanController::class, 'bulkDelete'])->name('pelaksanaan.bulk-delete');
+    Route::delete('/pelaksanaan/hapus/{id}', [PelaksanaanController::class, 'destroy'])->name('pelaksanaan.destroy');
     // Detail Pelaksanaan (semua role bisa lihat)
     Route::get('/pelaksanaan/{id}/detail', [PelaksanaanController::class, 'show'])->name('pelaksanaan.show');
-    Route::middleware('role:bkhit,bbkhit')->group(function () {
+    Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
         Route::get('/pelaksanaan/tambah/{id}', [PelaksanaanController::class, 'create'])->name('pelaksanaan.create');
         Route::post('/pelaksanaan/simpan', [PelaksanaanController::class, 'store'])->name('pelaksanaan.store');
     });
@@ -70,8 +77,10 @@ Route::middleware('auth')->group(function () {
     // Semua bisa lihat, tapi input dibatasi
     Route::get('/laboratorium', [LaboratoriumController::class, 'index'])->name('laboratorium.index');
     Route::get('/laboratorium/{id}/detail', [LaboratoriumController::class, 'show'])->name('laboratorium.show');
+    Route::post('/laboratorium/bulk-delete', [LaboratoriumController::class, 'bulkDelete'])->name('laboratorium.bulk-delete');
+    Route::delete('/laboratorium/hapus/{id}', [LaboratoriumController::class, 'destroy'])->name('laboratorium.destroy');
 
-    Route::middleware('role:bkhit,bbkhit')->group(function () {
+    Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
         Route::get('/laboratorium/input/{id}', [LaboratoriumController::class, 'create'])->name('laboratorium.create');
         Route::post('/laboratorium/simpan', [LaboratoriumController::class, 'store'])->name('laboratorium.store');
     });
@@ -80,6 +89,8 @@ Route::middleware('auth')->group(function () {
     // Semua bisa lihat hasil evaluasi
     Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
     Route::get('/evaluasi/{id}/detail', [EvaluasiController::class, 'show'])->name('evaluasi.show');
+    Route::post('/evaluasi/bulk-delete', [EvaluasiController::class, 'bulkDelete'])->name('evaluasi.bulk-delete');
+    Route::delete('/evaluasi/hapus/{id}', [EvaluasiController::class, 'destroy'])->name('evaluasi.destroy');
 
     // Hanya BBKHIT & Pusat yang boleh evaluasi status akhir
     Route::middleware('role:bbkhit,pusat')->group(function () {

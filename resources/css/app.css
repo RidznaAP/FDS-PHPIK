@@ -185,3 +185,17 @@
 .animate-fade-in {
     animation: fadeIn 0.4s ease-out forwards;
 }
+
+/* Typography Utilities */
+.extra-small {
+    font-size: 0.7rem !important;
+}
+
+.tiny {
+    font-size: 0.625rem !important;
+}
+
+/* Badge Enhancements */
+.badge-outline {
+    border: 1px solid currentColor;
+}

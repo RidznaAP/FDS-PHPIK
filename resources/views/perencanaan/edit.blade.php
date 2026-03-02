@@ -55,6 +55,22 @@
                             <input type="text" name="lab_uji" class="form-control"
                                 value="{{ old('lab_uji', $perencanaan->lab_uji) }}" required>
                         </div>
+                        <div class="col-12"><hr class="my-2"></div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rencana Lokasi Pengambilan Sampel</label>
+                            <input type="text" name="rencana_lokasi" class="form-control" 
+                                value="{{ old('rencana_lokasi', $perencanaan->rencana_lokasi) }}" placeholder="Contoh: Tambak Udang Kec. Bireun">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rencana Jumlah Sampel</label>
+                            <input type="number" name="rencana_jumlah_sampel" class="form-control" 
+                                value="{{ old('rencana_jumlah_sampel', $perencanaan->rencana_jumlah_sampel) }}" min="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rencana Metode Sampling</label>
+                            <input type="text" name="rencana_metode_sampling" class="form-control" 
+                                value="{{ old('rencana_metode_sampling', $perencanaan->rencana_metode_sampling) }}" placeholder="Contoh: Acak / Selektif">
+                        </div>
                     </div>
                 </div>
             </div>

@@ -5,78 +5,99 @@
 @section('page_subtitle', 'Daftar rencana pemantauan HPIK')
 
 @section('page_actions')
-    @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
-        <a href="{{ route('perencanaan.create') }}" class="btn btn-primary d-none d-sm-inline-flex">
-            <i class="ti ti-plus me-1"></i> Perencanaan Baru
+    <div class="btn-list">
+        <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-success">
+            <i class="ti ti-download me-1"></i> Ekspor Excel
         </a>
-    @endif
+        <a href="{{ route('perencanaan.template') }}" class="btn btn-outline-info">
+            <i class="ti ti-file-download me-1"></i> Unduh Template
+        </a>
+        @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-import">
+                <i class="ti ti-upload me-1"></i> Impor Excel
+            </button>
+            <a href="{{ route('perencanaan.create') }}" class="btn btn-primary d-none d-sm-inline-flex">
+                <i class="ti ti-plus me-1"></i> Perencanaan Baru
+            </a>
+        @endif
+    </div>
 @endsection
 
 @section('content')
-
-{{-- Search & Filter Bar --}}
-<div class="card mb-3">
-    <div class="card-body py-3">
-        <form method="GET" action="{{ route('perencanaan.index') }}">
-            <div class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <div class="input-icon">
-                        <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-                        <input type="text" name="search" class="form-control" placeholder="Cari provinsi, kota, jenis MP, HPIK..." value="{{ request('search') }}">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    {{-- #8 Filter Tahun --}}
-                    <select name="tahun" class="form-select">
-                        <option value="">Semua Tahun</option>
-                        @foreach($years as $y)
-                            <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="status" class="form-select">
-                        <option value="">Semua Status</option>
-                        <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                        <option value="waiting" {{ request('status') == 'waiting' ? 'selected' : '' }}>Menunggu Validasi</option>
-                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="ti ti-filter me-1"></i>Filter</button>
-                </div>
-                @if(request('search') || request('status') || request('tahun'))
-                <div class="col-md-2">
-                    <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-secondary w-100"><i class="ti ti-x me-1"></i>Reset</a>
-                </div>
-                @endif
-            </div>
+<div class="row g-2 mb-3">
+    <div class="col">
+        <form method="GET" action="{{ route('perencanaan.index') }}" class="input-icon" style="max-width:400px;">
+            <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+            <input type="text" name="search" class="form-control" placeholder="Cari provinsi, kota, jenis MP…" value="{{ request('search') }}">
         </form>
-
+    </div>
+    <div class="col-auto d-flex gap-2">
+        <select name="tahun" form="filter-form" class="form-select" style="width:auto;" onchange="document.getElementById('filter-form').submit()">
+            <option value="">Semua Tahun</option>
+            @foreach($years as $y)
+                <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
+            @endforeach
+        </select>
+        <select name="status" form="filter-form" class="form-select" style="width:auto;" onchange="document.getElementById('filter-form').submit()">
+            <option value="">Semua Status</option>
+            <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+            <option value="waiting" {{ request('status') == 'waiting' ? 'selected' : '' }}>Menunggu</option>
+            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui</option>
+        </select>
+        <form id="filter-form" method="GET" action="{{ route('perencanaan.index') }}" class="d-none">
+            <input type="hidden" name="search" value="{{ request('search') }}">
+        </form>
+        <button type="button" id="btn-bulk-delete" class="btn btn-danger d-none" onclick="submitBulkDelete()">
+            <i class="ti ti-trash me-1"></i>Hapus Terpilih (<span id="count-selected">0</span>)
+        </button>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header d-flex align-items-center">
+    <div class="card-header d-flex align-items-center justify-content-between">
         <h3 class="card-title"><i class="ti ti-clipboard-list me-2"></i>Daftar Perencanaan</h3>
-        <span class="badge bg-blue-lt ms-2">{{ $perencanaans->count() }} data</span>
+        <span class="badge bg-blue-lt">{{ $perencanaans->total() }} data</span>
     </div>
-    <div class="table-responsive">
-        <table class="table table-vcenter table-mobile-md card-table">
+    <form id="form-bulk-delete" action="{{ route('perencanaan.bulk-delete') }}" method="POST">
+        @csrf
+        <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Wilayah</th>
-                    <th>Jenis MP / HPIK</th>
-                    <th>Target Uji</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
+                    <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            No <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'provinsi', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Wilayah <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jenis_mp', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Jenis MP / HPIK <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'target_uji', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Target Uji <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'status', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Status <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th class="w-1 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($perencanaans as $key => $p)
                 <tr>
-                    <td class="text-muted">{{ $key + 1 }}</td>
+                    <td><input type="checkbox" name="ids[]" value="{{ $p->id }}" class="form-check-input check-item"></td>
+                    <td class="text-muted">{{ $perencanaans->firstItem() + $key }}</td>
                     <td>
                         <div class="fw-semibold">{{ $p->kab_kota }}</div>
                         <div class="text-muted small">{{ $p->provinsi }}</div>
@@ -92,90 +113,57 @@
                     <td>
                         @php
                             $statusMap = [
-                                'draft'    => ['label'=>'Draft',              'class'=>'bg-secondary-lt text-secondary', 'dot'=>'bg-secondary'],
-                                'waiting'  => ['label'=>'Menunggu Validasi',  'class'=>'bg-warning-lt text-warning',    'dot'=>'bg-warning'],
-                                'approved' => ['label'=>'Disetujui',          'class'=>'bg-success-lt text-success',    'dot'=>'bg-success'],
+                                'draft'    => ['label'=>'Draft',              'class'=>'bg-secondary-lt text-secondary'],
+                                'waiting'  => ['label'=>'Menunggu Validasi',  'class'=>'bg-warning-lt text-warning'],
+                                'approved' => ['label'=>'Disetujui',          'class'=>'bg-success-lt text-success'],
                             ];
                             $s = $statusMap[$p->status] ?? $statusMap['draft'];
                         @endphp
-                        <span class="badge {{ $s['class'] }}">
-                            <span class="badge-dot {{ $s['dot'] }}"></span>
-                            {{ $s['label'] }}
-                        </span>
+                        <span class="badge {{ $s['class'] }}">{{ $s['label'] }}</span>
                     </td>
                     <td>
-                        <div class="btn-list flex-nowrap">
-                            <a href="{{ route('perencanaan.show', $p->id) }}"
-                               class="btn btn-sm btn-outline-primary" title="Detail">
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('perencanaan.show', $p->id) }}" class="btn btn-sm btn-outline-primary" title="Detail">
                                 <i class="ti ti-eye"></i>
                             </a>
-
-                            {{-- BKHIT/BBKHIT: Draft actions (Edit · Hapus · Ajukan) --}}
-                            @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
-                                @if($p->status === 'draft' && $p->user_id === Auth::id())
-                                    {{-- Edit --}}
-                                    <a href="{{ route('perencanaan.edit', $p->id) }}"
-                                       class="btn btn-sm btn-outline-secondary" title="Edit">
-                                        <i class="ti ti-pencil"></i>
-                                    </a>
-                                     {{-- Hapus --}}
-                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                         onclick="confirmAction(
-                                             '{{ route('perencanaan.destroy', $p->id) }}',
-                                             'Perencanaan untuk {{ $p->provinsi }} ({{ $p->jenis_hpik }}) akan dihapus permanen.',
-                                             'DELETE', 'btn-danger', '🗑️', 'Hapus Perencanaan'
-                                         )">
-                                         <i class="ti ti-trash"></i>
-                                     </button>
-                                     {{-- Ajukan --}}
-                                     <button type="button" class="btn btn-sm btn-warning"
-                                         onclick="confirmAction(
-                                             '{{ route('perencanaan.submit', $p->id) }}',
-                                             'Perencanaan ini akan diajukan untuk divalidasi. Pastikan data sudah lengkap.',
-                                             'POST', 'btn-warning', '📤', 'Ajukan Validasi'
-                                         )">
-                                         <i class="ti ti-send me-1"></i>Ajukan
-                                     </button>
+                            @if(Auth::user()->isPusat())
+                                <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="ti ti-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                    onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus data ini?', 'DELETE', 'btn-danger')">
+                                    <i class="ti ti-trash"></i>
+                                </button>
+                            @endif
+                            @if((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id())
+                                @if($p->status === 'draft')
+                                    <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus" onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus data?', 'DELETE', 'btn-danger')"><i class="ti ti-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-warning" onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan validasi?', 'POST', 'btn-warning')"><i class="ti ti-send me-1"></i>Ajukan</button>
                                 @endif
-                                
-                                @if(($p->user_id === Auth::id()) && $p->status === 'approved')
-                                    <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-sm btn-primary">
-                                        <i class="ti ti-plus me-1"></i>Input Lapangan
-                                    </a>
+                                @if($p->status === 'approved')
+                                    <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-sm btn-primary"><i class="ti ti-plus me-1"></i>Input Lapangan</a>
                                 @endif
                             @endif
-
-                            {{-- BBKHIT/Pusat: Setujui / Evaluasi --}}
                             @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
                                 @if($p->status === 'waiting')
-                                    <button type="button" class="btn btn-sm btn-success"
-                                        onclick="confirmAction(
-                                            '{{ route('perencanaan.approve', $p->id) }}',
-                                            'Perencanaan untuk {{ $p->provinsi }} ({{ $p->jenis_hpik }}) akan disetujui dan BKHIT dapat mulai input lapangan.',
-                                            'POST', 'btn-success', '✅', 'Setujui Perencanaan'
-                                        )">
-                                        <i class="ti ti-check me-1"></i>Setujui
-                                    </button>
+                                    <button type="button" class="btn btn-sm btn-success" onclick="confirmAction('{{ route('perencanaan.approve', $p->id) }}', 'Setujui?', 'POST', 'btn-success')"><i class="ti ti-check me-1"></i>Setujui</button>
                                 @elseif($p->status === 'approved' && !$p->evaluasi)
-                                    <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-orange">
-                                        <i class="ti ti-chart-bar me-1"></i>Evaluasi
-                                    </a>
+                                    <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-orange"><i class="ti ti-chart-bar me-1"></i>Evaluasi</a>
                                 @elseif($p->evaluasi)
-                                    <span class="badge bg-green-lt">✅ Selesai Evaluasi</span>
+                                    <span class="badge bg-green-lt">✅ Selesai</span>
                                 @endif
                             @endif
                         </div>
                     </td>
-
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">
-                        <i class="ti ti-clipboard-list" style="font-size:2.5rem; opacity:.2;"></i>
-                        <div class="mt-2 fw-semibold">Belum ada data perencanaan</div>
-                        <div class="text-muted small mb-3">@if(request('search') || request('status'))Tidak ada hasil yang cocok dengan filter.@else Belum ada perencanaan yang dibuat.@endif</div>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        <i class="ti ti-clipboard-list" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                        Belum ada data perencanaan.
                         @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
-                            <a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-sm"><i class="ti ti-plus me-1"></i>Buat Perencanaan</a>
+                            <br><a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-sm mt-2"><i class="ti ti-plus me-1"></i>Buat Perencanaan</a>
                         @endif
                     </td>
                 </tr>
@@ -183,37 +171,81 @@
             </tbody>
         </table>
     </div>
+    </form>
     @if($perencanaans->hasPages())
-    <div class="card-footer d-flex align-items-center">
-        <p class="m-0 text-secondary">
-            Menampilkan <span class="fw-semibold">{{ $perencanaans->firstItem() }}–{{ $perencanaans->lastItem() }}</span>
-            dari <span class="fw-semibold">{{ $perencanaans->total() }}</span> data
-        </p>
-        <ul class="pagination m-0 ms-auto">
-            {{-- Prev --}}
-            <li class="page-item {{ $perencanaans->onFirstPage() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $perencanaans->previousPageUrl() }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18"/></svg>
-                    Sebelumnya
-                </a>
-            </li>
-            {{-- Page numbers --}}
-            @foreach($perencanaans->getUrlRange(max(1,$perencanaans->currentPage()-2), min($perencanaans->lastPage(),$perencanaans->currentPage()+2)) as $page => $url)
-            <li class="page-item {{ $page === $perencanaans->currentPage() ? 'active' : '' }}">
-                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-            </li>
-            @endforeach
-            {{-- Next --}}
-            <li class="page-item {{ !$perencanaans->hasMorePages() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $perencanaans->nextPageUrl() }}">
-                    Berikutnya
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18"/></svg>
-                </a>
-            </li>
-        </ul>
+    <div class="card-footer d-flex justify-content-center">
+        {{ $perencanaans->links() }}
     </div>
     @endif
 </div>
+
+@if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
+<div class="modal modal-blur fade" id="modal-import" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Impor Data Perencanaan dari Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('perencanaan.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-required">File Excel (.xlsx, .xls)</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
+                        <div class="form-hint small mt-2">Gunakan tombol <strong>"Unduh Template"</strong> untuk mendapatkan format yang benar.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="ti ti-upload me-1"></i> Mulai Impor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@push('scripts')
+<script>
+    const checkAll = document.getElementById('check-all');
+    if (checkAll) {
+        checkAll.addEventListener('change', function() {
+            const checkItems = document.querySelectorAll('.check-item');
+            checkItems.forEach(item => item.checked = checkAll.checked);
+            updateBulkDeleteButton();
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('check-item')) {
+            updateBulkDeleteButton();
+        }
+    });
+
+    function updateBulkDeleteButton() {
+        const btnBulkDelete = document.getElementById('btn-bulk-delete');
+        const countSelected = document.getElementById('count-selected');
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        
+        if (btnBulkDelete) {
+            btnBulkDelete.classList.toggle('d-none', checkedCount === 0);
+            if (countSelected) countSelected.textContent = checkedCount;
+        }
+    }
+
+    function submitBulkDelete() {
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        if (checkedCount === 0) return;
+        Swal.fire({
+            title: 'Hapus Banyak Data?',
+            text: `Anda akan menghapus ${checkedCount} data perencanaan. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus Semua!', cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById('form-bulk-delete').submit();
+        });
+    }
+</script>
+@endpush
 @endsection

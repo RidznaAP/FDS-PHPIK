@@ -9,10 +9,21 @@ use App\Models\Laboratorium;
 class LaboratoriumController extends Controller
 {
     // Tampilkan daftar sampel yang perlu diuji (ambil dari Pelaksanaan)
-    public function index()
+    public function index(Request $request)
     {
         $user = \Illuminate\Support\Facades\Auth::user();
-        $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium'])->latest();
+        $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium']);
+
+        // ── Sorting ──────────────────────────────────────────────────────
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $allowedSorts = ['id', 'created_at', 'lokasi_pengambilan_sampel', 'jumlah_sampel'];
+        
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->latest();
+        }
 
         // ── Auth-scoped Filtering ──────────────────────────────────────
         if ($user->isBkhit()) {
@@ -83,10 +94,47 @@ class LaboratoriumController extends Controller
         return redirect()->route('laboratorium.index')->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
     }
 
-    // ── Show Detail Laboratorium ─────────────────────────────────────────
     public function show($id)
     {
         $lab = Laboratorium::with('pelaksanaan.perencanaan')->findOrFail($id);
         return view('laboratorium.show', compact('lab'));
+    }
+
+    public function destroy($id)
+    {
+        $item = Laboratorium::findOrFail($id);
+        
+        // Jika bukan Pusat, pastikan pemilik data (lewat pelaksanaan -> perencanaan)
+        if (!\Illuminate\Support\Facades\Auth::user()->isPusat()) {
+            if (!$item->pelaksanaan || !$item->pelaksanaan->perencanaan || $item->pelaksanaan->perencanaan->user_id !== \Illuminate\Support\Facades\Auth::id()) {
+                abort(403);
+            }
+        }
+
+        $item->delete();
+        return back()->with('success', 'Data Hasil Lab berhasil dihapus.');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return back()->with('error', 'Pilih data yang akan dihapus.');
+        }
+
+        $query = Laboratorium::whereIn('id', $ids);
+
+        // Jika bukan Pusat, hanya boleh hapus milik sendiri
+        if (!\Illuminate\Support\Facades\Auth::user()->isPusat()) {
+            $query->whereHas('pelaksanaan.perencanaan', fn($q) => $q->where('user_id', \Illuminate\Support\Facades\Auth::id()));
+        }
+
+        $count = $query->delete();
+        
+        if ($count == 0) {
+            return back()->with('error', 'Tidak ada data yang diizinkan untuk dihapus.');
+        }
+
+        return back()->with('success', $count . ' data hasil laboratorium berhasil dihapus.');
     }
 }

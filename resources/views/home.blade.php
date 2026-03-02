@@ -103,6 +103,51 @@
         border-radius: 10px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
+    
+    /* Regulation Cards Styling */
+    .reg-card {
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        background: #fff;
+        height: 100%;
+    }
+    .reg-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.08) !important;
+    }
+    .reg-ribbon {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 40px;
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+    .reg-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+    .reg-number {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .reg-desc {
+        font-size: 0.85rem;
+        color: #64748b;
+        line-height: 1.5;
+    }
 </style>
 @endsection
 
@@ -313,6 +358,31 @@
         </div>
     </div>
 </div>
+</div>
+
+{{-- Analytics Row --}}
+<div class="row row-cards mb-4 animate-fade-in" style="animation-delay: 0.15s;">
+    <div class="col-lg-8">
+        <div class="card card-premium shadow-sm" style="border-radius:16px;">
+            <div class="card-header py-3">
+                <h3 class="card-title mb-0 fw-bold text-azure"><i class="ti ti-chart-area-line me-2"></i>Tren Pemantauan Bulanan</h3>
+            </div>
+            <div class="card-body">
+                <div id="chart-timeline" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card card-premium shadow-sm" style="border-radius:16px;">
+            <div class="card-header py-3">
+                <h3 class="card-title mb-0 fw-bold text-purple"><i class="ti ti-chart-pie me-2"></i>Status Perencanaan</h3>
+            </div>
+            <div class="card-body">
+                <div id="chart-status" style="min-height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Alur Kerja --}}
 <div class="card shadow-sm" style="border-radius:12px;">
@@ -348,12 +418,146 @@
     </div>
 </div>
 
+{{-- Dasar Hukum Section --}}
+<div class="mt-5 mb-5 animate-fade-in" style="animation-delay: 0.2s;">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="ti ti-gavel me-2 text-primary"></i>Dasar Hukum</h2>
+            <p class="text-muted small mb-0">Landasan regulasi pemantauan Hama dan Penyakit Ikan Karantina</p>
+        </div>
+    </div>
+
+    <div class="row row-cards">
+        @php
+            $regulations = [
+                [
+                    'number' => 'PP Nomor 29 Tahun 2023',
+                    'desc' => 'Peraturan Pelaksanaan Undang-Undang Nomor 21 Tahun 2019 tentang Karantina Hewan, Ikan dan Tumbuhan.',
+                    'color' => '#3b82f6',
+                    'icon' => 'ti-scale-outline'
+                ],
+                [
+                    'number' => 'Perpres Nomor 45 Tahun 2023',
+                    'desc' => 'Tentang Badan Karantina Indonesia (Lembaran Negara Republik Indonesia Tahun 2023 Nomor 97).',
+                    'color' => '#64748b',
+                    'icon' => 'ti-building-fortress'
+                ],
+                [
+                    'number' => 'Peraturan Barantin No. 1 Tahun 2023',
+                    'desc' => 'Tentang Organisasi dan Tata Kerja Badan Karantina Indonesia (SOTTK).',
+                    'color' => '#10b981',
+                    'icon' => 'ti-hierarchy-2'
+                ],
+                [
+                    'number' => 'Peraturan Barantin No. 12 Tahun 2024',
+                    'desc' => 'Tentang Tata Cara Pemantauan HPHK, HPIK, serta Organisme Pengganggu Tumbuhan Karantina.',
+                    'color' => '#f59e0b',
+                    'icon' => 'ti-search'
+                ],
+                [
+                    'number' => 'Perpres Nomor 45 Tahun 2023',
+                    'desc' => 'Tentang Badan Karantina Indonesia (Berita Negara Republik Indonesia Tahun 2023 Nomor 97).',
+                    'color' => '#f97316',
+                    'icon' => 'ti-file-certificate'
+                ],
+            ];
+        @endphp
+
+        @foreach($regulations as $reg)
+            <div class="col-md-6 col-lg-4">
+                <div class="card reg-card shadow-sm border-0">
+                    <div class="reg-ribbon" style="background: {{ $reg['color'] }}"></div>
+                    <div class="card-body p-4">
+                        <div class="reg-icon" style="background: {{ $reg['color'] }}15; color: {{ $reg['color'] }}">
+                            <i class="ti {{ $reg['icon'] }}"></i>
+                        </div>
+                        <span class="reg-number">{{ $reg['number'] }}</span>
+                        <p class="reg-desc mb-0 small">{{ $reg['desc'] }}</p>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Inisialisasi peta dengan CartoDB Voyager (lebih modern dari OSM)
+    // 📊 1. Chart Timeline (Trend Bulanan)
+    var optionsTimeline = {
+        series: [{
+            name: 'Jumlah Perencanaan',
+            data: @json($chartMonthlyData)
+        }],
+        chart: {
+            height: 320,
+            type: 'area',
+            toolbar: { show: false },
+            zoom: { enabled: false }
+        },
+        colors: ['#206bc4'],
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [20, 100]
+            }
+        },
+        xaxis: {
+            categories: @json($chartMonthlyLabels),
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: { show: false },
+        tooltip: { theme: 'dark' },
+        grid: {
+            borderColor: '#f1f1f1',
+            strokeDashArray: 4,
+            yaxis: { lines: { show: true } }
+        }
+    };
+    new ApexCharts(document.querySelector("#chart-timeline"), optionsTimeline).render();
+
+    // 📊 2. Chart Status (Donut)
+    var optionsStatus = {
+        series: @json(array_values($statusCounts)),
+        chart: {
+            height: 320,
+            type: 'donut',
+        },
+        labels: @json(array_keys($statusCounts)),
+        colors: ['#64748b', '#f59e0b', '#2fb344'],
+        legend: { position: 'bottom' },
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '75%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: 'Total',
+                            formatter: function (w) {
+                                return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        dataLabels: { enabled: false },
+        tooltip: { theme: 'dark' }
+    };
+    new ApexCharts(document.querySelector("#chart-status"), optionsStatus).render();
+
+    // 🗺️ Leaflet Map
     var map = L.map('map', { zoomControl: true, scrollWheelZoom: false }).setView([-2.5, 118], 5);
 
     // CartoDB Voyager — tile modern, bersih, HD

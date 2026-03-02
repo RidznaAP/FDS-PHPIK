@@ -46,6 +46,7 @@ class PelaksanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
                 'Hasil Uji'              => $p->laboratorium->hasil_uji ?? 'Belum',
                 'Lab Penguji'            => $p->laboratorium->lab_penguji ?? '-',
                 'Tanggal Uji'            => $p->laboratorium->tanggal_uji ?? '-',
+                'Kesimpulan Akhir'       => $p->perencanaan->evaluasi->kesimpulan ?? 'Belum Dievaluasi',
             ];
         });
     }
@@ -57,6 +58,7 @@ class PelaksanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
             'Lokasi Sampling', 'Jumlah Sampel', 'Metode Sampling',
             'Latitude', 'Longitude',
             'Kode Sampel Lab', 'Metode Uji', 'Hasil Uji', 'Lab Penguji', 'Tanggal Uji',
+            'Kesimpulan Akhir',
         ];
     }
 
@@ -79,6 +81,6 @@ class PelaksanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
 
     public function title(): string
     {
-        return 'Data Pelaksanaan & Lab';
+        return 'Output Hasil Pemantauan';
     }
 }

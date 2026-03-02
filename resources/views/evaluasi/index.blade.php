@@ -5,26 +5,53 @@
 @section('page_subtitle', 'Penetapan status akhir hasil pemantauan HPIK')
 
 @section('content')
-<div class="card">
-    <div class="card-header d-flex align-items-center">
-        <h3 class="card-title"><i class="ti ti-chart-bar me-2"></i>Data Evaluasi HPIK</h3>
-        <span class="badge bg-blue-lt ms-2">{{ $perencanaans->total() }} data</span>
+<div class="row g-2 mb-3">
+    <div class="col">
+        {{-- placeholder --}}
     </div>
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+    <div class="col-auto">
+        <button type="button" id="btn-bulk-delete" class="btn btn-danger d-none" onclick="submitBulkDelete()">
+            <i class="ti ti-trash me-1"></i>Hapus Terpilih (<span id="count-selected">0</span>)
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title"><i class="ti ti-chart-bar me-2"></i>Data Evaluasi HPIK</h3>
+        <span class="badge bg-blue-lt">{{ $perencanaans->total() }} data</span>
+    </div>
+    <form id="form-bulk-delete" action="{{ route('evaluasi.bulk-delete') }}" method="POST">
+        @csrf
+        <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Wilayah / Komoditas</th>
+                    <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            No <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'provinsi', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Wilayah / Komoditas <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
                     <th>Lab Selesai</th>
                     <th>Hasil Evaluasi</th>
-                    <th>Aksi</th>
+                    <th class="w-1 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($perencanaans as $key => $p)
                 <tr>
-                    <td class="text-muted">{{ $key + 1 }}</td>
+                    <td>
+                        @if($p->evaluasi)
+                            <input type="checkbox" name="ids[]" value="{{ $p->evaluasi->id }}" class="form-check-input check-item">
+                        @endif
+                    </td>
+                    <td class="text-muted">{{ $perencanaans->firstItem() + $key }}</td>
                     <td>
                         <div class="fw-semibold">{{ $p->kab_kota }}, {{ $p->provinsi }}</div>
                         <div class="text-muted small">{{ $p->jenis_mp }} — {{ $p->jenis_hpik }}</div>
@@ -35,7 +62,7 @@
                             $total = $p->pelaksanaans->count();
                         @endphp
                         <div class="d-flex align-items-center gap-2">
-                            <div class="flex-fill">
+                            <div class="flex-fill" style="max-width: 80px;">
                                 <div class="progress progress-sm">
                                     <div class="progress-bar {{ $selesai == $total && $total > 0 ? 'bg-success' : 'bg-yellow' }}"
                                          style="width: {{ $total > 0 ? ($selesai/$total*100) : 0 }}%">
@@ -48,72 +75,89 @@
                     <td>
                         @if($p->evaluasi)
                             @php $w = $p->evaluasi->warna; @endphp
-                            <span class="badge bg-{{ $w }}-lt text-{{ $w }}">
-                                {{ $p->evaluasi->kesimpulan }}
-                            </span>
+                            <span class="badge bg-{{ $w }}-lt text-{{ $w }}">{{ $p->evaluasi->kesimpulan }}</span>
                         @else
                             <span class="badge bg-secondary-lt text-secondary">Belum Dievaluasi</span>
                         @endif
                     </td>
                     <td>
-                        <div class="btn-list flex-nowrap">
+                        <div class="d-flex gap-1">
                             @if($p->evaluasi)
-                                <a href="{{ route('evaluasi.show', $p->evaluasi->id) }}" class="btn btn-sm btn-outline-info" title="Detail Evaluasi">
-                                    <i class="ti ti-chart-bar me-1"></i>Detail
-                                </a>
+                                <a href="{{ route('evaluasi.show', $p->evaluasi->id) }}" class="btn btn-sm btn-outline-primary" title="Detail"><i class="ti ti-chart-bar"></i></a>
+                                @if(Auth::user()->isPusat())
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                        onclick="confirmAction('{{ route('evaluasi.destroy', $p->evaluasi->id) }}', 'Hapus hasil evaluasi?', 'DELETE', 'btn-danger')">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                @endif
                             @else
-                                <a href="{{ route('perencanaan.show', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Detail Perencanaan">
-                                    <i class="ti ti-eye me-1"></i>Rinci
-                                </a>
+                                <a href="{{ route('perencanaan.show', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Detail"><i class="ti ti-eye"></i></a>
                             @endif
-
                             @if(!$p->evaluasi && $p->status === 'approved' && (Auth::user()->isBbkhit() || Auth::user()->isPusat()))
-                                <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-warning">
-                                    <i class="ti ti-plus me-1"></i>Evaluasi
-                                </a>
+                                <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-sm btn-warning"><i class="ti ti-plus me-1"></i>Evaluasi</a>
                             @endif
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center py-5 text-muted">
-                        <i class="ti ti-chart-bar" style="font-size:2rem;opacity:.3;"></i>
-                        <div class="mt-2">Belum ada data untuk dievaluasi.</div>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <i class="ti ti-chart-bar" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                        Belum ada data untuk dievaluasi.
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    </form>
     @if($perencanaans->hasPages())
-    <div class="card-footer d-flex align-items-center">
-        <p class="m-0 text-secondary">
-            Menampilkan <span class="fw-semibold">{{ $perencanaans->firstItem() }}–{{ $perencanaans->lastItem() }}</span>
-            dari <span class="fw-semibold">{{ $perencanaans->total() }}</span> data
-        </p>
-        <ul class="pagination m-0 ms-auto">
-            <li class="page-item {{ $perencanaans->onFirstPage() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $perencanaans->previousPageUrl() }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18"/></svg>
-                    Sebelumnya
-                </a>
-            </li>
-            @foreach($perencanaans->getUrlRange(max(1,$perencanaans->currentPage()-2), min($perencanaans->lastPage(),$perencanaans->currentPage()+2)) as $page => $url)
-            <li class="page-item {{ $page === $perencanaans->currentPage() ? 'active' : '' }}">
-                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-            </li>
-            @endforeach
-            <li class="page-item {{ !$perencanaans->hasMorePages() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $perencanaans->nextPageUrl() }}">
-                    Berikutnya
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18"/></svg>
-                </a>
-            </li>
-        </ul>
+    <div class="card-footer d-flex justify-content-center">
+        {{ $perencanaans->links() }}
     </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+    const checkAll = document.getElementById('check-all');
+    if (checkAll) {
+        checkAll.addEventListener('change', function() {
+            const checkItems = document.querySelectorAll('.check-item');
+            checkItems.forEach(item => item.checked = checkAll.checked);
+            updateBulkDeleteButton();
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('check-item')) {
+            updateBulkDeleteButton();
+        }
+    });
+
+    function updateBulkDeleteButton() {
+        const btnBulkDelete = document.getElementById('btn-bulk-delete');
+        const countSelected = document.getElementById('count-selected');
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        
+        if (btnBulkDelete) {
+            btnBulkDelete.classList.toggle('d-none', checkedCount === 0);
+            if (countSelected) countSelected.textContent = checkedCount;
+        }
+    }
+
+    function submitBulkDelete() {
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        if (checkedCount === 0) return;
+        Swal.fire({
+            title: 'Hapus Banyak Hasil Evaluasi?',
+            text: `Anda akan menghapus ${checkedCount} hasil evaluasi. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus Semua!', cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById('form-bulk-delete').submit();
+        });
+    }
+</script>
+@endpush
 @endsection

@@ -5,32 +5,63 @@
 @section('page_subtitle', 'Daftar sampel dan status pengujian laboratorium')
 
 @section('content')
-<div class="card">
-    <div class="card-header d-flex align-items-center">
-        <h3 class="card-title"><i class="ti ti-flask me-2"></i>Data Sampel Laboratorium</h3>
-        <span class="badge bg-blue-lt ms-2">{{ $pelaksanaans->total() }} data</span>
+<div class="row g-2 mb-3">
+    <div class="col">
+        {{-- placeholder --}}
     </div>
-    <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+    <div class="col-auto">
+        <button type="button" id="btn-bulk-delete" class="btn btn-danger d-none" onclick="submitBulkDelete()">
+            <i class="ti ti-trash me-1"></i>Hapus Terpilih (<span id="count-selected">0</span>)
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title"><i class="ti ti-flask me-2"></i>Data Sampel Laboratorium</h3>
+        <span class="badge bg-blue-lt">{{ $pelaksanaans->total() }} data</span>
+    </div>
+    <form id="form-bulk-delete" action="{{ route('laboratorium.bulk-delete') }}" method="POST">
+        @csrf
+        <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
             <thead>
                 <tr>
-                    <th>No</th>
-                    <th>Lokasi Sampling</th>
+                    <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            No <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'lokasi_pengambilan_sampel', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Lokasi Sampling <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
                     <th>Komoditas</th>
-                    <th>Jml Sampel</th>
-                    <th>Tanggal Uji</th>
+                    <th>
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jumlah_sampel', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
+                            Jml Sampel <i class="ti ti-selector ms-1"></i>
+                        </a>
+                    </th>
+                    <th>Tanggal</th>
                     <th>Parasit</th>
                     <th>Bakteri</th>
                     <th>Virus</th>
                     <th>Jamur</th>
                     <th>Prev%</th>
                     <th>Status Lab</th>
-                    <th>Aksi</th>
+                    <th class="w-1 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($pelaksanaans as $key => $item)
                 <tr>
+                    <td>
+                        @if($item->laboratorium)
+                            <input type="checkbox" name="ids[]" value="{{ $item->laboratorium->id }}" class="form-check-input check-item">
+                        @endif
+                    </td>
                     <td class="text-muted">{{ $pelaksanaans->firstItem() + $key }}</td>
                     <td>
                         <div class="fw-semibold">{{ $item->lokasi_pengambilan_sampel }}</div>
@@ -64,74 +95,87 @@
                     </td>
                     <td>
                         @if($item->laboratorium)
-                            <span class="badge bg-success-lt text-success">
-                                <i class="ti ti-check me-1"></i>{{ $item->laboratorium->hasil_uji }}
-                            </span>
+                            <span class="badge bg-success-lt text-success"><i class="ti ti-check me-1"></i>{{ $item->laboratorium->hasil_uji }}</span>
                         @else
-                            <span class="badge bg-warning-lt text-warning">
-                                <i class="ti ti-clock me-1"></i>Menunggu
-                            </span>
+                            <span class="badge bg-warning-lt text-warning"><i class="ti ti-clock me-1"></i>Menunggu</span>
                         @endif
                     </td>
                     <td>
-                        <div class="btn-list flex-nowrap">
+                        <div class="d-flex gap-1">
                             @if($item->laboratorium)
-                                <a href="{{ route('laboratorium.show', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-info" title="Detail Lab">
-                                    <i class="ti ti-info-circle me-1"></i>Detail
-                                </a>
-                            @endif
-
-                            @if(!$item->laboratorium)
-                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary">
-                                    <i class="ti ti-flask me-1"></i>Input
-                                </a>
+                                <a href="{{ route('laboratorium.show', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-primary" title="Detail Lab"><i class="ti ti-eye"></i></a>
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
+                                @if(Auth::user()->isPusat())
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                        onclick="confirmAction('{{ route('laboratorium.destroy', $item->laboratorium->id) }}', 'Hapus hasil lab ini?', 'DELETE', 'btn-danger')">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                @endif
                             @else
-                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Hasil Lab">
-                                    <i class="ti ti-pencil"></i>
-                                </a>
+                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-primary"><i class="ti ti-flask me-1"></i>Input</a>
                             @endif
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="12" class="text-center py-5 text-muted">
-                        <i class="ti ti-flask" style="font-size:2rem;opacity:.3;"></i>
-                        <div class="mt-2">Belum ada data sampel masuk.</div>
+                    <td colspan="14" class="text-center py-4 text-muted">
+                        <i class="ti ti-flask" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                        Belum ada data sampel masuk.
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    </form>
     @if($pelaksanaans->hasPages())
-    <div class="card-footer d-flex align-items-center">
-        <p class="m-0 text-secondary">
-            Menampilkan <span class="fw-semibold">{{ $pelaksanaans->firstItem() }}–{{ $pelaksanaans->lastItem() }}</span>
-            dari <span class="fw-semibold">{{ $pelaksanaans->total() }}</span> data
-        </p>
-        <ul class="pagination m-0 ms-auto">
-            <li class="page-item {{ $pelaksanaans->onFirstPage() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $pelaksanaans->previousPageUrl() }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="15 6 9 12 15 18"/></svg>
-                    Sebelumnya
-                </a>
-            </li>
-            @foreach($pelaksanaans->getUrlRange(max(1,$pelaksanaans->currentPage()-2), min($pelaksanaans->lastPage(),$pelaksanaans->currentPage()+2)) as $page => $url)
-            <li class="page-item {{ $page === $pelaksanaans->currentPage() ? 'active' : '' }}">
-                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-            </li>
-            @endforeach
-            <li class="page-item {{ !$pelaksanaans->hasMorePages() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $pelaksanaans->nextPageUrl() }}">
-                    Berikutnya
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24"
-                         stroke-width="2" stroke="currentColor" fill="none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="9 6 15 12 9 18"/></svg>
-                </a>
-            </li>
-        </ul>
+    <div class="card-footer d-flex justify-content-center">
+        {{ $pelaksanaans->links() }}
     </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+    const checkAll = document.getElementById('check-all');
+    if (checkAll) {
+        checkAll.addEventListener('change', function() {
+            const checkItems = document.querySelectorAll('.check-item');
+            checkItems.forEach(item => item.checked = checkAll.checked);
+            updateBulkDeleteButton();
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('check-item')) {
+            updateBulkDeleteButton();
+        }
+    });
+
+    function updateBulkDeleteButton() {
+        const btnBulkDelete = document.getElementById('btn-bulk-delete');
+        const countSelected = document.getElementById('count-selected');
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        
+        if (btnBulkDelete) {
+            btnBulkDelete.classList.toggle('d-none', checkedCount === 0);
+            if (countSelected) countSelected.textContent = checkedCount;
+        }
+    }
+
+    function submitBulkDelete() {
+        const checkedCount = document.querySelectorAll('.check-item:checked').length;
+        if (checkedCount === 0) return;
+        Swal.fire({
+            title: 'Hapus Banyak Hasil Lab?',
+            text: `Anda akan menghapus ${checkedCount} hasil laboratorium. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus Semua!', cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) document.getElementById('form-bulk-delete').submit();
+        });
+    }
+</script>
+@endpush
 @endsection

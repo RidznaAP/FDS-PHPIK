@@ -18,7 +18,7 @@
                         <div class="col-md-6">
                             <label class="form-label required">Provinsi</label>
                             <input type="text" name="provinsi" class="form-control @error('provinsi') is-invalid @enderror" 
-                                value="{{ old('provinsi', (Auth::user()->isBkhit() || Auth::user()->isBbkhit()) ? Auth::user()->name : '') }}" 
+                                value="{{ old('provinsi', (Auth::user()->isBkhit() || Auth::user()->isBbkhit()) ? Auth::user()->upt_asal : '') }}" 
                                 placeholder="Contoh: Jawa Barat" required
                                 @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit()) readonly @endif>
                             @error('provinsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -78,6 +78,19 @@
                         <div class="col-md-4">
                             <label class="form-label required">Lab Uji</label>
                             <input type="text" name="lab_uji" class="form-control" value="{{ old('lab_uji') }}" required>
+                        </div>
+                        <div class="col-12"><hr class="my-2"></div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rencana Lokasi Pengambilan Sampel</label>
+                            <input type="text" name="rencana_lokasi" class="form-control" value="{{ old('rencana_lokasi') }}" placeholder="Contoh: Tambak Udang Kec. Bireun">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rencana Jumlah Sampel</label>
+                            <input type="number" name="rencana_jumlah_sampel" class="form-control" value="{{ old('rencana_jumlah_sampel', 0) }}" min="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rencana Metode Sampling</label>
+                            <input type="text" name="rencana_metode_sampling" class="form-control" value="{{ old('rencana_metode_sampling') }}" placeholder="Contoh: Acak / Selektif">
                         </div>
                     </div>
                 </div>

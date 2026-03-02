@@ -14,8 +14,18 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class PerencanaanExport implements FromCollection, WithHeadings, WithStyles, WithTitle, ShouldAutoSize
 {
+    protected $isTemplate;
+
+    public function __construct($isTemplate = false)
+    {
+        $this->isTemplate = $isTemplate;
+    }
+
     public function collection()
     {
+        if ($this->isTemplate) {
+            return collect([]);
+        }
         $user = auth()->user();
         $query = Perencanaan::query();
 
@@ -27,9 +37,10 @@ class PerencanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
             });
         }
 
-        return $query->get()->map(function ($p, $i) {
+        return $query->with('user')->get()->map(function ($p, $i) {
             return [
                 'No'                => $i + 1,
+                'UPT'               => $p->user->upt_asal ?? '-',
                 'Provinsi'          => $p->provinsi,
                 'Kab/Kota'          => $p->kab_kota,
                 'Jenis MP'          => $p->jenis_mp,
@@ -43,6 +54,9 @@ class PerencanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
                 'TW3'               => $p->tw3,
                 'TW4'               => $p->tw4,
                 'Total'             => $p->total_pengujian,
+                'Lokasi Sampling'   => $p->rencana_lokasi,
+                'Jumlah Sampel'     => $p->rencana_jumlah_sampel,
+                'Metode Sampling'   => $p->rencana_metode_sampling,
                 'Status'            => strtoupper($p->status),
             ];
         });
@@ -51,9 +65,11 @@ class PerencanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
     public function headings(): array
     {
         return [
-            'No', 'Provinsi', 'Kab/Kota', 'Jenis MP', 'Jenis HPIK',
+            'No', 'UPT', 'Provinsi', 'Kab/Kota', 'Jenis MP', 'Jenis HPIK',
             'Kemampuan Uji UPT', 'Metode Pengujian', 'Lab Uji', 'Target Uji',
-            'TW1', 'TW2', 'TW3', 'TW4', 'Total', 'Status',
+            'TW1', 'TW2', 'TW3', 'TW4', 'Total Pengujian',
+            'Lokasi Pengambilan Sampel', 'Jumlah Sampel', 'Metode Pengambilan Sampel',
+            'Status',
         ];
     }
 

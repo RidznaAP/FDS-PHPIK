@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Models\MediaPembawa;
 use App\Models\JenisPenyakit;
+use App\Models\User;
+use App\Exports\PerencanaanExport;
+use App\Imports\PerencanaanImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PerencanaanController extends Controller
 {
@@ -22,10 +26,21 @@ class PerencanaanController extends Controller
     // Daftar Perencanaan (dengan search, filter status & tahun)
     public function index(Request $request)
     {
-        $query = Perencanaan::with(['evaluasi', 'pelaksanaans', 'user'])->latest();
+        $user = Auth::user();
+        $query = Perencanaan::with(['evaluasi', 'pelaksanaans', 'user']);
+
+        // ── Sorting ──────────────────────────────────────────────────────
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $allowedSorts = ['id', 'created_at', 'provinsi', 'kab_kota', 'jenis_mp', 'jenis_hpik', 'target_uji', 'status'];
+        
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->latest();
+        }
 
         // ── Auth-scoped Filtering ──────────────────────────────────────
-        $user = Auth::user();
         if ($user->isBkhit()) {
             // BKHIT hanya lihat miliknya sendiri
             $query->where('user_id', $user->id);
@@ -60,12 +75,16 @@ class PerencanaanController extends Controller
             });
         }
 
-        // Ambil daftar tahun yang tersedia untuk dropdown
-        $years = Perencanaan::selectRaw('YEAR(created_at) as tahun')
-            ->when(Auth::user()->isBkhit(), fn($q) => $q->where('user_id', Auth::id()))
-            ->groupBy('tahun')
-            ->orderByDesc('tahun')
-            ->pluck('tahun');
+        // Ambil daftar tahun yang tersedia untuk dropdown (Filtered by role)
+        $yearQuery = Perencanaan::selectRaw('YEAR(created_at) as tahun');
+        if ($user->isBkhit()) {
+            $yearQuery->where('user_id', $user->id);
+        } elseif ($user->isBbkhit()) {
+            $yearQuery->whereIn('user_id', function($q) use ($user) {
+                $q->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+            });
+        }
+        $years = $yearQuery->groupBy('tahun')->orderByDesc('tahun')->pluck('tahun');
 
         $perencanaans = $query->paginate(15)->withQueryString();
         return view('perencanaan.index', compact('perencanaans', 'years'));
@@ -96,24 +115,31 @@ class PerencanaanController extends Controller
     // Menyimpan Data ke Database
     public function store(Request $request)
     {
+        $user = Auth::user();
         $total_tw = $request->tw1 + $request->tw2 + $request->tw3 + $request->tw4;
 
+        // Force provinsi based on user info if not PUSAT
+        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?? $request->provinsi);
+
         Perencanaan::create([
-            'user_id'           => Auth::id(),   // ── #2: simpan user_id ──
-            'provinsi'          => $request->provinsi,
-            'kab_kota'          => $request->kab_kota,
-            'jenis_mp'          => $request->jenis_mp,
-            'jenis_hpik'        => $request->jenis_hpik,
-            'kemampuan_uji_upt' => $request->kemampuan_uji_upt,
-            'metode_pengujian'  => $request->metode_pengujian,
-            'lab_uji'           => $request->lab_uji,
-            'target_uji'        => $request->target_uji,
-            'tw1'               => $request->tw1,
-            'tw2'               => $request->tw2,
-            'tw3'               => $request->tw3,
-            'tw4'               => $request->tw4,
-            'total_pengujian'   => $total_tw,
-            'status'            => 'draft',
+            'user_id'                 => Auth::id(),
+            'provinsi'                => $provinsi,
+            'kab_kota'                => $request->kab_kota,
+            'jenis_mp'                => $request->jenis_mp,
+            'jenis_hpik'              => $request->jenis_hpik,
+            'kemampuan_uji_upt'       => $request->kemampuan_uji_upt,
+            'metode_pengujian'        => $request->metode_pengujian,
+            'lab_uji'                 => $request->lab_uji,
+            'target_uji'              => $request->target_uji,
+            'tw1'                     => $request->tw1,
+            'tw2'                     => $request->tw2,
+            'tw3'                     => $request->tw3,
+            'tw4'                     => $request->tw4,
+            'total_pengujian'         => $total_tw,
+            'rencana_lokasi'          => $request->rencana_lokasi,
+            'rencana_jumlah_sampel'   => $request->rencana_jumlah_sampel ?? 0,
+            'rencana_metode_sampling' => $request->rencana_metode_sampling,
+            'status'                  => 'draft',
         ]);
 
         return redirect()->route('perencanaan.index')->with('success', 'Data berhasil ditambahkan!');
@@ -136,6 +162,7 @@ class PerencanaanController extends Controller
     public function update(Request $request, $id)
     {
         $perencanaan = Perencanaan::findOrFail($id);
+        $user = Auth::user();
 
         if ($perencanaan->status !== 'draft' || $perencanaan->user_id !== Auth::id()) {
             return redirect()->route('perencanaan.index')
@@ -144,20 +171,26 @@ class PerencanaanController extends Controller
 
         $total_tw = $request->tw1 + $request->tw2 + $request->tw3 + $request->tw4;
 
+        // Force provinsi based on user info if not PUSAT
+        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?? $perencanaan->provinsi);
+
         $perencanaan->update([
-            'provinsi'          => $request->provinsi,
-            'kab_kota'          => $request->kab_kota,
-            'jenis_mp'          => $request->jenis_mp,
-            'jenis_hpik'        => $request->jenis_hpik,
-            'kemampuan_uji_upt' => $request->kemampuan_uji_upt,
-            'metode_pengujian'  => $request->metode_pengujian,
-            'lab_uji'           => $request->lab_uji,
-            'target_uji'        => $request->target_uji,
-            'tw1'               => $request->tw1,
-            'tw2'               => $request->tw2,
-            'tw3'               => $request->tw3,
-            'tw4'               => $request->tw4,
-            'total_pengujian'   => $total_tw,
+            'provinsi'                => $provinsi,
+            'kab_kota'                => $request->kab_kota,
+            'jenis_mp'                => $request->jenis_mp,
+            'jenis_hpik'              => $request->jenis_hpik,
+            'kemampuan_uji_upt'       => $request->kemampuan_uji_upt,
+            'metode_pengujian'        => $request->metode_pengujian,
+            'lab_uji'                 => $request->lab_uji,
+            'target_uji'              => $request->target_uji,
+            'tw1'                     => $request->tw1,
+            'tw2'                     => $request->tw2,
+            'tw3'                     => $request->tw3,
+            'tw4'                     => $request->tw4,
+            'total_pengujian'         => $total_tw,
+            'rencana_lokasi'          => $request->rencana_lokasi,
+            'rencana_jumlah_sampel'   => $request->rencana_jumlah_sampel ?? 0,
+            'rencana_metode_sampling' => $request->rencana_metode_sampling,
         ]);
 
         return redirect()->route('perencanaan.index')->with('success', 'Perencanaan berhasil diperbarui!');
@@ -169,9 +202,12 @@ class PerencanaanController extends Controller
     {
         $perencanaan = Perencanaan::findOrFail($id);
 
-        if ($perencanaan->status !== 'draft' || $perencanaan->user_id !== Auth::id()) {
-            return redirect()->route('perencanaan.index')
-                ->with('error', 'Perencanaan tidak dapat dihapus (bukan Draft atau bukan milik Anda).');
+        // Jika bukan Pusat, hanya boleh hapus milik sendiri yang masih Draft
+        if (!Auth::user()->isPusat()) {
+            if ($perencanaan->status !== 'draft' || $perencanaan->user_id !== Auth::id()) {
+                return redirect()->route('perencanaan.index')
+                    ->with('error', 'Perencanaan tidak dapat dihapus (bukan Draft atau bukan milik Anda).');
+            }
         }
 
         $perencanaan->delete();
@@ -179,10 +215,68 @@ class PerencanaanController extends Controller
     }
     // ─────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────
+    // #6 Export & Import
+    // ─────────────────────────────────────────────────────────────────────
+
+    public function export()
+    {
+        return Excel::download(new PerencanaanExport(), 'perencanaan_hpik_' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new PerencanaanExport(true), 'template_import_perencanaan.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        try {
+            Excel::import(new PerencanaanImport, $request->file('file'));
+            return redirect()->back()->with('success', 'Data Perencanaan berhasil diimpor!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
+        }
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids)) {
+            return back()->with('error', 'Pilih data yang akan dihapus.');
+        }
+
+        $query = Perencanaan::whereIn('id', $ids);
+
+        // Jika bukan Pusat, hanya boleh hapus milik sendiri yang masih Draft
+        if (!Auth::user()->isPusat()) {
+            $query->where('user_id', Auth::id())
+                  ->where('status', 'draft');
+        }
+
+        $count = $query->delete();
+        
+        if ($count == 0) {
+            return back()->with('error', 'Tidak ada data yang diizinkan untuk dihapus (Pastikan status masih Draft).');
+        }
+
+        return back()->with('success', $count . ' data perencanaan berhasil dihapus.');
+    }
+
     // BKHIT mengajukan validasi: draft -> waiting
     public function submit($id)
     {
         $perencanaan = Perencanaan::findOrFail($id);
+        
+        // Pastikan hanya pemilik yang bisa submit draft miliknya
+        if ($perencanaan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         if ($perencanaan->status === 'draft') {
             $perencanaan->update(['status' => 'waiting']);
             return back()->with('success', 'Perencanaan berhasil diajukan untuk validasi.');
@@ -198,8 +292,8 @@ class PerencanaanController extends Controller
 
         // BBKHIT hanya bisa approve data di wilayahnya
         if ($user->isBbkhit()) {
-            $owner = \App\Models\User::find($perencanaan->user_id);
-            if ($perencanaan->user_id !== $user->id && $owner->parent_id !== $user->id) {
+            $owner = User::find($perencanaan->user_id);
+            if ($perencanaan->user_id !== $user->id && (!$owner || $owner->parent_id !== $user->id)) {
                 abort(403, 'Anda tidak memiliki wewenang memvalidasi data di luar wilayah koordinasi Anda.');
             }
         }
