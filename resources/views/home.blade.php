@@ -358,7 +358,6 @@
         </div>
     </div>
 </div>
-</div>
 
 {{-- Analytics Row --}}
 <div class="row row-cards mb-4 animate-fade-in" style="animation-delay: 0.15s;">
@@ -455,8 +454,8 @@
                     'icon' => 'ti-search'
                 ],
                 [
-                    'number' => 'Perpres Nomor 45 Tahun 2023',
-                    'desc' => 'Tentang Badan Karantina Indonesia (Berita Negara Republik Indonesia Tahun 2023 Nomor 97).',
+                    'number' => 'Permen KP Nomor 7 Tahun 2024',
+                    'desc' => 'Tentang Penyelenggaraan Karantina Ikan, Mutu dan Keamanan Hasil Perikanan dalam Tata Cara Permohonan dan Penerbitan Sertifikat.',
                     'color' => '#f97316',
                     'icon' => 'ti-file-certificate'
                 ],

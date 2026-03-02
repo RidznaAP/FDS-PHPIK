@@ -36,9 +36,30 @@ class LaboratoriumController extends Controller
             });
         }
 
+        // ── Search ─────────────────────────────────────────────────────
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('lokasi_pengambilan_sampel', 'like', "%{$search}%")
+                  ->orWhereHas('perencanaan', fn($rq) => $rq->where('jenis_mp', 'like', "%{$search}%")
+                      ->orWhere('kab_kota', 'like', "%{$search}%"));
+            });
+        }
+
+        // ── Tahun Filter ───────────────────────────────────────────────
+        if ($request->tahun) {
+            $query->whereYear('created_at', $request->tahun);
+        }
+
         // Ambil data pelaksanaan dengan info lab
         $pelaksanaans = $query->paginate(15)->withQueryString();
-        return view('laboratorium.index', compact('pelaksanaans'));
+
+        // Tahun unik untuk filter
+        $years = Pelaksanaan::selectRaw('YEAR(created_at) as year')
+            ->distinct()->orderByDesc('year')
+            ->pluck('year');
+
+        return view('laboratorium.index', compact('pelaksanaans', 'years'));
     }
 
     // Form input hasil laboratorium

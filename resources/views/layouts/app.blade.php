@@ -334,6 +334,7 @@
     {{-- Tabler JS --}}
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
     @yield('scripts')
+    @stack('scripts')
 
     {{-- ── #12: Global Modal Konfirmasi ──────────────────────────────────────── --}}
     <div class="modal modal-blur fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -362,20 +363,29 @@
     <script>
     // Ganti semua onclick="confirm()" dengan confirmAction(url, msg, method, btnClass, emoji, title)
     function confirmAction(url, message, method, btnClass, emoji, title) {
-        method   = method   || 'DELETE';
-        btnClass = btnClass || 'btn-danger';
-        emoji    = emoji    || '🗑️';
-        title    = title    || 'Hapus Data?';
+        method   = (method || 'DELETE').toUpperCase();
+        btnClass = btnClass || (method === 'DELETE' ? 'btn-danger' : 'btn-primary');
+        
+        // Default emoji & title based on method if not provided
+        if (!emoji) {
+            emoji = (method === 'DELETE') ? '🗑️' : '🚀';
+        }
+        if (!title) {
+            title = (method === 'DELETE') ? 'Hapus Data?' : 'Konfirmasi Tindakan';
+        }
 
         document.getElementById('confirmMessage').textContent = message || 'Apakah Anda yakin?';
         document.getElementById('confirmTitle').textContent   = title;
         document.getElementById('confirmEmoji').textContent   = emoji;
-        document.getElementById('confirmMethod').value        = method.toUpperCase();
+        document.getElementById('confirmMethod').value        = method;
         document.getElementById('confirmForm').action         = url;
 
         var btn = document.getElementById('confirmBtn');
         btn.className = 'btn flex-fill ' + btnClass;
-        btn.textContent = title;
+        btn.textContent = title === 'Hapus Data?' ? 'Ya, Hapus' : 'Ya, Lanjutkan';
+        
+        // RESET onclick to default behavior (in case it was overridden by page-specific logic)
+        btn.onclick = function() { submitConfirmForm(); };
 
         var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
         modal.show();

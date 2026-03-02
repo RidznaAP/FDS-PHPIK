@@ -49,19 +49,28 @@
                     <tr>
                         <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
                         <th class="w-1">
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
-                                No <i class="ti ti-selector ms-1"></i>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort') === 'id' ? 'active' : '' }}">
+                                ID
+                                <span class="sort-indicator">
+                                    <i class="ti {{ request('sort') === 'id' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                                </span>
                             </a>
                         </th>
                         <th>
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
-                                Nama Media Pembawa (Inang Rentan) <i class="ti ti-selector ms-1"></i>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort') === 'nama' ? 'active' : '' }}">
+                                Nama Media Pembawa (Inang Rentan)
+                                <span class="sort-indicator">
+                                    <i class="ti {{ request('sort') === 'nama' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                                </span>
                             </a>
                         </th>
                         <th>Keterangan</th>
                         <th>
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'aktif', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="text-inherit">
-                                Status <i class="ti ti-selector ms-1"></i>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'aktif', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort') === 'aktif' ? 'active' : '' }}">
+                                Status
+                                <span class="sort-indicator">
+                                    <i class="ti {{ request('sort' === 'aktif') ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                                </span>
                             </a>
                         </th>
                         <th class="w-1 text-center">Aksi</th>
