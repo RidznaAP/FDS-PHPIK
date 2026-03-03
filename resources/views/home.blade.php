@@ -180,7 +180,7 @@
 </div>
 
 {{-- Stat Cards --}}
-@php
+<!-- @php
     $isBkhitDash = Auth::user()->isBkhit();
     $uid = Auth::id();
 
@@ -198,9 +198,35 @@
         )
     )->count();
     $labProgress = $totalPelaksanaan > 0 ? round($labDone / $totalPelaksanaan * 100) : 0;
+@endphp -->
+
+
+@php
+    // DATA CONTOH (Ganti dengan data asli dari database nanti)
+    $totalPerencanaan = 100;
+    $approved = 75;
+    $progressPct = 75; // (75/100 * 100)
+
+    $totalPelaksanaan = 80;
+    $labDone = 40;
+    $labProgress = 50; // (40/80 * 100)
+
+    $totalGis = 65;
+    $waiting = 5; // Data yang belum di-approve
+    
+    // Data untuk grafik Donut (Status)
+    $statusCounts = [
+        'Waiting' => 5,
+        'Approved' => 75,
+        'Rejected' => 20
+    ];
+
+    // Data untuk grafik Garis (Bulanan)
+    $chartMonthlyLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
+    $chartMonthlyData = [30, 40, 35, 50, 49, 60];
 @endphp
 
-<div class="row row-deck row-cards mb-4 animate-fade-in">
+<!-- <div class="row row-deck row-cards mb-4 animate-fade-in">
     {{-- Perencanaan --}}
     <div class="col-sm-6 col-lg-3">
         <div class="card stat-card card-premium shadow-sm">
@@ -296,7 +322,65 @@
             </div>
         </div>
     </div>
+</div> -->
+
+<div class="row row-cards mb-4 animate-fade-in">
+    {{-- Card Perencanaan - Radial Chart --}}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Perencanaan</div>
+                <div id="chart-perencanaan" style="min-height: 150px;"></div>
+                <div class="mt-2">
+                    <span class="badge bg-primary-lt">Total: {{ $totalPerencanaan }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Card Pelaksanaan - Bar Chart --}}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Pelaksanaan</div>
+                <div id="chart-pelaksanaan" style="min-height: 150px;"></div>
+                <div class="mt-2">
+                    <span class="badge bg-success-lt">Selesai: {{ $labDone }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Card Titik Peta - Area/Sparkline Chart --}}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Titik Peta</div>
+                <div id="chart-gis" style="min-height: 150px;"></div>
+                <div class="mt-2">
+                    <span class="badge bg-info-lt">{{ $totalGis }} Lokasi Terinput</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Card Approval - Donut Chart --}}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-body text-center">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Approval</div>
+                <div id="chart-approval" style="min-height: 150px;"></div>
+                <div class="mt-2">
+                    <span class="badge @if($waiting > 0) bg-warning-lt @else bg-success-lt @endif">
+                        {{ $waiting }} Menunggu
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+
 
 {{-- Peta + Sidebar --}}
 <div class="row row-cards mb-4 animate-fade-in" style="animation-delay: 0.1s;">
@@ -607,7 +691,59 @@
             map.fitBounds(group.getBounds().pad(0.3));
         }
     }
+
+//KODE BARU - TAMBAHAN
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 1. Chart Perencanaan (Radial Bar - Menunjukkan Progres)
+        new ApexCharts(document.querySelector("#chart-perencanaan"), {
+            chart: { height: 150, type: 'radialBar', sparkline: { enabled: true } },
+            series: [{{ $progressPct }}],
+            colors: ['#206bc4'],
+            plotOptions: {
+                radialBar: {
+                    hollow: { size: '55%' },
+                    dataLabels: {
+                        name: { show: false },
+                        value: { offsetY: 5, fontSize: '16px', fontWeight: 'bold' }
+                    }
+                }
+            }
+        }).render();
+
+        // 2. Chart Pelaksanaan (Bar Chart - Data Contoh Tren)
+        new ApexCharts(document.querySelector("#chart-pelaksanaan"), {
+            chart: { height: 150, type: 'bar', sparkline: { enabled: true } },
+            plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
+            series: [{ data: [15, 25, 35, 30, 50, 45, {{ $labDone }}] }],
+            colors: ['#2fb344'],
+            tooltip: { enabled: true }
+        }).render();
+
+        // 3. Chart Titik Peta (Area Chart - Visualisasi Sebaran)
+        new ApexCharts(document.querySelector("#chart-gis"), {
+            chart: { height: 150, type: 'area', sparkline: { enabled: true } },
+            series: [{ data: [10, 20, 18, 25, 30, 40, {{ $totalGis }}] }],
+            stroke: { curve: 'smooth', width: 2 },
+            fill: { opacity: 0.3 },
+            colors: ['#4299e1'],
+        }).render();
+
+        // 4. Chart Approval (Donut Chart - Perbandingan Valid vs Waiting)
+        new ApexCharts(document.querySelector("#chart-approval"), {
+            chart: { height: 150, type: 'donut', sparkline: { enabled: true } },
+            series: [{{ $totalPerencanaan - $waiting }}, {{ $waiting }}],
+            labels: ['Approved', 'Waiting'],
+            colors: ['#2fb344', '#f59e0b'],
+            plotOptions: { pie: { donut: { size: '70%' } } },
+            dataLabels: { enabled: false },
+            legend: { show: false }
+        }).render();
+    });
+</script>
+
 
 <style>
 @keyframes ring {
