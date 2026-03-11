@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Perencanaan;
 
 class User extends Authenticatable
 {
@@ -40,6 +41,12 @@ class User extends Authenticatable
     public function units()
     {
         return $this->hasMany(User::class, 'parent_id');
+    }
+
+    /** Relasi ke Perencanaan milik user ini */
+    public function perencanaan()
+    {
+        return $this->hasMany(Perencanaan::class);
     }
 
     // Helper methods untuk cek role (Normalized)

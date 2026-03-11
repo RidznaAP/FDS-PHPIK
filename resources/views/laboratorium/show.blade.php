@@ -17,8 +17,14 @@
                         <span class="badge bg-light text-muted px-3 fs-6 rounded-pill border">ID: #{{ $lab->kode_sampel }}</span>
                     </div>
                     <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">{{ $lab->diagnosis_akhir ?? 'ANALYSIS PENDING' }}</h1>
-                    <div class="text-muted fs-3 d-flex align-items-center">
-                        <i class="ti ti-microscope me-2 text-azure"></i>{{ $lab->lab_penguji ?? 'Scientific Lab Intelligence' }}
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-microscope me-2 text-azure"></i>
+                        <span>{{ $lab->lab_penguji ?? 'Scientific Lab Intelligence' }}</span>
+                        @if($lab->nama_petugas_uji)
+                        <span class="badge bg-azure-lt text-azure ms-3 px-3 py-1 rounded-pill">
+                            <i class="ti ti-user-check me-1"></i>{{ $lab->nama_petugas_uji }}
+                        </span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -166,12 +172,12 @@
                                             <div class="bg-white p-2 rounded-circle shadow-sm"><i class="ti ti-users-group text-primary"></i></div>
                                             <div>
                                                 <div class="text-muted small fw-bold">TOTAL SAMPEL DIUJI</div>
-                                                <div class="fw-extrabold h3 mb-0">{{ $lab->jumlah_sampel_diperiksa ?? '0' }} EKOR</div>
+                                                <div class="fw-extrabold h3 mb-0">{{ $lab->jumlah_sampel_diperiksa ?? '0' }} PELAKSANAAN</div>
                                             </div>
                                          </div>
                                          <div class="text-end">
                                              <div class="text-danger small fw-bold">TERINFEKSI</div>
-                                             <div class="fw-extrabold h3 mb-0 text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '0' }} EKOR</div>
+                                             <div class="fw-extrabold h3 mb-0 text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '0' }} PELAKSANAAN</div>
                                          </div>
                                     </div>
                                 </div>
@@ -206,6 +212,12 @@
                         <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                             <span class="text-muted small fw-bold">PERIODE AMAT</span>
                             <span class="fw-bold text-dark">{{ $lab->periode_pengamatan ?? '—' }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span class="text-muted small fw-bold">PETUGAS PENGUJI</span>
+                            <span class="fw-bold text-primary">
+                                <i class="ti ti-user-check me-1"></i>{{ $lab->nama_petugas_uji ?? '—' }}
+                            </span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                             <span class="text-muted small fw-bold">SUMBER ASAL</span>

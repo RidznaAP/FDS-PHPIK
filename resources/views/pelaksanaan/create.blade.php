@@ -46,7 +46,7 @@
                         </div>
                         <div class="col-sm-3 p-3 bg-light">
                             <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Target Sampling</div>
-                            <div class="fw-bold fs-3 text-azure">{{ $rencana->target_uji }} <small class="fw-normal">Ekor</small></div>
+                            <div class="fw-bold fs-3 text-azure">{{ $rencana->target_uji }} <small class="fw-normal">Pelaksanaan</small></div>
                         </div>
                     </div>
                 </div>
@@ -199,7 +199,7 @@
                                             <input type="number" name="jumlah_sampel"
                                                 class="form-control fw-bold border-0 bg-transparent"
                                                 value="{{ old('jumlah_sampel', $rencana->rencana_jumlah_sampel ?? 1) }}" required min="1">
-                                            <span class="input-group-text border-0 bg-transparent text-azure small">EKOR</span>
+                                            <span class="input-group-text border-0 bg-transparent text-azure small">PELAKSANAAN</span>
                                         </div>
                                     </div>
                                 </div>
@@ -246,16 +246,18 @@
                             <button type="button" class="btn btn-outline-indigo btn-sm w-100 border-dashed" onclick="addPetugas()">
                                 <i class="ti ti-plus me-1"></i>Tambah Petugas
                             </button>
-                            
-                            <div class="mt-5 pt-3 border-top">
-                                <button type="submit" class="btn btn-primary btn-pill w-100 py-2 shadow-sm fs-3 mb-2">
-                                    <i class="ti ti-device-floppy me-2"></i>Simpan Pelaksanaan
-                                </button>
-                                <a href="{{ route('perencanaan.index') }}" class="btn btn-link link-secondary w-100">Batal</a>
-                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-3 mt-4 mb-4">
+                <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-danger shadow-sm btn-pill px-5 py-3 fs-3 fw-bold hover-scale transition-all">
+                    <i class="ti ti-arrow-left me-2"></i> Batal & Kembali
+                </a>
+                <button type="submit" class="btn btn-primary btn-pill px-5 py-3 fs-3 shadow-lg fw-extrabold hover-scale transition-all">
+                    <i class="ti ti-device-floppy me-2"></i> SIMPAN PELAKSANAAN
+                </button>
             </div>
         </form>
     </div>

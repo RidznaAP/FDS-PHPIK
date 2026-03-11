@@ -14,75 +14,148 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     <style>
+        /* ═══════════════════════════════════════════════════
+           GLOBAL PREMIUM DESIGN SYSTEM — SIP-HPIK
+        ═══════════════════════════════════════════════════ */
         :root {
             --tblr-font-sans-serif: 'Inter', sans-serif;
-            --tblr-primary: #206bc4;
-        }
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f6f8fb;
-        }
-        .navbar-brand-text { font-weight: 700; letter-spacing: -0.5px; }
-        .role-badge { font-size: 0.7rem; font-weight: 600; }
-        
-        /* Sidebar Styling Overrides */
-        .navbar-vertical {
-            background: #1e293b !important;
+            --tblr-primary: #2563eb;
+            --tblr-primary-rgb: 37, 99, 235;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: rgba(255,255,255,0.07);
+            --sidebar-active: rgba(37,99,235,0.22);
+            --card-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+            --card-shadow-hover: 0 4px 12px rgba(0,0,0,.08), 0 12px 32px rgba(0,0,0,.05);
         }
 
-        /* --- Global Premium Table Sorting Styles --- */
-        .sort-th {
-            padding: 0 !important;
-            vertical-align: middle !important;
-            background-color: #f8fafc !important;
+        /* ── Base ── */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            -webkit-font-smoothing: antialiased;
         }
+
+        /* ── Sidebar ── */
+        .navbar-vertical { background: var(--sidebar-bg) !important; border-right: 1px solid rgba(255,255,255,0.05) !important; }
+        .navbar-vertical .navbar-brand-text { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.3px; }
+        .navbar-vertical .nav-link {
+            border-radius: 8px; margin: 1px 6px; padding: 8px 12px !important;
+            font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6) !important;
+            transition: all 0.18s ease !important;
+        }
+        .navbar-vertical .nav-link:hover { color: #fff !important; background: var(--sidebar-hover) !important; }
+        .navbar-vertical .nav-link.active { color: #fff !important; background: var(--sidebar-active) !important; font-weight: 600; }
+        .navbar-vertical .nav-item-header {
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28) !important; padding: 14px 18px 4px !important;
+        }
+        .navbar-vertical hr { border-color: rgba(255,255,255,0.07) !important; margin: 8px 12px !important; }
+
+        /* ── Cards ── */
+        .card {
+            border: 1px solid rgba(0,0,0,0.06) !important;
+            border-radius: 12px !important;
+            box-shadow: var(--card-shadow) !important;
+            transition: box-shadow 0.2s ease !important;
+        }
+        .card:hover { box-shadow: var(--card-shadow-hover) !important; }
+        .card-header { border-bottom: 1px solid rgba(0,0,0,0.06) !important; background: #fff !important; padding: 1rem 1.25rem !important; }
+        .card-footer { border-top: 1px solid rgba(0,0,0,0.06) !important; background: #fafbfc !important; }
+
+        /* ── Tables ── */
+        .table-vcenter td, .table-vcenter th { vertical-align: middle; }
+        .table thead th {
+            background: #f8fafc !important; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em; color: #64748b !important;
+            border-bottom: 2px solid #e2e8f0 !important; padding: 10px 16px !important; white-space: nowrap;
+        }
+        .table tbody tr { transition: background 0.15s ease; }
+        .table tbody tr:hover { background: rgba(37, 99, 235, 0.025) !important; }
+        .table tbody td { padding: 12px 16px !important; border-bottom: 1px solid #f1f5f9 !important; font-size: 0.875rem; }
+        .table tbody tr:last-child td { border-bottom: none !important; }
+
+        /* ── Sort Buttons ── */
+        .sort-th { padding: 0 !important; vertical-align: middle !important; }
         .sort-btn {
-            display: flex !important;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem !important;
-            color: #64748b !important;
-            font-weight: 700 !important;
-            font-size: 0.75rem !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.05em !important;
-            text-decoration: none !important;
-            transition: all 0.2s ease;
-            width: 100%;
-            border: none;
-            background: none;
-            outline: none;
+            display: flex !important; align-items: center; justify-content: space-between;
+            padding: 10px 16px !important; color: #64748b !important; font-weight: 700 !important;
+            font-size: 0.7rem !important; text-transform: uppercase !important; letter-spacing: 0.06em !important;
+            text-decoration: none !important; width: 100%; background: #f8fafc; border: none; white-space: nowrap;
+            transition: all 0.15s ease;
         }
-        .sort-btn:hover {
-            color: var(--tblr-primary) !important;
-            background-color: rgba(32, 107, 196, 0.03) !important;
+        .sort-btn:hover { color: var(--tblr-primary) !important; background: rgba(37,99,235,0.04) !important; }
+        .sort-active { color: var(--tblr-primary) !important; background: rgba(37,99,235,0.06) !important; }
+        .sort-icon { display: inline-flex; align-items: center; margin-left: 6px; opacity: 0.5; }
+        .sort-active .sort-icon { opacity: 1; color: var(--tblr-primary); }
+
+        /* ── Buttons ── */
+        .btn { border-radius: 8px !important; font-weight: 500 !important; font-size: 0.875rem !important; transition: all 0.18s ease !important; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+        .btn:active { transform: translateY(0); }
+        .btn-sm { font-size: 0.8rem !important; padding: 4px 10px !important; }
+        .btn-pill { border-radius: 50px !important; }
+
+        /* ── Badges ── */
+        .badge { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; border-radius: 6px; padding: 3px 8px; }
+
+        /* ── Form Controls ── */
+        .form-control, .form-select {
+            border-radius: 8px !important; border: 1.5px solid #e2e8f0 !important;
+            font-size: 0.875rem !important; transition: all 0.15s !important;
         }
-        .sort-active {
-            color: var(--tblr-primary) !important;
-            background-color: rgba(32, 107, 196, 0.05) !important;
-            border-bottom: 2px solid var(--tblr-primary) !important;
+        .form-control:focus, .form-select:focus {
+            border-color: var(--tblr-primary) !important;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
         }
-        .sort-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border-radius: 6px;
-            background-color: rgba(0,0,0,0.02);
-            margin-left: 0.5rem;
-            transition: all 0.2s ease;
-            font-size: 1rem; /* Bigger icons as requested */
+        .input-icon .form-control { padding-left: 2.5rem !important; }
+
+        /* ── Page Header ── */
+        .page-header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 16px 0 !important; }
+        .page-title { font-size: 1.2rem !important; font-weight: 700 !important; color: #0f172a !important; margin: 0 !important; }
+
+        /* ── Flash Alert ── */
+        .alert { border-radius: 10px !important; font-size: 0.875rem; }
+
+        /* ── Pagination ── */
+        .pagination .page-link { border-radius: 7px !important; margin: 0 2px; font-size: 0.8rem; font-weight: 500; }
+
+        /* ── Role Badge ── */
+        .role-badge { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 20px; }
+
+        /* ── Upload Zone ── */
+        .upload-zone { border: 2px dashed #cbd5e1 !important; transition: all 0.2s ease; }
+        .upload-zone:hover { border-color: var(--tblr-primary) !important; background: rgba(37,99,235,0.02); }
+
+        /* ── Empty State ── */
+        .empty-state { padding: 4rem 2rem; text-align: center; }
+        .empty-state-icon {
+            width: 72px; height: 72px; background: #f1f5f9; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 1.25rem; font-size: 1.75rem;
         }
-        .sort-active .sort-icon {
-            background-color: var(--tblr-primary) !important;
-            color: #fff !important;
-            box-shadow: 0 2px 4px rgba(32, 107, 196, 0.2);
+        .empty-state h4 { font-weight: 700; color: #475569; margin-bottom: 0.5rem; }
+        .empty-state p { color: #94a3b8; font-size: 0.875rem; max-width: 300px; margin: 0 auto 1.25rem; }
+
+        /* ── List group ── */
+        .list-group-item { border-color: #f1f5f9 !important; transition: background 0.15s; }
+        .list-group-item:hover { background: #f8fafc !important; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ── Page enter animation ── */
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
         }
-        .sort-btn i {
-            transition: transform 0.2s ease;
-        }
+        .page-body > .container-xl { animation: fadeInUp 0.22s ease both; }
     </style>
     @yield('styles')
+    @stack('styles')
 </head>
 <body class="antialiased layout-vertical">
     <div class="page">
@@ -142,7 +215,7 @@
                             <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">MODUL</span>
                         </li>
 
-                        {{-- Perencanaan --}}
+                        {{-- 1. Perencanaan --}}
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('perencanaan*') ? 'active' : '' }}" href="{{ route('perencanaan.index') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -152,9 +225,9 @@
                             </a>
                         </li>
 
-                        {{-- Pelaksanaan --}}
+                        {{-- 2. Pelaksanaan --}}
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('pelaksanaan*') ? 'active' : '' }}" href="{{ route('pelaksanaan.index') }}">
+                            <a class="nav-link {{ request()->is('pelaksanaan*') || request()->is('laboratorium*') ? 'active' : '' }}" href="{{ route('pelaksanaan.index') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <i class="ti ti-map-pin" style="font-size:1.2rem;"></i>
                                 </span>
@@ -162,17 +235,17 @@
                             </a>
                         </li>
 
-                        {{-- Laboratorium --}}
+                        {{-- 3. Pelaporan (upload file seminar) --}}
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('laboratorium*') ? 'active' : '' }}" href="{{ route('laboratorium.index') }}">
+                            <a class="nav-link {{ request()->is('pelaporan*') ? 'active' : '' }}" href="{{ route('pelaporan.index') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-flask" style="font-size:1.2rem;"></i>
+                                    <i class="ti ti-report" style="font-size:1.2rem;"></i>
                                 </span>
-                                <span class="nav-link-title">Laboratorium</span>
+                                <span class="nav-link-title">Pelaporan</span>
                             </a>
                         </li>
 
-                        {{-- Evaluasi --}}
+                        {{-- 4. Evaluasi (upload file seminar) --}}
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('evaluasi*') ? 'active' : '' }}" href="{{ route('evaluasi.index') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -182,28 +255,32 @@
                             </a>
                         </li>
 
-                        <li class="nav-item mt-2">
-                            <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">LAPORAN</span>
-                        </li>
-
-                        {{-- Peta GIS --}}
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->is('peta*') ? 'active' : '' }}" href="{{ route('peta.index') }}">
+                        {{-- 5. Export Data (dropdown: Peta GIS + Laporan & Ekspor) --}}
+                        <li class="nav-item {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}"
+                               href="#exportDataSubmenu" data-bs-toggle="collapse"
+                               aria-expanded="{{ request()->is('peta*') || request()->is('laporan*') ? 'true' : 'false' }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-map" style="font-size:1.2rem;"></i>
+                                    <i class="ti ti-file-export" style="font-size:1.2rem;"></i>
                                 </span>
-                                <span class="nav-link-title">Peta GIS</span>
+                                <span class="nav-link-title">Export Data</span>
                             </a>
-                        </li>
-
-                        {{-- Laporan --}}
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-file-spreadsheet" style="font-size:1.2rem;"></i>
-                                </span>
-                                <span class="nav-link-title">Laporan & Ekspor</span>
-                            </a>
+                            <div class="collapse {{ request()->is('peta*') || request()->is('laporan*') ? 'show' : '' }}" id="exportDataSubmenu">
+                                <ul class="nav nav-sm flex-column ms-3 border-start border-secondary ps-2 mt-1">
+                                    <li class="nav-item">
+                                        <a class="nav-link py-1 {{ request()->is('peta*') ? 'active' : '' }}" href="{{ route('peta.index') }}">
+                                            <i class="ti ti-map me-1" style="font-size:0.9rem;"></i>
+                                            Peta GIS
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link py-1 {{ request()->is('laporan*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
+                                            <i class="ti ti-file-spreadsheet me-1" style="font-size:0.9rem;"></i>
+                                            Laporan & Ekspor
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
 
                         {{-- Manajemen Akun & Master Data --}}
@@ -215,6 +292,21 @@
                                 <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">ADMIN</span>
                             </li>
                         @endif
+
+                        {{-- Notifikasi (semua role) --}}
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is('notifikasi*') ? 'active' : '' }}" href="{{ route('notifikasi.index') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block position-relative">
+                                    <i class="ti ti-bell" style="font-size:1.2rem;"></i>
+                                    <span id="sidebar-notif-badge" class="position-absolute badge bg-danger d-none"
+                                          style="top:-4px;right:-6px;font-size:.55rem;min-width:16px;height:16px;padding:2px 4px;border-radius:8px;"></span>
+                                </span>
+                                <span class="nav-link-title d-flex align-items-center justify-content-between">
+                                    Notifikasi
+                                    <span id="sidebar-notif-count" class="badge bg-danger ms-1 d-none" style="font-size:.65rem;"></span>
+                                </span>
+                            </a>
+                        </li>
 
                         {{-- Manajemen Akun — hanya Pusat --}}
                         @if($user->isPusat())
@@ -348,23 +440,52 @@
             <div class="page-body">
                 <div class="container-xl">
 
-                    {{-- Flash Messages (auto-dismiss 4s) --}}
+                    {{-- Flash Messages (auto-dismiss 5s) --}}
                     @if(session('success'))
-                    <div class="alert alert-success alert-important alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg" style="background: rgba(43, 172, 83, 0.05); border: 1px solid rgba(43, 172, 83, 0.2); backdrop-filter: blur(10px);">
-                        <div class="d-flex">
-                            <i class="ti ti-circle-check fs-2 me-3 text-success"></i>
-                            <div>{{ session('success') }}</div>
+                    <div class="alert alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg"
+                         style="background:#dcfce7; border:1.5px solid #16a34a; color:#14532d; border-radius:12px; padding:14px 18px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="ti ti-circle-check" style="font-size:1.5rem;color:#16a34a;flex-shrink:0;"></i>
+                            <div class="fw-semibold" style="color:#14532d;">{{ session('success') }}</div>
                         </div>
-                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"
+                           style="filter:brightness(0.3);"></a>
                     </div>
                     @endif
+
                     @if(session('error'))
-                    <div class="alert alert-danger alert-important alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg" style="background: rgba(214, 57, 57, 0.05); border: 1px solid rgba(214, 57, 57, 0.2); backdrop-filter: blur(10px);">
-                        <div class="d-flex">
-                            <i class="ti ti-alert-triangle fs-2 me-3 text-danger"></i>
-                            <div>{{ session('error') }}</div>
+                    <div class="alert alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg-err"
+                         style="background:#fee2e2; border:1.5px solid #dc2626; color:#7f1d1d; border-radius:12px; padding:14px 18px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="ti ti-alert-triangle" style="font-size:1.5rem;color:#dc2626;flex-shrink:0;"></i>
+                            <div class="fw-semibold" style="color:#7f1d1d;">{{ session('error') }}</div>
                         </div>
-                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"
+                           style="filter:brightness(0.3);"></a>
+                    </div>
+                    @endif
+
+                    @if(session('warning'))
+                    <div class="alert alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg-warn"
+                         style="background:#fef9c3; border:1.5px solid #ca8a04; color:#713f12; border-radius:12px; padding:14px 18px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="ti ti-alert-circle" style="font-size:1.5rem;color:#ca8a04;flex-shrink:0;"></i>
+                            <div class="fw-semibold" style="color:#713f12;">{{ session('warning') }}</div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"
+                           style="filter:brightness(0.3);"></a>
+                    </div>
+                    @endif
+
+                    @if(session('info'))
+                    <div class="alert alert-dismissible animate-fade-in mb-4" role="alert" id="flash-msg-info"
+                         style="background:#dbeafe; border:1.5px solid #2563eb; color:#1e3a8a; border-radius:12px; padding:14px 18px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="ti ti-info-circle" style="font-size:1.5rem;color:#2563eb;flex-shrink:0;"></i>
+                            <div class="fw-semibold" style="color:#1e3a8a;">{{ session('info') }}</div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"
+                           style="filter:brightness(0.3);"></a>
                     </div>
                     @endif
 
@@ -458,15 +579,47 @@
         document.getElementById('confirmForm').submit();
     }
 
-    // Auto-dismiss flash messages after 4 seconds
+    // Auto-dismiss flash messages after 5 seconds
     setTimeout(function() {
-        var flash = document.getElementById('flash-msg');
-        if (flash) {
-            var alert = bootstrap.Alert.getOrCreateInstance(flash);
-            if (alert) alert.close();
-        }
-    }, 4000);
+        ['flash-msg','flash-msg-err','flash-msg-warn','flash-msg-info'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                var instance = bootstrap.Alert.getOrCreateInstance(el);
+                if (instance) instance.close();
+            }
+        });
+    }, 5000);
     </script>
     {{-- ──────────────────────────────────────────────────────────────────────── --}}
+<script>
+// ── Notification Polling ──────────────────────────────────────
+(function() {
+    @auth
+    function updateNotifBadge() {
+        fetch('{{ route("notifikasi.jumlah") }}', {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const count = data.count || 0;
+            const badge     = document.getElementById('sidebar-notif-badge');
+            const badgeText = document.getElementById('sidebar-notif-count');
+            if (badge) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.toggle('d-none', count === 0);
+            }
+            if (badgeText) {
+                badgeText.textContent = count > 9 ? '9+' : count;
+                badgeText.classList.toggle('d-none', count === 0);
+            }
+        })
+        .catch(() => {});
+    }
+    updateNotifBadge();
+    setInterval(updateNotifBadge, 30000); // tiap 30 detik
+    @endauth
+})();
+</script>
+
 </body>
 </html>

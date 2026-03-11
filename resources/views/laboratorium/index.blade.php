@@ -144,7 +144,7 @@
                         <div class="text-muted small">{{ $item->perencanaan->kab_kota ?? '-' }}, {{ $item->perencanaan->provinsi ?? '-' }}</div>
                     </td>
                     <td>{{ $item->perencanaan->jenis_mp ?? '-' }}</td>
-                    <td>{{ $item->jumlah_sampel }} ekor</td>
+                    <td>{{ $item->jumlah_sampel }} pelaksanaan</td>
                     <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
                     @php
                         $patogenBadge = [

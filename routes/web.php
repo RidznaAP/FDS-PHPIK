@@ -8,6 +8,8 @@ use App\Http\Controllers\EvaluasiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\DokumenSeminarController;
+use App\Http\Controllers\NotifikasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +32,13 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard (setelah login)
    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+    // --- Notifikasi ---
+    Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::get('/notifikasi/{id}/baca', [NotifikasiController::class, 'baca'])->name('notifikasi.baca');
+    Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
+    Route::get('/notifikasi/jumlah', [NotifikasiController::class, 'jumlah'])->name('notifikasi.jumlah');
+    Route::delete('/notifikasi/{id}/hapus', [NotifikasiController::class, 'hapus'])->name('notifikasi.hapus');
 
     // --- Profil User ---
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile.index');
@@ -85,18 +94,22 @@ Route::middleware('auth')->group(function () {
         Route::post('/laboratorium/simpan', [LaboratoriumController::class, 'store'])->name('laboratorium.store');
     });
 
-    // --- Modul Evaluasi ---
-    // Semua bisa lihat hasil evaluasi
-    Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
-    Route::get('/evaluasi/{id}/detail', [EvaluasiController::class, 'show'])->name('evaluasi.show');
-    Route::post('/evaluasi/bulk-delete', [EvaluasiController::class, 'bulkDelete'])->name('evaluasi.bulk-delete');
-    Route::delete('/evaluasi/hapus/{id}', [EvaluasiController::class, 'destroy'])->name('evaluasi.destroy');
+    // --- Modul Pelaporan (Upload Seminar) ---
+    Route::get('/pelaporan', function () {
+        return redirect()->route('seminar.index', 'pelaporan');
+    })->name('pelaporan.index');
 
-    // Hanya BBKHIT & Pusat yang boleh evaluasi status akhir
-    Route::middleware('role:bbkhit,pusat')->group(function () {
-        Route::get('/evaluasi/input/{id}', [EvaluasiController::class, 'create'])->name('evaluasi.create');
-        Route::post('/evaluasi/simpan', [EvaluasiController::class, 'store'])->name('evaluasi.store');
-    });
+    // --- Modul Evaluasi (Upload Seminar) ---
+    Route::get('/evaluasi', function () {
+        return redirect()->route('seminar.index', 'evaluasi');
+    })->name('evaluasi.index');
+
+    // Seminar: route bersama untuk index, store, download & hapus
+    // PENTING: route spesifik (download, hapus) harus SEBELUM {modul} wildcard
+    Route::get('/seminar/download/{id}', [DokumenSeminarController::class, 'download'])->name('seminar.download');
+    Route::delete('/seminar/hapus/{id}', [DokumenSeminarController::class, 'destroy'])->name('seminar.destroy');
+    Route::get('/seminar/{modul}', [DokumenSeminarController::class, 'index'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.index');
+    Route::post('/seminar/{modul}/upload', [DokumenSeminarController::class, 'store'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.store');
     // --- Modul Peta GIS ---
     Route::get('/peta', [\App\Http\Controllers\PetaController::class, 'index'])->name('peta.index');
 

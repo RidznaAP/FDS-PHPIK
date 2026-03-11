@@ -49,8 +49,11 @@ class EvaluasiController extends Controller
             'evaluator' => 'required',
         ]);
 
-        // Simpan evaluasi
-        Evaluasi::create($request->all());
+        // Simpan evaluasi dengan hanya input tervalidasi (Mencegah Mass Assignment)
+        Evaluasi::create($request->only([
+            'perencanaan_id', 'kesimpulan', 'status_warna', 'tanggal_evaluasi', 
+            'evaluator', 'prevalensi', 'insidensi', 'rekomendasi'
+        ]));
 
         return redirect()->route('evaluasi.index')->with('success', 'Evaluasi Berhasil Disimpan!');
     }

@@ -66,8 +66,8 @@
                 <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffc107;"></span> Waspada</span>
                 <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc3545;"></span> Positif HPIK</span>
             </div>
-            <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
-                <i class="ti ti-download me-1"></i>Download Peta (PDF)
+            <button onclick="downloadPeta()" class="btn btn-outline-primary btn-sm" id="btn-download">
+                <i class="ti ti-download me-1"></i>Download Peta (PNG)
             </button>
         </div>
     </div>
@@ -78,20 +78,21 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // === TILE LAYERS (bisa diganti-ganti) ===
     const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd', maxZoom: 20
+        subdomains: 'abcd', maxZoom: 20, crossOrigin: true
     });
     const darkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd', maxZoom: 20
+        subdomains: 'abcd', maxZoom: 20, crossOrigin: true
     });
     const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles © Esri — Source: Esri, Maxar, GeoEye, Earthstar Geographics',
-        maxZoom: 19
+        maxZoom: 19, crossOrigin: true
     });
 
     const map = L.map('map', { zoomControl: true }).setView([-2.5, 118.0], 5);
@@ -158,9 +159,36 @@
         );
     });
 
-    if (markers.length > 0) {
-        const group = L.featureGroup(markers.map(m => L.circleMarker([m.lat, m.lng])));
-        map.fitBounds(group.getBounds().pad(0.25));
+    // Memastikan peta di menu fitur ini juga default-nya 1 Indonesia penuh.
+    // Menghapus fitBounds agar tidak nge-zoom ke 1 titik saja.
+    // if (markers.length > 0) {
+    //     const group = L.featureGroup(markers.map(m => L.circleMarker([m.lat, m.lng])));
+    //     map.fitBounds(group.getBounds().pad(0.25));
+    // }
+
+    // Fungsi untuk Download Peta menjadi Gambar PNG murni
+    function downloadPeta() {
+        const btn = document.getElementById('btn-download');
+        btn.innerHTML = '<i class="ti ti-loader ti-spin me-1"></i>Memproses...';
+        btn.disabled = true;
+
+        html2canvas(document.querySelector("#map"), {
+            useCORS: true,
+            allowTaint: false,
+            scale: 2 // Resolusi HD
+        }).then(canvas => {
+            let link = document.createElement('a');
+            link.download = 'Peta_Sebaran_HPIK_' + new Date().toISOString().slice(0,10) + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btn.innerHTML = '<i class="ti ti-download me-1"></i>Download Peta (PNG)';
+            btn.disabled = false;
+        }).catch(err => {
+            alert('Gagal mendownload peta: ' + err);
+            btn.innerHTML = '<i class="ti ti-download me-1"></i>Download Peta (PNG)';
+            btn.disabled = false;
+        });
     }
 </script>
 @endsection

@@ -54,10 +54,15 @@ class LaboratoriumController extends Controller
         // Ambil data pelaksanaan dengan info lab
         $pelaksanaans = $query->paginate(15)->withQueryString();
 
-        // Tahun unik untuk filter
-        $years = Pelaksanaan::selectRaw('YEAR(created_at) as year')
+        // Tahun unik untuk filter sesuai dengan scope user
+        $yearQuery = clone $query;
+        $yearQuery->setEagerLoads([]);
+        $yearQuery->orders = null; 
+        
+        $years = $yearQuery->selectRaw('YEAR(created_at) as year')
             ->distinct()->orderByDesc('year')
-            ->pluck('year');
+            ->pluck('year')
+            ->filter();
 
         return view('laboratorium.index', compact('pelaksanaans', 'years'));
     }
@@ -87,32 +92,34 @@ class LaboratoriumController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'pelaksanaan_id'   => 'required|exists:pelaksanaans,id',
-            'kode_sampel'      => 'required|unique:laboratoriums,kode_sampel',
-            'metode_uji'       => 'required|string',
-            'jenis_hpik_diuji' => 'required|string',
-            'hasil_uji'        => 'required|in:Positif,Negatif,Inkonklusif',
-            'lab_penguji'      => 'required|string',
-            'tanggal_uji'      => 'required|date',
-            'hasil_parasit'    => 'nullable|in:+,-,NT',
-            'hasil_bakteri'    => 'nullable|in:+,-,NT',
-            'hasil_virus'      => 'nullable|in:+,-,NT',
-            'hasil_jamur'      => 'nullable|in:+,-,NT',
-            'prevalensi'       => 'nullable|numeric|min:0|max:100',
-            'insidensi'        => 'nullable|numeric|min:0|max:100',
-            'tanggal_hasil'    => 'nullable|date',
+            'pelaksanaan_id'    => 'required|exists:pelaksanaans,id',
+            'kode_sampel'       => 'required|unique:laboratoriums,kode_sampel',
+            'metode_uji'        => 'required|string',
+            'jenis_hpik_diuji'  => 'required|string',
+            'hasil_uji'         => 'required|in:Positif,Negatif,Inkonklusif',
+            'lab_penguji'       => 'required|string',
+            'nama_petugas_uji'  => 'required|string|max:255',
+            'tanggal_uji'       => 'required|date',
+            'hasil_parasit'     => 'nullable|in:+,-,NT',
+            'hasil_bakteri'     => 'nullable|in:+,-,NT',
+            'hasil_virus'       => 'nullable|in:+,-,NT',
+            'hasil_jamur'       => 'nullable|in:+,-,NT',
+            'prevalensi'        => 'nullable|numeric|min:0|max:100',
+            'insidensi'         => 'nullable|numeric|min:0|max:100',
+            'tanggal_hasil'     => 'nullable|date',
         ]);
 
-        Laboratorium::create($request->only([
+        $lab = Laboratorium::create($request->only([
             'pelaksanaan_id', 'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
-            'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'tanggal_uji', 'tanggal_hasil',
+            'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
+            'tanggal_uji', 'tanggal_hasil',
             'hasil_parasit', 'hasil_bakteri', 'hasil_virus', 'hasil_jamur',
             'prevalensi', 'insidensi',
             'jumlah_ikan_terinfeksi', 'jumlah_sampel_diperiksa',
             'jumlah_kolam_uji', 'periode_pengamatan',
         ]));
 
-        return redirect()->route('laboratorium.index')->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
+        return redirect()->route('pelaksanaan.show', $request->pelaksanaan_id)->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
     }
 
     public function show($id)

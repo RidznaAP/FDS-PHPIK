@@ -120,8 +120,9 @@ class PerencanaanController extends Controller
         $request->validate([
             'provinsi'   => 'required',
             'kab_kota'   => 'required',
-            'jenis_mp'   => 'required|array',
+            'jenis_mp'   => 'required',
             'jenis_hpik' => 'required|array',
+            'metode_pengujian' => 'required|array',
             'lab_uji'    => 'required',
         ]);
 
@@ -131,18 +132,18 @@ class PerencanaanController extends Controller
         $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?: $request->provinsi);
 
         // Convert arrays to comma separated strings
-        $jenis_mp   = is_array($request->jenis_mp) ? implode(', ', $request->jenis_mp) : $request->jenis_mp;
         $jenis_hpik = is_array($request->jenis_hpik) ? implode(', ', $request->jenis_hpik) : $request->jenis_hpik;
         $kemampuan_uji_upt = is_array($request->kemampuan_uji_upt) ? implode(', ', $request->kemampuan_uji_upt) : ($request->kemampuan_uji_upt ?? 'Tersedia');
+        $metode_pengujian = is_array($request->metode_pengujian) ? implode(', ', $request->metode_pengujian) : $request->metode_pengujian;
 
         Perencanaan::create([
             'user_id'                 => Auth::id(),
             'provinsi'                => $provinsi,
             'kab_kota'                => $request->kab_kota,
-            'jenis_mp'                => $jenis_mp,
+            'jenis_mp'                => $request->jenis_mp,
             'jenis_hpik'              => $jenis_hpik,
             'kemampuan_uji_upt'       => $kemampuan_uji_upt,
-            'metode_pengujian'        => $request->metode_pengujian,
+            'metode_pengujian'        => $metode_pengujian,
             'lab_uji'                 => $request->lab_uji,
             'target_uji'              => $request->target_uji ?? $total_tw,
             'tw1'                     => $request->tw1 ?? 0,
@@ -186,8 +187,9 @@ class PerencanaanController extends Controller
         $request->validate([
             'provinsi'   => 'required',
             'kab_kota'   => 'required',
-            'jenis_mp'   => 'required|array',
+            'jenis_mp'   => 'required',
             'jenis_hpik' => 'required|array',
+            'metode_pengujian' => 'required|array',
             'lab_uji'    => 'required',
         ]);
 
@@ -197,17 +199,17 @@ class PerencanaanController extends Controller
         $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?: $perencanaan->provinsi);
 
         // Convert arrays to comma separated strings
-        $jenis_mp   = is_array($request->jenis_mp) ? implode(', ', $request->jenis_mp) : $request->jenis_mp;
         $jenis_hpik = is_array($request->jenis_hpik) ? implode(', ', $request->jenis_hpik) : $request->jenis_hpik;
         $kemampuan_uji_upt = is_array($request->kemampuan_uji_upt) ? implode(', ', $request->kemampuan_uji_upt) : ($request->kemampuan_uji_upt ?? 'Tersedia');
+        $metode_pengujian = is_array($request->metode_pengujian) ? implode(', ', $request->metode_pengujian) : $request->metode_pengujian;
 
         $perencanaan->update([
             'provinsi'                => $provinsi,
             'kab_kota'                => $request->kab_kota,
-            'jenis_mp'                => $jenis_mp,
+            'jenis_mp'                => $request->jenis_mp,
             'jenis_hpik'              => $jenis_hpik,
             'kemampuan_uji_upt'       => $kemampuan_uji_upt,
-            'metode_pengujian'        => $request->metode_pengujian,
+            'metode_pengujian'        => $metode_pengujian,
             'lab_uji'                 => $request->lab_uji,
             'target_uji'              => $request->target_uji ?? $total_tw,
             'tw1'                     => $request->tw1 ?? 0,

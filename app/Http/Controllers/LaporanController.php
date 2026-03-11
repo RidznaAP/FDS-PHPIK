@@ -13,16 +13,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class LaporanController extends Controller
 {
-    // Halaman pilihan laporan
+    // Halaman pusat pelaporan & ekspor
     public function index()
     {
         $user = \Illuminate\Support\Facades\Auth::user();
-        
-        // #14: daftar BKHIT unik untuk filter instansi/wilayah
+
+        // Daftar BKHIT unik untuk filter formulir & PDF
         $bkhitListQuery = User::where('role', 'bkhit')
             ->whereNotNull('upt_asal');
 
-        // Scoping bkhitList based on role
         if ($user->isBbkhit()) {
             $bkhitListQuery->where('parent_id', $user->id);
         } elseif ($user->isBkhit()) {

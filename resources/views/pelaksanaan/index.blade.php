@@ -5,38 +5,54 @@
 @section('page_subtitle', 'Data realisasi lapangan pemantauan HPIK')
 
 @section('content')
-<div class="row g-2 mb-3">
-    <div class="col">
-        <form method="GET" action="{{ route('pelaksanaan.index') }}" class="input-icon" style="max-width:400px;">
-            <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-            <input type="text" name="search" class="form-control" placeholder="Cari lokasi, jenis ikan, provinsi…" value="{{ request('search') }}">
-        </form>
-    </div>
-    <div class="col-auto d-flex gap-2">
-        <select name="tahun" form="filter-form-pelaksanaan" class="form-select" style="width:auto;" onchange="document.getElementById('filter-form-pelaksanaan').submit()">
-            <option value="">Semua Tahun</option>
+{{-- ═══ TOOLBAR ═══ --}}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <form method="GET" action="{{ route('pelaksanaan.index') }}" class="input-icon flex-grow-1" style="max-width:380px;">
+        <span class="input-icon-addon"><i class="ti ti-search text-muted"></i></span>
+        <input type="text" name="search" class="form-control" placeholder="Cari lokasi, jenis ikan, provinsi…" value="{{ request('search') }}">
+        @if(request('tahun'))<input type="hidden" name="tahun" value="{{ request('tahun') }}">@endif
+        @if(request('lab'))<input type="hidden" name="lab" value="{{ request('lab') }}">@endif
+    </form>
+
+    <form id="filter-form-pelaksanaan" method="GET" action="{{ route('pelaksanaan.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
+        @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
+        <select name="tahun" class="form-select form-select-sm" style="width:135px;" onchange="this.form.submit()">
+            <option value="">📅 Semua Tahun</option>
             @foreach($years as $y)
                 <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endforeach
         </select>
-        <select name="lab" form="filter-form-pelaksanaan" class="form-select" style="width:auto;" onchange="document.getElementById('filter-form-pelaksanaan').submit()">
-            <option value="">Semua Status Lab</option>
-            <option value="done" {{ request('lab') == 'done' ? 'selected' : '' }}>✅ Sudah Diuji</option>
+        <select name="lab" class="form-select form-select-sm" style="width:175px;" onchange="this.form.submit()">
+            <option value="">🔬 Semua Status Lab</option>
+            <option value="done"    {{ request('lab') == 'done'    ? 'selected' : '' }}>✅ Sudah Diuji</option>
             <option value="pending" {{ request('lab') == 'pending' ? 'selected' : '' }}>⏳ Belum Diuji</option>
         </select>
-        <form id="filter-form-pelaksanaan" method="GET" action="{{ route('pelaksanaan.index') }}" class="d-none">
-            <input type="hidden" name="search" value="{{ request('search') }}">
-        </form>
-        <button type="button" id="btn-bulk-delete" class="btn btn-danger d-none" onclick="submitBulkDelete()">
-            <i class="ti ti-trash me-1"></i>Hapus Terpilih (<span id="count-selected">0</span>)
+        @if(request('search') || request('tahun') || request('lab'))
+            <a href="{{ route('pelaksanaan.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="ti ti-x me-1"></i>Reset
+            </a>
+        @endif
+    </form>
+
+    <div class="ms-auto d-flex gap-2">
+        <button type="button" id="btn-bulk-delete" class="btn btn-sm btn-danger d-none" onclick="submitBulkDelete()">
+            <i class="ti ti-trash me-1"></i>Hapus (<span id="count-selected">0</span>)
         </button>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-        <h3 class="card-title"><i class="ti ti-map-pin me-2"></i>Data Pelaksanaan Lapangan</h3>
-        <span class="badge bg-blue-lt">{{ $pelaksanaans->total() }} data</span>
+    <div class="card-header d-flex align-items-center justify-content-between py-3">
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-green text-white rounded-2 d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
+                <i class="ti ti-map-pin" style="font-size:1rem;"></i>
+            </div>
+            <div>
+                <div class="fw-bold text-dark">Data Pelaksanaan Lapangan</div>
+                <div class="text-muted small">{{ $pelaksanaans->total() }} data ditemukan</div>
+            </div>
+        </div>
+        <span class="badge bg-green px-3 py-2" style="font-size:.72rem;color:#fff;">{{ $pelaksanaans->total() }} total</span>
     </div>
     <form id="form-bulk-delete" action="{{ route('pelaksanaan.bulk-delete') }}" method="POST">
         @csrf
@@ -120,7 +136,7 @@
                         @endif
                     </td>
                     <td>
-                        <div class="fw-semibold">{{ $item->jumlah_sampel }} ekor</div>
+                        <div class="fw-semibold">{{ $item->jumlah_sampel }} pelaksanaan</div>
                         <div class="text-muted small">{{ $item->metode_pengambilan_sampel }}</div>
                         @if($item->jumlah_kematian > 0)
                             <span class="badge bg-danger-lt text-danger">Mati: {{ $item->jumlah_kematian }}</span>
@@ -156,9 +172,12 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center py-4 text-muted">
-                        <i class="ti ti-map-pin" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-                        Belum ada data pelaksanaan.
+                    <td colspan="9" class="p-0">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🗺️</div>
+                            <h4>Belum Ada Data Pelaksanaan</h4>
+                            <p>Data realisasi lapangan akan muncul di sini setelah perencanaan disetujui dan diinput.</p>
+                        </div>
                     </td>
                 </tr>
                 @endforelse

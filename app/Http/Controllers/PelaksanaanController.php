@@ -70,7 +70,12 @@ class PelaksanaanController extends Controller
         }
 
         // Tahun yang tersedia (dari tanggal_pemantauan, fallback ke created_at)
-        $years = Pelaksanaan::selectRaw('YEAR(COALESCE(tanggal_pemantauan, created_at)) as tahun')
+        $yearQuery = clone $query;
+        // Hapus eager loads & orderings dari clone agar tidak error saat count/group
+        $yearQuery->setEagerLoads([]);
+        $yearQuery->orders = null; 
+        
+        $years = $yearQuery->selectRaw('YEAR(COALESCE(tanggal_pemantauan, created_at)) as tahun')
             ->groupBy('tahun')
             ->orderByDesc('tahun')
             ->pluck('tahun')

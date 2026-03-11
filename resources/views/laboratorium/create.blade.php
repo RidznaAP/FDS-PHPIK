@@ -35,7 +35,7 @@
                     </div>
                     <div class="col-6 col-md-3 p-3 bg-light">
                         <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Jumlah Sampel</div>
-                        <div class="fw-bold fs-4">{{ $pelaksanaan->jumlah_sampel }} <small class="fw-normal">Ekor</small></div>
+                        <div class="fw-bold fs-4">{{ $pelaksanaan->jumlah_sampel }} <small class="fw-normal">Pelaksanaan</small></div>
                     </div>
                 </div>
                 @if($pelaksanaan->gejala_klinis)
@@ -77,6 +77,17 @@
                                     <input type="text" name="lab_penguji"
                                         class="form-control"
                                         value="{{ old('lab_penguji', $pelaksanaan->perencanaan->lab_uji ?? '') }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Nama Petugas Penguji</label>
+                                    <div class="input-icon">
+                                        <span class="input-icon-addon"><i class="ti ti-user-check"></i></span>
+                                        <input type="text" name="nama_petugas_uji"
+                                            class="form-control @error('nama_petugas_uji') is-invalid @enderror"
+                                            placeholder="Nama lengkap analis/petugas uji"
+                                            value="{{ old('nama_petugas_uji') }}" required>
+                                    </div>
+                                    @error('nama_petugas_uji')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label required fw-bold mb-2">Tanggal Pengujian</label>
@@ -175,7 +186,7 @@
                                                         class="form-control fw-bold border-0 bg-transparent fs-2" min="0"
                                                         value="{{ old('jumlah_ikan_terinfeksi') }}"
                                                         placeholder="0" oninput="hitungOtomatis()">
-                                                    <span class="input-group-text bg-transparent border-0 text-muted">EKOR</span>
+                                                    <span class="input-group-text bg-transparent border-0 text-muted">PELAKSANAAN</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -187,7 +198,7 @@
                                                         class="form-control fw-bold border-0 bg-transparent fs-2" min="1"
                                                         value="{{ old('jumlah_sampel_diperiksa', $pelaksanaan->jumlah_sampel) }}"
                                                         oninput="hitungOtomatis()">
-                                                    <span class="input-group-text bg-transparent border-0 text-muted">EKOR</span>
+                                                    <span class="input-group-text bg-transparent border-0 text-muted">PELAKSANAAN</span>
                                                 </div>
                                             </div>
                                         </div>

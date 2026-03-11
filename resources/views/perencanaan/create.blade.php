@@ -33,9 +33,9 @@
             @csrf
             
             <div class="row g-4 mb-4">
-                {{-- Kiri: Lokasi & Komoditas --}}
-                <div class="col-md-7">
-                    <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
+                {{-- Lokasi & Komoditas --}}
+                <div class="col-12">
+                    <div class="card card-premium h-100 border-0 shadow-sm bg-white">
                         <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
                             <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
                                 <i class="ti ti-map-2 me-2 text-indigo"></i> GEOGRAFI & IDENTITAS SAMPEL
@@ -67,12 +67,12 @@
                                     <label class="form-label required fw-bold mb-2">
                                         <i class="ti ti-fish me-1 text-indigo"></i> Media Pembawa (Komoditas Utama)
                                     </label>
-                                    <select name="jenis_mp[]" id="jenis_mp_select" class="form-control" multiple required>
+                                    <select name="jenis_mp" id="jenis_mp_select" class="form-select rounded-3 border-light-dark" required>
+                                        <option value="" disabled {{ old('jenis_mp') ? '' : 'selected' }}>Pilih Komoditas...</option>
                                         @foreach($mediaPembawas ?? [] as $mp)
                                             <option value="{{ $mp->nama }}">{{ $mp->nama }}</option>
                                         @endforeach
                                     </select>
-                                    <div class="form-hint mt-2 text-muted italic small"><i class="ti ti-info-circle me-1"></i>Pilih atau ketik nama inang rentan.</div>
                                 </div>
                                 
                                 <div class="col-12 mt-3">
@@ -81,20 +81,19 @@
                                     </label>
                                     <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required>
                                         @foreach($jenisPenyakits ?? [] as $jp)
-                                            <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}">
-                                                {{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}
-                                            </option>
+                                            <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}">{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}</option>
                                         @endforeach
                                     </select>
+                                    <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 HPIK.</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Kanan: Teknis Lab --}}
-                <div class="col-md-5">
-                    <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
+                {{-- Teknis Lab --}}
+                <div class="col-12">
+                    <div class="card card-premium h-100 border-0 shadow-sm bg-white">
                          <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
                             <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
                                 <i class="ti ti-microscope me-2 text-azure"></i> METODOLOGI & KAPASITAS LAB
@@ -108,21 +107,43 @@
                                     </label>
                                     <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
                                         <option value="PCR">PCR</option>
-                                        <option value="Real-time PCR">Real-time PCR</option>
+                                        <option value="RT-PCR">RT-PCR</option>
+                                        <option value="Real-Time PCR (qPCR)">Real-Time PCR (qPCR)</option>
+                                        <option value="Sekuensing DNA">Sekuensing DNA</option>
+                                        <option value="Isolasi Bakteri">Isolasi Bakteri</option>
+                                        <option value="Uji Biokimia">Uji Biokimia</option>
+                                        <option value="Uji Sensitivitas/Antibiogram">Uji Sensitivitas/Antibiogram</option>
+                                        <option value="Natif/Scrapping">Natif/Scrapping</option>
+                                        <option value="Sediaan Ulas (Smear)">Sediaan Ulas (Smear)</option>
+                                        <option value="Kultur Jamur">Kultur Jamur</option>
+                                        <option value="Pemeriksaan Mikroskopis Struktur Jamur">Pemeriksaan Mikroskopis Struktur Jamur</option>
+                                        <option value="Pemeriksaan Jaringan (Slide)">Pemeriksaan Jaringan (Slide)</option>
+                                        <option value="Isolasi Virus">Isolasi Virus</option>
                                         <option value="ELISA">ELISA</option>
-                                        <option value="Kultur Bakteri">Kultur Bakteri</option>
-                                        <option value="Histopatologi">Histopatologi</option>
-                                        <option value="Isolasi & Identifikasi">Isolasi & Identifikasi</option>
+                                        <option value="IFAT">IFAT</option>
                                     </select>
+                                    <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 metode uji.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label required fw-bold mb-2">Metode Pengujian</label>
-                                    <select name="metode_pengujian" class="form-select rounded-3 border-light-dark shadow-sm">
-                                        <option value="Konvensional PCR" {{ old('metode_pengujian') == 'Konvensional PCR' ? 'selected' : '' }}>Konvensional PCR</option>
-                                        <option value="Real-time PCR" {{ old('metode_pengujian') == 'Real-time PCR' ? 'selected' : '' }}>Real-time PCR</option>
-                                        <option value="Isolasi & Identifikasi" {{ old('metode_pengujian') == 'Isolasi & Identifikasi' ? 'selected' : '' }}>Isolasi & Identifikasi</option>
-                                        <option value="ELISA" {{ old('metode_pengujian') == 'ELISA' ? 'selected' : '' }}>ELISA</option>
+                                    <select name="metode_pengujian[]" id="metode_pengujian_select" class="form-control" multiple required>
+                                        <option value="PCR">PCR</option>
+                                        <option value="RT-PCR">RT-PCR</option>
+                                        <option value="Real-Time PCR (qPCR)">Real-Time PCR (qPCR)</option>
+                                        <option value="Sekuensing DNA">Sekuensing DNA</option>
+                                        <option value="Isolasi Bakteri">Isolasi Bakteri</option>
+                                        <option value="Uji Biokimia">Uji Biokimia</option>
+                                        <option value="Uji Sensitivitas/Antibiogram">Uji Sensitivitas/Antibiogram</option>
+                                        <option value="Natif/Scrapping">Natif/Scrapping</option>
+                                        <option value="Sediaan Ulas (Smear)">Sediaan Ulas (Smear)</option>
+                                        <option value="Kultur Jamur">Kultur Jamur</option>
+                                        <option value="Pemeriksaan Mikroskopis Struktur Jamur">Pemeriksaan Mikroskopis Struktur Jamur</option>
+                                        <option value="Pemeriksaan Jaringan (Slide)">Pemeriksaan Jaringan (Slide)</option>
+                                        <option value="Isolasi Virus">Isolasi Virus</option>
+                                        <option value="ELISA">ELISA</option>
+                                        <option value="IFAT">IFAT</option>
                                     </select>
+                                    <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1.</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label required fw-bold mb-2">Lab Pelaksana</label>
@@ -131,9 +152,9 @@
                                 </div>
                                 
                                 <div class="col-12 border-top pt-2">
-                                    <label class="form-label fw-bold mb-2">Rencana Lokasi Sampling</label>
-                                    <input type="text" name="rencana_lokasi" class="form-control rounded-3 border-light-dark" 
-                                        value="{{ old('rencana_lokasi') }}" placeholder="Contoh: Tambak rakyat / Hatchery">
+                                    <label class="form-label fw-bold mb-2">Lokasi Pengambilan Sampel</label>
+                                    <textarea name="rencana_lokasi" class="form-control rounded-3 border-light-dark" 
+                                        rows="3" placeholder="Contoh: Tambak rakyat, Hatchery Desa Suka Maju, Kab. Indramayu...">{{ old('rencana_lokasi') }}</textarea>
                                 </div>
                                 
                                 <div class="col-md-6">
@@ -155,7 +176,7 @@
             </div>
 
             {{-- Bagian 3: Target Kuartal Terminal --}}
-            <div class="card card-premium mb-5 border-0 shadow-sm border-top border-primary border-5 bg-white overflow-hidden">
+            <div class="card card-premium mb-3 border-0 shadow-sm border-top border-primary border-5 bg-white">
                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                     <h3 class="card-title fw-bold text-indigo">
                         <i class="ti ti-chart-arrows me-2"></i> TARGET OPERASIONAL PER KUARTAL
@@ -164,16 +185,43 @@
                 <div class="card-body p-4 pt-3">
                     <div class="row g-4 align-items-stretch">
                         <div class="col-md-8">
-                            <div class="row g-3">
-                                @foreach([1, 2, 3, 4] as $tw)
-                                <div class="col-6 col-md-3">
-                                    <div class="p-4 bg-light-soft rounded-4 text-center border transition-all hover-border-primary hover-shadow-sm">
-                                        <label class="form-label fw-extrabold mb-3 small text-uppercase tracking-widest text-muted">TRIWULAN {{ $tw }}</label>
-                                        <input type="number" name="tw{{ $tw }}" class="form-control text-center fw-extrabold fs-2 border-0 bg-transparent text-primary p-0" value="{{ old('tw'.$tw, 0) }}" min="0" onchange="calculateTotal()" onclick="this.select()">
-                                        <div class="small text-muted fw-bold mt-2">SAMPEL</div>
+                            <div class="row g-4">
+                                {{-- Periode 1 --}}
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-blue text-white px-3 py-1 rounded-pill">PERIODE 1</span>
+                                        <span class="text-muted small fw-bold text-uppercase">Kuartal 1 & 2</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        @foreach([1, 2] as $tw)
+                                        <div class="col-md-6">
+                                            <div class="p-4 bg-light-soft rounded-4 text-center border transition-all hover-border-primary hover-shadow-sm">
+                                                <label class="form-label fw-extrabold mb-3 small text-uppercase tracking-widest text-muted">TRIWULAN {{ $tw }}</label>
+                                                <input type="number" name="tw{{ $tw }}" class="form-control text-center fw-extrabold fs-2 border-0 bg-transparent text-primary p-0" value="{{ old('tw'.$tw, 0) }}" min="0" onchange="calculateTotal()" onclick="this.select()">
+                                                <div class="small text-muted fw-bold mt-2">SAMPEL</div>
+                                            </div>
+                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
-                                @endforeach
+                                {{-- Periode 2 --}}
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-azure text-white px-3 py-1 rounded-pill">PERIODE 2</span>
+                                        <span class="text-muted small fw-bold text-uppercase">Kuartal 3 & 4</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        @foreach([3, 4] as $tw)
+                                        <div class="col-md-6">
+                                            <div class="p-4 bg-light-soft rounded-4 text-center border transition-all hover-border-primary hover-shadow-sm">
+                                                <label class="form-label fw-extrabold mb-3 small text-uppercase tracking-widest text-muted">TRIWULAN {{ $tw }}</label>
+                                                <input type="number" name="tw{{ $tw }}" class="form-control text-center fw-extrabold fs-2 border-0 bg-transparent text-primary p-0" value="{{ old('tw'.$tw, 0) }}" min="0" onchange="calculateTotal()" onclick="this.select()">
+                                                <div class="small text-muted fw-bold mt-2">SAMPEL</div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                             <div class="mt-4 p-3 bg-primary-lt rounded-4 border border-primary border-dashed text-center">
                                 <i class="ti ti-checkup-list me-2"></i><b>Instruksi:</b> Masukkan target jumlah sampel yang akan dipantau pada setiap periode kuartal.
@@ -184,7 +232,7 @@
                                 <div class="small fw-extrabold text-uppercase opacity-75 mb-2 tracking-widest">Total Akumulasi Tahunan</div>
                                 <div class="display-1 mb-0 fw-extrabold tracking-tighter" id="total-display">0</div>
                                 <input type="hidden" name="target_uji" id="target_uji_hidden" value="{{ old('target_uji', 0) }}">
-                                <div class="h4 mt-2 fw-bold italic opacity-75">Target Ekor Per Tahun</div>
+                                <div class="h4 mt-2 fw-bold italic opacity-75">Target Sampel Per Tahun</div>
                                 <div class="mt-4">
                                     <div class="bg-white-transparent p-2 rounded-pill small fw-bold"><i class="ti ti-status-up me-1"></i>AUTO-CALCULATED</div>
                                 </div>
@@ -192,17 +240,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-light border-0 py-4 px-4 d-flex align-items-center justify-content-between">
-                    <div>
-                        <a href="{{ route('perencanaan.index') }}" class="btn btn-ghost-secondary btn-pill px-4 fw-bold">
-                            <i class="ti ti-x me-1"></i>Batal & Keluar
-                        </a>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-pill px-5 py-3 fs-3 shadow-lg fw-extrabold hover-scale transition-all">
-                        <i class="ti ti-device-floppy me-2"></i> SIMPAN PERENCANAAN
-                    </button>
-                </div>
             </div>
+            
+            <div class="d-flex align-items-center justify-content-end gap-3 mt-4 mb-4">
+                <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-danger shadow-sm btn-pill px-5 py-3 fs-3 fw-bold hover-scale transition-all">
+                    <i class="ti ti-arrow-left me-2"></i> Batal & Keluar
+                </a>
+                <button type="submit" class="btn btn-primary btn-pill px-5 py-3 fs-3 shadow-lg fw-extrabold hover-scale transition-all">
+                    <i class="ti ti-device-floppy me-2"></i> SIMPAN PERENCANAAN
+                </button>
+            </div>
+
         </form>
     </div>
 </div>
@@ -224,6 +272,12 @@
         border-color: #6366f1 !important;
         background-color: #ffffff !important;
         box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .ts-wrapper .ts-control > input {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 100% !important;
     }
     .ts-dropdown { 
         border-radius: 1rem !important; 
@@ -265,6 +319,7 @@
     #jenis_mp_select + .ts-wrapper .item { background: #e0e7ff !important; color: #4338ca !important; border: 1px solid #c7d2fe !important; }
     #jenis_hpik_select + .ts-wrapper .item { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fecaca !important; }
     #kemampuan_uji_upt_select + .ts-wrapper .item { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #bbf7d0 !important; }
+    #metode_pengujian_select + .ts-wrapper .item { background: #f3e8ff !important; color: #7e22ce !important; border: 1px solid #e9d5ff !important; }
     
     .ts-wrapper .item .remove { 
         margin-left: 8px; 
@@ -290,29 +345,36 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialization for Tom Select
         new TomSelect('#jenis_mp_select', {
+            dropdownParent: 'body',
+            create: true,
+            persist: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        new TomSelect('#metode_pengujian_select', {
+            dropdownParent: 'body',
             plugins: ['remove_button'],
             create: true,
             persist: false,
         });
 
         new TomSelect('#jenis_hpik_select', {
+            dropdownParent: 'body',
             plugins: ['remove_button'],
-            create: true,
-            persist: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
 
         new TomSelect('#kemampuan_uji_upt_select', {
+            dropdownParent: 'body',
             plugins: ['remove_button'],
             create: true,
-            persist: false,
-            options: [
-                {value: 'PCR', text: 'PCR'},
-                {value: 'Real-time PCR', text: 'Real-time PCR'},
-                {value: 'ELISA', text: 'ELISA'},
-                {value: 'Kultur Bakteri', text: 'Kultur Bakteri'},
-                {value: 'Histopatologi', text: 'Histopatologi'},
-                {value: 'Isolasi & Identifikasi', text: 'Isolasi & Identifikasi'}
-            ]
+            persist: false
         });
 
         function calculateTotal() {

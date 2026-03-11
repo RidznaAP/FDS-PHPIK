@@ -45,20 +45,18 @@
                                 <i class="ti ti-fish me-1 text-primary"></i> Media Pembawa (Inang Rentan)
                             </label>
                             @php $selectedMp = array_map('trim', explode(',', $perencanaan->jenis_mp)); @endphp
-                            <select name="jenis_mp[]" id="jenis_mp_select" class="form-control" multiple required>
+                            <select name="jenis_mp" id="jenis_mp_select" class="form-select rounded-3 border-light-dark" required>
+                                <option value="" disabled>Pilih Komoditas...</option>
                                 @foreach($mediaPembawas ?? [] as $mp)
-                                    <option value="{{ $mp->nama }}" {{ in_array($mp->nama, $selectedMp) ? 'selected' : '' }}>
+                                    <option value="{{ $mp->nama }}" {{ $perencanaan->jenis_mp == $mp->nama ? 'selected' : '' }}>
                                         {{ $mp->nama }}
                                     </option>
                                 @endforeach
                                 {{-- Handle items not in master data --}}
-                                @foreach($selectedMp as $s)
-                                    @if(!collect($mediaPembawas)->contains('nama', $s) && !empty($s))
-                                        <option value="{{ $s }}" selected>{{ $s }}</option>
-                                    @endif
-                                @endforeach
+                                @if(!empty($perencanaan->jenis_mp) && !collect($mediaPembawas)->contains('nama', $perencanaan->jenis_mp))
+                                    <option value="{{ $perencanaan->jenis_mp }}" selected>{{ $perencanaan->jenis_mp }}</option>
+                                @endif
                             </select>
-                            <div class="form-hint mt-2">Target komoditas pemantauan.</div>
                         </div>
                         
                         <div class="col-md-6">
@@ -69,9 +67,7 @@
                             <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required>
                                 @foreach($jenisPenyakits ?? [] as $jp)
                                     @php $val = $jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : ''); @endphp
-                                    <option value="{{ $val }}" {{ in_array($val, $selectedHpik) ? 'selected' : '' }}>
-                                        {{ $val }}
-                                    </option>
+                                    <option value="{{ $val }}" {{ in_array($val, $selectedHpik) ? 'selected' : '' }}>{{ $val }}</option>
                                 @endforeach
                                 {{-- Handle virtues that might not be in master data --}}
                                 @foreach($selectedHpik as $s)
@@ -80,7 +76,7 @@
                                     @endif
                                 @endforeach
                             </select>
-                            <div class="form-hint mt-2">Target penyakit yang dipantau.</div>
+                            <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 HPIK.</div>
                         </div>
                     </div>
                 </div>
@@ -101,7 +97,7 @@
                             </label>
                             @php $selectedUji = array_map('trim', explode(',', $perencanaan->kemampuan_uji_upt)); @endphp
                             <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
-                                @php $opts = ['PCR', 'Real-time PCR', 'ELISA', 'Kultur Bakteri', 'Histopatologi', 'Isolasi & Identifikasi']; @endphp
+                                @php $opts = ['PCR', 'RT-PCR', 'Real-Time PCR (qPCR)', 'Sekuensing DNA', 'Isolasi Bakteri', 'Uji Biokimia', 'Uji Sensitivitas/Antibiogram', 'Natif/Scrapping', 'Sediaan Ulas (Smear)', 'Kultur Jamur', 'Pemeriksaan Mikroskopis Struktur Jamur', 'Pemeriksaan Jaringan (Slide)', 'Isolasi Virus', 'ELISA', 'IFAT']; @endphp
                                 @foreach($opts as $opt)
                                     <option value="{{ $opt }}" {{ in_array($opt, $selectedUji) ? 'selected' : '' }}>{{ $opt }}</option>
                                 @endforeach
@@ -111,11 +107,23 @@
                                     @endif
                                 @endforeach
                             </select>
+                            <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 metode uji.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label required fw-bold mb-2">Metode Pengujian</label>
-                            <input type="text" name="metode_pengujian" class="form-control" 
-                                value="{{ old('metode_pengujian', $perencanaan->metode_pengujian) }}" required>
+                            @php $selectedMetode = array_map('trim', explode(',', $perencanaan->metode_pengujian)); @endphp
+                            <select name="metode_pengujian[]" id="metode_pengujian_select" class="form-control" multiple required>
+                                @php $metodeOpts = ['PCR', 'RT-PCR', 'Real-Time PCR (qPCR)', 'Sekuensing DNA', 'Isolasi Bakteri', 'Uji Biokimia', 'Uji Sensitivitas/Antibiogram', 'Natif/Scrapping', 'Sediaan Ulas (Smear)', 'Kultur Jamur', 'Pemeriksaan Mikroskopis Struktur Jamur', 'Pemeriksaan Jaringan (Slide)', 'Isolasi Virus', 'ELISA', 'IFAT']; @endphp
+                                @foreach($metodeOpts as $opt)
+                                    <option value="{{ $opt }}" {{ in_array($opt, $selectedMetode) ? 'selected' : '' }}>{{ $opt }}</option>
+                                @endforeach
+                                @foreach($selectedMetode as $s)
+                                    @if(!in_array($s, $metodeOpts) && !empty($s))
+                                        <option value="{{ $s }}" selected>{{ $s }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                            <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1.</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label required fw-bold mb-2">Lab Uji Terakreditasi</label>
@@ -126,9 +134,9 @@
                         <div class="col-12"><div class="hr-text text-muted my-2">RENCANA SAMPLING</div></div>
                         
                         <div class="col-md-6">
-                            <label class="form-label fw-bold mb-2">Rencana Lokasi Pengambilan Sampel</label>
-                            <input type="text" name="rencana_lokasi" class="form-control" 
-                                value="{{ old('rencana_lokasi', $perencanaan->rencana_lokasi) }}" placeholder="Contoh: Tambak rakyat / Unit pembenihan">
+                            <label class="form-label fw-bold mb-2">Lokasi Pengambilan Sampel</label>
+                            <textarea name="rencana_lokasi" class="form-control rounded-3 border-light-dark" 
+                                rows="3" placeholder="Contoh: Tambak rakyat, Hatchery Desa Suka Maju, Kab. Indramayu...">{{ old('rencana_lokasi', $perencanaan->rencana_lokasi) }}</textarea>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold mb-2">Target Uji</label>
@@ -157,17 +165,47 @@
                 <div class="card-body">
                     <div class="row g-4 align-items-center">
                         <div class="col-md-8">
-                            <div class="row g-3">
-                                @foreach([1, 2, 3, 4] as $tw)
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded-3 text-center border">
-                                        <label class="form-label fw-bold mb-2 small text-uppercase">TW {{ $tw }}</label>
-                                        @php $twField = 'tw'.$tw; @endphp
-                                        <input type="number" name="tw{{ $tw }}" class="form-control text-center fw-bold fs-3 border-0 bg-transparent" 
-                                            value="{{ old($twField, $perencanaan->$twField) }}" min="0" onchange="calculateTotal()">
+                            <div class="row g-4">
+                                {{-- Periode 1 --}}
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-blue text-white px-3 py-1 rounded-pill">PERIODE 1</span>
+                                        <span class="text-muted small fw-bold text-uppercase">Kuartal 1 & 2</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        @foreach([1, 2] as $tw)
+                                        <div class="col-md-6">
+                                            <div class="p-4 bg-light-soft rounded-4 text-center border transition-all hover-border-primary hover-shadow-sm">
+                                                <label class="form-label fw-extrabold mb-3 small text-uppercase tracking-widest text-muted">TRIWULAN {{ $tw }}</label>
+                                                @php $valName = 'tw'.$tw; @endphp
+                                                <input type="number" name="{{ $valName }}" class="form-control text-center fw-extrabold fs-2 border-0 bg-transparent text-primary p-0" 
+                                                    value="{{ old($valName, $perencanaan->$valName) }}" min="0" onchange="calculateTotal()" onclick="this.select()">
+                                                <div class="small text-muted fw-bold mt-2">SAMPEL</div>
+                                            </div>
+                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
-                                @endforeach
+                                {{-- Periode 2 --}}
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-azure text-white px-3 py-1 rounded-pill">PERIODE 2</span>
+                                        <span class="text-muted small fw-bold text-uppercase">Kuartal 3 & 4</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        @foreach([3, 4] as $tw)
+                                        <div class="col-md-6">
+                                            <div class="p-4 bg-light-soft rounded-4 text-center border transition-all hover-border-primary hover-shadow-sm">
+                                                <label class="form-label fw-extrabold mb-3 small text-uppercase tracking-widest text-muted">TRIWULAN {{ $tw }}</label>
+                                                @php $valName = 'tw'.$tw; @endphp
+                                                <input type="number" name="{{ $valName }}" class="form-control text-center fw-extrabold fs-2 border-0 bg-transparent text-primary p-0" 
+                                                    value="{{ old($valName, $perencanaan->$valName) }}" min="0" onchange="calculateTotal()" onclick="this.select()">
+                                                <div class="small text-muted fw-bold mt-2">SAMPEL</div>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -175,17 +213,20 @@
                                 <div class="small fw-bold text-uppercase opacity-75 mb-1">Total Target Tahunan</div>
                                 <div class="h1 mb-0 fw-bold" id="total-display">{{ $perencanaan->target_uji }}</div>
                                 <input type="hidden" name="target_uji" id="target_uji_hidden" value="{{ old('target_uji', $perencanaan->target_uji) }}">
-                                <div class="small mt-1">SAMPEL / EKOR</div>
+                                <div class="small mt-1">TOTAL PELAKSANAAN</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-transparent border-0 d-flex gap-3 pb-4">
-                    <button type="submit" class="btn btn-warning btn-pill px-4 py-2 fs-3 shadow-sm">
-                        <i class="ti ti-device-floppy me-2"></i> Simpan Perubahan
-                    </button>
-                    <a href="{{ route('perencanaan.index') }}" class="btn btn-link link-secondary">Batal & Kembali</a>
-                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-3 mt-4 mb-4">
+                <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-danger shadow-sm btn-pill px-5 py-3 fs-3 fw-bold hover-scale transition-all">
+                    <i class="ti ti-arrow-left me-2"></i> Batal & Kembali
+                </a>
+                <button type="submit" class="btn btn-warning btn-pill px-5 py-3 fs-3 shadow-lg fw-extrabold hover-scale transition-all">
+                    <i class="ti ti-device-floppy me-2"></i> Simpan Perubahan
+                </button>
             </div>
         </form>
     </div>
@@ -208,6 +249,12 @@
         border-color: #6366f1 !important;
         background-color: #ffffff !important;
         box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .ts-wrapper .ts-control > input {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 100% !important;
     }
     .ts-dropdown { 
         border-radius: 1rem !important; 
@@ -249,6 +296,7 @@
     #jenis_mp_select + .ts-wrapper .item { background: #e0e7ff !important; color: #4338ca !important; border: 1px solid #c7d2fe !important; }
     #jenis_hpik_select + .ts-wrapper .item { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fecaca !important; }
     #kemampuan_uji_upt_select + .ts-wrapper .item { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #bbf7d0 !important; }
+    #metode_pengujian_select + .ts-wrapper .item { background: #f3e8ff !important; color: #7e22ce !important; border: 1px solid #e9d5ff !important; }
     
     .ts-wrapper .item .remove { 
         margin-left: 8px; 
@@ -274,29 +322,36 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialization for Tom Select
         new TomSelect('#jenis_mp_select', {
+            dropdownParent: 'body',
+            create: true,
+            persist: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
+        });
+
+        new TomSelect('#metode_pengujian_select', {
+            dropdownParent: 'body',
             plugins: ['remove_button'],
             create: true,
             persist: false,
         });
 
         new TomSelect('#jenis_hpik_select', {
+            dropdownParent: 'body',
             plugins: ['remove_button'],
-            create: true,
-            persist: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
 
         new TomSelect('#kemampuan_uji_upt_select', {
+            dropdownParent: 'body',
             plugins: ['remove_button'],
             create: true,
-            persist: false,
-            options: [
-                {value: 'PCR', text: 'PCR'},
-                {value: 'Real-time PCR', text: 'Real-time PCR'},
-                {value: 'ELISA', text: 'ELISA'},
-                {value: 'Kultur Bakteri', text: 'Kultur Bakteri'},
-                {value: 'Histopatologi', text: 'Histopatologi'},
-                {value: 'Isolasi & Identifikasi', text: 'Isolasi & Identifikasi'}
-            ]
+            persist: false
         });
 
         function calculateTotal() {

@@ -95,23 +95,36 @@
                             <div class="mb-4">
                                 <label class="text-muted small fw-bold text-uppercase d-block mb-1">Metode & Lab Penguji</label>
                                 <div class="d-flex align-items-center mb-2">
-                                    <div class="bg-purple-lt text-purple p-2 rounded-3 me-3"><i class="ti ti-microscope fs-3"></i></div>
-                                    <div class="fw-bold fs-3">{{ $p->metode_pengujian ?? '-' }}</div>
+                                    <div class="bg-purple-lt text-purple p-2 rounded-3 me-3"><i class="ti ti-flask fs-3"></i></div>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach(array_map('trim', explode(',', $p->metode_pengujian)) as $metode)
+                                            <span class="badge bg-purple-lt text-purple border border-purple-subtle px-2 py-1">{{ $metode }}</span>
+                                        @endforeach
+                                    </div>
                                 </div>
                                 <div class="badge bg-light text-dark px-3 py-2 rounded-3 border w-100 text-center">
                                     <i class="ti ti-flask me-2"></i> {{ $p->lab_uji }}
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center p-2 bg-light rounded-3 border-start border-primary border-4">
-                                <div class="avatar avatar-sm rounded-circle me-3 bg-white text-primary shadow-sm">
-                                    {{ strtoupper(substr($p->user->name ?? 'A', 0, 1)) }}
+                        <div class="col-12 border-top p-3 px-4 bg-light-soft">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Lokasi Pengambilan Sampel</label>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-azure-lt text-azure p-2 rounded-3 me-3"><i class="ti ti-map-2 fs-4"></i></div>
+                                        <div class="fw-bold text-azure fs-4">{{ $p->rencana_lokasi ?? '-' }}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="small text-muted fw-bold" style="font-size: 0.65rem;">Petugas Input:</div>
-                                    <div class="fw-bold small">{{ $p->user->name ?? '-' }}</div>
-                                </div>
-                                <div class="ms-auto pe-2 opacity-50 small">
-                                    {{ $p->created_at->format('d/m/y') }}
+                                <div class="col-md-6 text-md-end">
+                                    <div class="d-inline-flex align-items-center p-2 bg-white rounded-3 border shadow-sm">
+                                        <div class="avatar avatar-sm rounded-circle me-3 bg-primary text-white shadow-sm">
+                                            {{ strtoupper(substr($p->user->name ?? 'A', 0, 1)) }}
+                                        </div>
+                                        <div class="text-start">
+                                            <div class="small text-muted fw-bold" style="font-size: 0.65rem;">Petugas Input:</div>
+                                            <div class="fw-bold small">{{ $p->user->name ?? '-' }}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -129,18 +142,45 @@
                         TOTAL: {{ $p->target_uji }} TARGET UJI
                     </div>
                 </div>
-                <div class="row g-3">
-                    @foreach(['TW 1'=>$p->tw1, 'TW 2'=>$p->tw2, 'TW 3'=>$p->tw3, 'TW 4'=>$p->tw4] as $label => $val)
-                    <div class="col-6 col-md-3">
-                        <div class="card card-premium h-100 border-0 shadow-sm animate-scale-up hover-lift {{ $val > 0 ? 'bg-primary-lt' : 'bg-light opacity-75' }}" style="transition-delay: {{ $loop->index * 100 }}ms;">
-                            <div class="card-body p-3 text-center">
-                                <div class="text-uppercase small fw-extrabold mb-1 tracking-widest text-muted">{{ $label }}</div>
-                                <div class="display-6 fw-extrabold mb-0 {{ $val > 0 ? 'text-primary' : 'text-muted' }}">{{ $val ?? 0 }}</div>
-                                <div class="small fw-bold opacity-50 mt-1">Ekor / Sampel</div>
+                <div class="row g-4">
+                    {{-- Periode 1 --}}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm bg-blue-lt">
+                            <div class="card-body p-3">
+                                <label class="badge bg-blue text-white mb-2 fs-6 px-3 rounded-pill">PERIODE 1 (Q1 & Q2)</label>
+                                <div class="row g-2 mt-1">
+                                    @foreach(['TW 1'=>$p->tw1, 'TW 2'=>$p->tw2] as $label => $val)
+                                    <div class="col-6">
+                                        <div class="p-3 bg-white rounded-4 text-center border shadow-sm">
+                                            <div class="text-uppercase small fw-bold mb-1 tracking-widest text-muted">{{ $label }}</div>
+                                            <div class="h2 fw-extrabold mb-0 text-blue">{{ $val ?? 0 }}</div>
+                                            <div class="small text-muted opacity-75">SAMPEL</div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
-                    @endforeach
+                    {{-- Periode 2 --}}
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm bg-azure-lt">
+                            <div class="card-body p-3">
+                                <label class="badge bg-azure text-white mb-2 fs-6 px-3 rounded-pill">PERIODE 2 (Q3 & Q4)</label>
+                                <div class="row g-2 mt-1">
+                                    @foreach(['TW 3'=>$p->tw3, 'TW 4'=>$p->tw4] as $label => $val)
+                                    <div class="col-6">
+                                        <div class="p-3 bg-white rounded-4 text-center border shadow-sm">
+                                            <div class="text-uppercase small fw-bold mb-1 tracking-widest text-muted">{{ $label }}</div>
+                                            <div class="h2 fw-extrabold mb-0 text-azure">{{ $val ?? 0 }}</div>
+                                            <div class="small text-muted opacity-75">SAMPEL</div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
