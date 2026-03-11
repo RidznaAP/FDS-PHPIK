@@ -3,276 +3,335 @@
 @section('title', 'Detail Perencanaan')
 
 @section('content')
-<div class="row detail-header align-items-center">
-    <div class="col">
-        <div class="detail-subtitle">Modul Perencanaan</div>
-        <h1 class="detail-title">{{ $p->jenis_mp }}</h1>
-        <div class="detail-subtitle">
-            <i class="ti ti-map-pin me-1"></i>{{ $p->kab_kota }}, {{ $p->provinsi }}
-        </div>
-    </div>
-    <div class="col-auto">
-        <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-secondary btn-pill">
-            <i class="ti ti-arrow-left me-1"></i>Kembali
-        </a>
-    </div>
-</div>
-
-<div class="row g-4">
-    {{-- ── Kiri: Info Utama ── --}}
-    <div class="col-lg-8">
-        {{-- Card 1: Identitas Rencana --}}
-        <div class="card card-premium mb-4">
-            <div class="card-header border-0 pb-0">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">
-                    Identitas Rencana Pemantauan
-                </h3>
-                <div class="card-options">
-                    @php
-                        $statusMap = [
-                            'draft'    => ['label'=>'Draft',             'class'=>'bg-secondary-lt text-secondary'],
-                            'waiting'  => ['label'=>'Menunggu Validasi', 'class'=>'bg-warning-lt text-warning'],
-                            'approved' => ['label'=>'Disetujui',         'class'=>'bg-success-lt text-success'],
-                        ];
-                        $s = $statusMap[$p->status] ?? $statusMap['draft'];
-                    @endphp
-                    <span class="badge badge-premium {{ $s['class'] }}">{{ $s['label'] }}</span>
+<div class="animate-fade-in">
+    {{-- Glassmorphism Page Header --}}
+    <div class="row align-items-center mb-5 g-4">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-start gap-4">
+                <div class="bg-primary text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
+                    <i class="ti ti-report-analytics fs-1"></i>
                 </div>
-            </div>
-            <div class="card-body pt-4">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="info-group">
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-map-pin"></i></div>
-                                <div class="info-content">
-                                    <label>Wilayah Kerja</label>
-                                    <span>{{ $p->kab_kota }}, {{ $p->provinsi }}</span>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-fish"></i></div>
-                                <div class="info-content">
-                                    <label>Media Pembawa</label>
-                                    <span>{{ $p->jenis_mp }}</span>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-target"></i></div>
-                                <div class="info-content">
-                                    <label>Target HPIK</label>
-                                    <span>{{ $p->jenis_hpik }}</span>
-                                </div>
-                            </div>
-                        </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-primary-lt text-primary px-3 fs-6 rounded-pill">MODUL PERENCANAAN</span>
+                        @php
+                            $statusMap = [
+                                'draft'    => ['label'=>'Drafting Phase',     'class'=>'bg-secondary-lt text-secondary', 'icon' => 'ti-pencil'],
+                                'waiting'  => ['label'=>'Pending Validation', 'class'=>'bg-warning-lt text-warning',   'icon' => 'ti-hourglass-low'],
+                                'approved' => ['label'=>'Approved / Active',  'class'=>'bg-success-lt text-success',   'icon' => 'ti-checkbox'],
+                            ];
+                            $s = $statusMap[$p->status] ?? $statusMap['draft'];
+                        @endphp
+                        <span class="badge {{ $s['class'] }} px-3 fs-6 rounded-pill">
+                            <i class="ti {{ $s['icon'] }} me-1"></i> {{ $s['label'] }}
+                        </span>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-group">
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-building-community"></i></div>
-                                <div class="info-content">
-                                    <label>Kemampuan Uji UPT</label>
-                                    <span>{{ $p->kemampuan_uji_upt }}</span>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-microscope"></i></div>
-                                <div class="info-content">
-                                    <label>Metode & Lab Uji</label>
-                                    <span>{{ $p->metode_pengujian }}</span>
-                                    <div class="sub-text">{{ $p->lab_uji }}</div>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-user"></i></div>
-                                <div class="info-content">
-                                    <label>Dibuat Oleh</label>
-                                    <span>{{ $p->user->name ?? '-' }}</span>
-                                    <div class="sub-text">{{ $p->created_at->format('d M Y, H:i') }}</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="d-flex flex-wrap gap-2 mb-1">
+                        @foreach(array_map('trim', explode(',', $p->jenis_mp)) as $mp)
+                            <h1 class="display-5 fw-bold text-dark mb-0 tracking-tight">{{ $mp }}{{ !$loop->last ? ',' : '' }}</h1>
+                        @endforeach
+                    </div>
+                    <div class="text-muted fs-3 d-flex align-items-center">
+                        <i class="ti ti-map-pin me-2 text-red"></i>{{ $p->kab_kota }}, {{ $p->provinsi }}
                     </div>
                 </div>
             </div>
         </div>
-
-        {{-- Card 2: Target Kuartal --}}
-        <div class="mb-4">
-            <h3 class="fw-bold mb-3" style="color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Target Uji Per Kuartal</h3>
-            <div class="row g-3">
-                @foreach(['TW 1'=>$p->tw1, 'TW 2'=>$p->tw2, 'TW 3'=>$p->tw3, 'TW 4'=>$p->tw4] as $label => $val)
-                <div class="col-6 col-md-3">
-                    <div class="stat-box {{ $val > 0 ? 'active' : '' }}">
-                        <div class="stat-value">{{ $val ?? 0 }}</div>
-                        <div class="stat-label">{{ $label }}</div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            <div class="mt-3 p-3 bg-white border rounded-3 d-flex justify-content-between align-items-center shadow-sm">
-                <div class="d-flex align-items-center">
-                    <div class="info-icon me-3 bg-azure-lt"><i class="ti ti-sum"></i></div>
-                    <span class="fw-bold text-muted text-uppercase small" style="letter-spacing: 0.05em;">Total Target</span>
-                </div>
-                <div class="h3 mb-0 fw-bold text-primary">{{ $p->target_uji }} <small class="fw-normal text-muted">Sampel</small></div>
-            </div>
-        </div>
-
-        {{-- Card 3: Data Pelaksanaan Terkait --}}
-        <div class="card card-premium shadow-sm">
-            <div class="card-header border-0 pb-0">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">
-                    Realisasi Pelaksanaan Lapangan
-                </h3>
-                <div class="card-options">
-                    <span class="badge bg-blue-lt">{{ $p->pelaksanaans->count() }} Record</span>
-                </div>
-            </div>
-            <div class="card-body">
-                @if($p->pelaksanaans->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-vcenter table-hover card-table">
-                        <thead>
-                            <tr>
-                                <th class="text-uppercase small fw-bold">Tanggal</th>
-                                <th class="text-uppercase small fw-bold">Lokasi</th>
-                                <th class="text-uppercase small fw-bold">Sampel</th>
-                                <th class="text-uppercase small fw-bold">Status Lab</th>
-                                <th class="w-1"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($p->pelaksanaans as $pel)
-                            <tr>
-                                <td>{{ optional($pel->tanggal_pemantauan)->format('d/m/Y') ?? '-' }}</td>
-                                <td class="fw-semibold">{{ Str::limit($pel->lokasi_pengambilan_sampel, 30) }}</td>
-                                <td>{{ $pel->jumlah_sampel }} Ekor</td>
-                                <td>
-                                    @if($pel->laboratorium)
-                                        @php
-                                            $labRes = $pel->laboratorium->hasil_uji;
-                                            $labClass = $labRes === 'Negatif' ? 'bg-success-lt text-success' : ($labRes === 'Positif' ? 'bg-danger-lt text-danger' : 'bg-azure-lt text-azure');
-                                        @endphp
-                                        <span class="badge {{ $labClass }}">{{ $labRes }}</span>
-                                    @else
-                                        <span class="badge bg-warning-lt text-warning">Menunggu Uji</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="{{ route('pelaksanaan.show', $pel->id) }}" class="btn btn-icon btn-sm btn-ghost-primary rounded-circle">
-                                        <i class="ti ti-chevron-right"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                @else
-                <div class="empty py-4">
-                    <div class="empty-icon text-muted">
-                        <i class="ti ti-map-pin-off" style="font-size: 3rem;"></i>
-                    </div>
-                    <p class="empty-title">Belum ada realisasi</p>
-                    <p class="empty-subtitle text-muted">Data pengambilan sampel di lapangan belum diinput untuk perencanaan ini.</p>
-                </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                <a href="{{ route('perencanaan.index') }}" class="btn btn-white btn-pill px-4 border-0">
+                    <i class="ti ti-arrow-left me-2"></i>Kembali
+                </a>
+                @if($p->status === 'draft')
+                <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary btn-pill px-4 border-0">
+                    <i class="ti ti-edit me-2"></i>Edit Rencana
+                </a>
                 @endif
             </div>
         </div>
     </div>
 
-    {{-- ── Kanan: Sidebar info ── --}}
-    <div class="col-lg-4">
-        {{-- Evaluasi --}}
-        <div class="card card-premium mb-4 overflow-hidden">
-            <div class="card-header border-0 bg-transparent">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">
-                    Hasil Evaluasi Akhir
-                </h3>
+    <div class="row g-4">
+        {{-- Kiri: Core Intelligence --}}
+        <div class="col-lg-8">
+            {{-- Data Board --}}
+            <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-white">
+                <div class="card-body p-0">
+                    <div class="p-4 bg-light-soft border-bottom d-flex align-items-center justify-content-between">
+                        <h3 class="mb-0 fw-bold text-muted small text-uppercase tracking-widest">
+                            <i class="ti ti-info-circle me-2 text-primary"></i> Identitas Rencana Pemantauan
+                        </h3>
+                        <div class="small text-muted fw-mono">ID: #{{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}</div>
+                    </div>
+                    
+                    <div class="row g-0">
+                        <div class="col-md-6 border-end border-bottom-md-0 p-4">
+                            <div class="info-group">
+                                <div class="mb-4">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Jenis HPIK</label>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-red-lt text-red p-2 rounded-3 me-3"><i class="ti ti-virus fs-3"></i></div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach(array_map('trim', explode(',', $p->jenis_hpik)) as $hpik)
+                                                <span class="badge bg-red-lt text-red border border-red-subtle px-2 py-1">{{ $hpik }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Kemampuan Uji UPT</label>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-indigo-lt text-indigo p-2 rounded-3 me-3"><i class="ti ti-building-community fs-3"></i></div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach(array_map('trim', explode(',', $p->kemampuan_uji_upt)) as $uji)
+                                                <span class="badge bg-indigo-lt text-indigo border border-indigo-subtle px-2 py-1">{{ $uji }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 p-4">
+                            <div class="mb-4">
+                                <label class="text-muted small fw-bold text-uppercase d-block mb-1">Metode & Lab Penguji</label>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-purple-lt text-purple p-2 rounded-3 me-3"><i class="ti ti-microscope fs-3"></i></div>
+                                    <div class="fw-bold fs-3">{{ $p->metode_pengujian ?? '-' }}</div>
+                                </div>
+                                <div class="badge bg-light text-dark px-3 py-2 rounded-3 border w-100 text-center">
+                                    <i class="ti ti-flask me-2"></i> {{ $p->lab_uji }}
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center p-2 bg-light rounded-3 border-start border-primary border-4">
+                                <div class="avatar avatar-sm rounded-circle me-3 bg-white text-primary shadow-sm">
+                                    {{ strtoupper(substr($p->user->name ?? 'A', 0, 1)) }}
+                                </div>
+                                <div>
+                                    <div class="small text-muted fw-bold" style="font-size: 0.65rem;">Petugas Input:</div>
+                                    <div class="fw-bold small">{{ $p->user->name ?? '-' }}</div>
+                                </div>
+                                <div class="ms-auto pe-2 opacity-50 small">
+                                    {{ $p->created_at->format('d/m/y') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body pt-0 text-center">
-                @if($p->evaluasi)
-                    @php
-                        $warnaMap = [
-                            'hijau'  => ['bg-success-lt text-success', 'ti-circle-check', 'Status Aman'],
-                            'kuning' => ['bg-warning-lt text-warning', 'ti-alert-triangle', 'Waspada'],
-                            'merah'  => ['bg-danger-lt text-danger', 'ti-circle-x', 'Bahaya / Wabah']
-                        ];
-                        $we = $warnaMap[$p->evaluasi->status_warna] ?? ['bg-secondary-lt text-secondary', 'ti-circle', 'Belum Ditentukan'];
-                    @endphp
-                   
-                    <div class="mb-3">
-                        <div class="p-4 rounded-4 {{ $we[0] }} mb-3">
-                            <i class="ti {{ $we[1] }} mb-2" style="font-size: 3.5rem;"></i>
-                            <h2 class="fw-bold mb-1">{{ $p->evaluasi->kesimpulan }}</h2>
-                            <div class="small fw-bold text-uppercase opacity-75">{{ $we[2] }}</div>
-                        </div>
-                    </div>
 
-                    <div class="info-group text-start">
-                        <div class="d-flex justify-content-between p-2 rounded-2 hover-bg-light">
-                            <span class="text-muted"><i class="ti ti-chart-line me-1"></i> Prevalensi</span>
-                            <span class="fw-bold">{{ $p->evaluasi->prevalensi ?? '-' }}%</span>
-                        </div>
-                        <div class="d-flex justify-content-between p-2 rounded-2 hover-bg-light">
-                            <span class="text-muted"><i class="ti ti-chart-arrows me-1"></i> Insidensi</span>
-                            <span class="fw-bold">{{ $p->evaluasi->insidensi ?? '-' }}%</span>
-                        </div>
-                        <div class="d-flex justify-content-between p-2 rounded-2 hover-bg-light border-bottom pb-2">
-                            <span class="text-muted"><i class="ti ti-test-pipe me-1"></i> Realisasi Uji</span>
-                            <span class="fw-bold">{{ $p->evaluasi->realisasi_uji ?? '-' }} <small class="fw-normal">Sampel</small></span>
-                        </div>
+            {{-- Target Kuartal Visualization --}}
+            <div class="mb-5">
+                <div class="d-flex align-items-center justify-content-between mb-4 px-1">
+                    <h3 class="fw-bold mb-0 text-muted small text-uppercase tracking-widest">
+                        <i class="ti ti-chart-dots me-2 text-azure"></i> Alokasi Target Per Kuartal
+                    </h3>
+                    <div class="badge bg-azure text-white px-3 py-2 rounded-pill shadow-sm">
+                        TOTAL: {{ $p->target_uji }} TARGET UJI
                     </div>
-
-                    @if($p->evaluasi->catatan)
-                        <div class="mt-3 text-start">
-                            <div class="text-muted small fw-bold text-uppercase mb-1">Catatan Evaluator:</div>
-                            <div class="p-3 bg-light rounded-3 italic small border-start border-primary border-4">
-                                "{{ $p->evaluasi->catatan }}"
+                </div>
+                <div class="row g-3">
+                    @foreach(['TW 1'=>$p->tw1, 'TW 2'=>$p->tw2, 'TW 3'=>$p->tw3, 'TW 4'=>$p->tw4] as $label => $val)
+                    <div class="col-6 col-md-3">
+                        <div class="card card-premium h-100 border-0 shadow-sm animate-scale-up hover-lift {{ $val > 0 ? 'bg-primary-lt' : 'bg-light opacity-75' }}" style="transition-delay: {{ $loop->index * 100 }}ms;">
+                            <div class="card-body p-3 text-center">
+                                <div class="text-uppercase small fw-extrabold mb-1 tracking-widest text-muted">{{ $label }}</div>
+                                <div class="display-6 fw-extrabold mb-0 {{ $val > 0 ? 'text-primary' : 'text-muted' }}">{{ $val ?? 0 }}</div>
+                                <div class="small fw-bold opacity-50 mt-1">Ekor / Sampel</div>
                             </div>
                         </div>
-                    @endif
-                @else
-                    <div class="empty py-4">
-                        <div class="empty-icon text-muted">
-                            <i class="ti ti-chart-bar-off" style="font-size: 2.5rem;"></i>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Realisasi List --}}
+            <div class="card card-premium border-0 shadow-sm overflow-hidden bg-white">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center">
+                    <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest mb-0">
+                        <i class="ti ti-list-check me-2 text-green"></i> Realisasi Pelaksanaan Lapangan
+                    </h3>
+                    <div class="badge bg-green-lt px-3 py-2 rounded-pill fw-bold">{{ $p->pelaksanaans->count() }} Kegiatan</div>
+                </div>
+                <div class="card-body p-0">
+                    @if($p->pelaksanaans->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-vcenter table-hover card-table">
+                            <thead>
+                                <tr class="bg-light text-muted small fw-bold text-uppercase">
+                                    <th class="ps-4">Tanggal & Lokasi</th>
+                                    <th class="text-center">Sampel</th>
+                                    <th class="text-center">Hasil Lab</th>
+                                    <th class="w-1 pe-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($p->pelaksanaans as $pel)
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-blue-lt p-2 rounded-circle me-3">
+                                                <i class="ti ti-map-2 text-blue"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ $pel->lokasi_pengambilan_sampel }}</div>
+                                                <div class="small text-muted">{{ $pel->tanggal_pemantauan->format('d M Y') }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="fw-bold fs-4">{{ $pel->jumlah_sampel }}</div>
+                                        <div class="small text-muted fw-bold">EKOR</div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($pel->laboratorium)
+                                            @php
+                                                $labRes = $pel->laboratorium->hasil_uji;
+                                                $labClass = $labRes === 'Negatif' ? 'bg-success text-white' : ($labRes === 'Positif' ? 'bg-danger text-white' : 'bg-warning text-white');
+                                            @endphp
+                                            <span class="badge {{ $labClass }} px-3 py-2 btn-pill shadow-sm">
+                                                <i class="ti ti-microscope me-1"></i> {{ strtoupper($labRes) }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-light text-muted px-3 py-2 btn-pill border fst-italic">BELUM DIUJI</span>
+                                        @endif
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{{ route('pelaksanaan.show', $pel->id) }}" class="btn btn-icon btn-ghost-primary rounded-circle border-0 shadow-none">
+                                            <i class="ti ti-chevron-right fs-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <div class="text-center py-5">
+                        <div class="bg-light p-4 rounded-circle d-inline-block mb-3">
+                            <i class="ti ti-clipboard-off text-muted opacity-50" style="font-size: 3rem;"></i>
                         </div>
-                        <p class="empty-subtitle">Siklus belum dievaluasi</p>
-                        @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'approved' && !$p->evaluasi)
-                            <div class="mt-3">
-                                <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-warning w-100">
-                                    <i class="ti ti-chart-bar me-1"></i>Input Evaluasi
-                                </a>
-                            </div>
+                        <h4 class="fw-bold text-muted">Belum ada realisasi</h4>
+                        <p class="text-muted small px-5">Data pengambilan sampel belum tercatat. Hubungi tim lapangan untuk pembaruan data.</p>
+                        @if(Auth::user()->isUpt() && $p->status === 'approved')
+                        <div class="mt-4">
+                            <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-outline-primary btn-pill">
+                                <i class="ti ti-plus me-2"></i>TAMBAH PELAKSANAAN
+                            </a>
+                        </div>
                         @endif
                     </div>
-                @endif
+                    @endif
+                </div>
             </div>
         </div>
 
-        {{-- Quick Actions --}}
-        <div class="card card-premium">
-            <div class="card-header border-0">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">Aksi Cepat</h3>
+        {{-- Reright: Context & Insights --}}
+        <div class="col-lg-4">
+            {{-- Status Evaluasi Dashboard --}}
+            <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden border-top border-primary border-4 animate-scale-up">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
+                        <i class="ti ti-target me-2 text-primary"></i> ANALISIS STATUS AKHIR
+                    </h3>
+                </div>
+                <div class="card-body p-4 text-center">
+                    @if($p->evaluasi)
+                        @php
+                            $stMap = [
+                                'hijau'  => ['color'=>'success', 'icon'=>'ti-shield-check', 'text'=>'BEBAS (AMANKAN)'],
+                                'kuning' => ['color'=>'warning', 'icon'=>'ti-alert-triangle', 'text'=>'WASPADA (PANTAU)'],
+                                'merah'  => ['color'=>'danger',  'icon'=>'ti-biohazard', 'text'=>'WABAH (ISOLASI)']
+                            ];
+                            $st = $stMap[$p->evaluasi->status_warna] ?? ['color'=>'secondary', 'icon'=>'ti-info-circle', 'text'=>'UNKNOWN'];
+                        @endphp
+                        
+                        <div class="mb-4">
+                            <div class="p-4 rounded-4 bg-{{ $st['color'] }}-lt border border-{{ $st['color'] }} shadow-sm mb-3">
+                                <i class="ti {{ $st['icon'] }} text-{{ $st['color'] }} mb-3" style="font-size: 5rem;"></i>
+                                <h2 class="fw-extrabold mb-1 text-uppercase text-{{ $st['color'] }}">{{ $p->evaluasi->kesimpulan }}</h2>
+                                <div class="badge bg-{{ $st['color'] }} text-white px-3 py-1 rounded-pill mb-2 animate-pulse">{{ $st['text'] }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-4 text-start">
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded-3 text-center h-100">
+                                    <div class="text-muted small fw-bold mb-1">PREVALENSI</div>
+                                    <div class="h3 fw-bold mb-0 text-primary">{{ $p->evaluasi->prevalensi ?? '0' }}%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded-3 text-center h-100">
+                                    <div class="text-muted small fw-bold mb-1">INSIDENSI</div>
+                                    <div class="h3 fw-bold mb-0 text-primary">{{ $p->evaluasi->insidensi ?? '0' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($p->evaluasi->rekomendasi)
+                        <div class="text-start">
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-2">Rekomendasi Strategis:</label>
+                            <div class="p-3 bg-blue-lt rounded-4 border-start border-blue border-4 small italic shadow-sm bg-white">
+                                <i class="ti ti-quote me-2 opacity-50"></i>{{ $p->evaluasi->rekomendasi }}<i class="ti ti-quote-off ms-2 opacity-50"></i>
+                            </div>
+                        </div>
+                        @endif
+                    @else
+                        <div class="py-5">
+                            <div class="bg-light p-4 rounded-circle d-inline-block mb-3 opacity-50">
+                                <i class="ti ti-chart-infographic text-muted" style="font-size: 4rem;"></i>
+                            </div>
+                            <h4 class="fw-bold text-muted">Belum Dievaluasi</h4>
+                            <p class="text-muted small px-3">Sistem menunggu validasi akhir dari tim verifikator berdasarkan data laboratorium terkumpul.</p>
+                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'approved')
+                            <div class="mt-4 px-3">
+                                <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-primary w-100 btn-pill shadow-sm">
+                                    <i class="ti ti-pencil me-2"></i>INPUT EVALUASI SEKARANG
+                                </a>
+                            </div>
+                            @endif
+                        </div>
+                    @endif
+                </div>
             </div>
-            <div class="card-body d-grid gap-2">
-                @if(Auth::user()->isBkhit() && $p->status === 'draft' && $p->user_id === Auth::id())
-                    <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-azure w-100 py-2">
-                        <i class="ti ti-pencil me-1"></i>Edit Perencanaan
-                    </a>
-                @endif
-                @if(Auth::user()->isBkhit() && $p->status === 'approved')
-                    <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-primary w-100 py-2 shadow-sm">
-                        <i class="ti ti-plus me-2"></i>Input Lapangan
-                    </a>
-                @endif
-                <a href="{{ route('perencanaan.export') }}" class="btn btn-ghost-success w-100">
-                    <i class="ti ti-download me-2"></i>Ekspor ke Excel
-                </a>
+
+            {{-- Action Palette --}}
+            <div class="card card-premium shadow-sm border-0 mb-4 bg-dark text-white overflow-hidden">
+                <div class="card-body p-4 position-relative">
+                    <h3 class="card-title fw-bold text-uppercase small tracking-widest opacity-75 mb-4">
+                        <i class="ti ti-bolt me-2 text-warning"></i> Quick Operations
+                    </h3>
+                    <div class="d-grid gap-3 position-relative" style="z-index: 2;">
+                        @if(Auth::user()->isUpt() && $p->status === 'approved')
+                        <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-white btn-pill w-100 fw-bold border-0 shadow-lg">
+                            <i class="ti ti-plus me-2 text-primary"></i>PELAKSANAAN BARU
+                        </a>
+                        @endif
+                        
+                        <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-light btn-pill w-100 opacity-75 hover-opacity-100">
+                            <i class="ti ti-file-export me-2"></i>EKSPOR LAPORAN
+                        </a>
+                    </div>
+                    <i class="ti ti-rocket position-absolute bottom-0 end-0 opacity-10" style="font-size: 10rem; margin-bottom: -2rem; margin-right: -2rem;"></i>
+                </div>
+            </div>
+
+            {{-- Timeline Mini --}}
+            <div class="card card-premium border-0 shadow-sm bg-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted small fw-bold">DIBUAT PADA</span>
+                        <span class="badge bg-light text-dark fw-mono small border">{{ $p->created_at->format('d/m/Y H:i') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold">TERAKHIR DIUPDATE</span>
+                        <span class="badge bg-light text-dark fw-mono small border">{{ $p->updated_at->format('d/m/Y H:i') }}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+
 

@@ -1,349 +1,262 @@
 @extends('layouts.app')
 
 @section('title', 'Input Hasil Laboratorium')
-@section('page_title', 'Formulir Hasil Pemantauan HPIK')
-@section('page_subtitle', 'Input hasil pemeriksaan laboratorium untuk sampel lapangan')
+@section('page_title', 'Hasil Pemeriksaan Laboratorium')
+@section('page_subtitle', 'Input data pengujian untuk sampel #' . str_pad($pelaksanaan->id, 4, '0', STR_PAD_LEFT))
 
 @section('content')
-<div class="row justify-content-center">
+<div class="row justify-content-center animate-fade-in">
     <div class="col-lg-10">
 
-        {{-- ============================================================ --}}
-        {{-- CARD 1: Info Sampel (readonly) --}}
-        {{-- ============================================================ --}}
-        <div class="card mb-3">
-            <div class="card-header bg-blue-lt">
-                <h3 class="card-title"><i class="ti ti-map-pin me-2"></i>Data Sampel Lapangan</h3>
-            </div>
-            <div class="card-body py-2">
-                <div class="row g-2">
-                    <div class="col-sm-3">
-                        <div class="text-muted small">Lokasi Sampling</div>
-                        <div class="fw-semibold">{{ $pelaksanaan->lokasi_pengambilan_sampel }}</div>
+        {{-- Info Sampel Lapangan --}}
+        <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-light">
+            <div class="card-body p-0">
+                <div class="d-flex align-items-center bg-indigo-lt p-3">
+                    <div class="bg-indigo text-white p-2 rounded-3 me-3 shadow-sm">
+                        <i class="ti ti-microscope fs-2"></i>
                     </div>
-                    <div class="col-sm-3">
-                        <div class="text-muted small">Wilayah</div>
-                        <div class="fw-semibold">{{ $pelaksanaan->perencanaan->kab_kota ?? '-' }}, {{ $pelaksanaan->perencanaan->provinsi ?? '-' }}</div>
+                    <div>
+                        <div class="text-indigo small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Metadata Sampel Lapangan</div>
+                        <div class="fw-bold fs-3">{{ $pelaksanaan->lokasi_pengambilan_sampel }}</div>
                     </div>
-                    <div class="col-sm-3">
-                        <div class="text-muted small">Jenis Ikan</div>
-                        <div class="fw-semibold">{{ $pelaksanaan->jenis_ikan ?? $pelaksanaan->perencanaan->jenis_mp ?? '-' }}</div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="text-muted small">Target HPIK</div>
-                        <div class="fw-semibold">{{ $pelaksanaan->perencanaan->jenis_hpik ?? '-' }}</div>
-                    </div>
-                    @if($pelaksanaan->gejala_klinis)
-                    <div class="col-12">
-                        <div class="text-muted small">Gejala Klinis</div>
-                        <div class="small">{{ $pelaksanaan->gejala_klinis }}</div>
-                    </div>
-                    @endif
                 </div>
+                <div class="row g-0 border-top bg-white">
+                    <div class="col-6 col-md-3 border-end p-3">
+                        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Wilayah</div>
+                        <div class="fw-bold">{{ $pelaksanaan->perencanaan->kab_kota ?? '-' }}, {{ $pelaksanaan->perencanaan->provinsi ?? '-' }}</div>
+                    </div>
+                    <div class="col-6 col-md-3 border-end p-3">
+                        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Komoditas</div>
+                        <div class="fw-bold">{{ $pelaksanaan->jenis_ikan ?? $pelaksanaan->perencanaan->jenis_mp ?? '-' }}</div>
+                    </div>
+                    <div class="col-6 col-md-3 border-end p-3">
+                        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Target HPIK</div>
+                        <div class="fw-bold text-primary">{{ $pelaksanaan->perencanaan->jenis_hpik ?? '-' }}</div>
+                    </div>
+                    <div class="col-6 col-md-3 p-3 bg-light">
+                        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Jumlah Sampel</div>
+                        <div class="fw-bold fs-4">{{ $pelaksanaan->jumlah_sampel }} <small class="fw-normal">Ekor</small></div>
+                    </div>
+                </div>
+                @if($pelaksanaan->gejala_klinis)
+                <div class="p-3 bg-white border-top small">
+                    <span class="text-muted fw-bold me-2">CATATAN LAPANGAN:</span>
+                    <span class="fst-italic">"{{ $pelaksanaan->gejala_klinis }}"</span>
+                </div>
+                @endif
             </div>
         </div>
 
-        {{-- ============================================================ --}}
-        {{-- FORM UTAMA --}}
-        {{-- ============================================================ --}}
         <form action="{{ route('laboratorium.store') }}" method="POST">
             @csrf
             <input type="hidden" name="pelaksanaan_id" value="{{ $pelaksanaan->id }}">
 
-            {{-- ============================================================ --}}
-            {{-- CARD 2: Identitas Pengujian --}}
-            {{-- ============================================================ --}}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-flask me-2"></i>Identitas Pengujian</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label required">Kode Sampel</label>
-                            <input type="text" name="kode_sampel"
-                                class="form-control @error('kode_sampel') is-invalid @enderror"
-                                value="{{ old('kode_sampel') }}"
-                                placeholder="Contoh: LAB-2026-001" required>
-                            @error('kode_sampel')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="row g-4">
+                {{-- Kiri: Identitas Pengujian --}}
+                <div class="col-md-7">
+                    <div class="card card-premium mb-0 border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                            <h3 class="card-title fw-bold text-primary">
+                                <i class="ti ti-flask me-2"></i> IDENTITAS PENGUJIAN
+                            </h3>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Laboratorium Penguji</label>
-                            <input type="text" name="lab_penguji"
-                                class="form-control @error('lab_penguji') is-invalid @enderror"
-                                value="{{ old('lab_penguji', $pelaksanaan->perencanaan->lab_uji ?? '') }}" required>
-                            @error('lab_penguji')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Tanggal Pengujian</label>
-                            <input type="date" name="tanggal_uji"
-                                class="form-control @error('tanggal_uji') is-invalid @enderror"
-                                value="{{ old('tanggal_uji', date('Y-m-d')) }}" required>
-                            @error('tanggal_uji')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Jenis HPIK yang Diuji</label>
-                            <input type="text" name="jenis_hpik_diuji"
-                                class="form-control @error('jenis_hpik_diuji') is-invalid @enderror"
-                                value="{{ old('jenis_hpik_diuji', $pelaksanaan->perencanaan->jenis_hpik ?? '') }}" required>
-                            @error('jenis_hpik_diuji')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Metode Uji</label>
-                            <select name="metode_uji" class="form-select @error('metode_uji') is-invalid @enderror" required>
-                                <option value="">— Pilih Metode —</option>
-                                <option value="PCR Konvensional" {{ old('metode_uji') === 'PCR Konvensional' ? 'selected' : '' }}>PCR Konvensional</option>
-                                <option value="Real Time PCR (qPCR)" {{ old('metode_uji') === 'Real Time PCR (qPCR)' ? 'selected' : '' }}>Real Time PCR (qPCR)</option>
-                                <option value="ELISA" {{ old('metode_uji') === 'ELISA' ? 'selected' : '' }}>ELISA</option>
-                                <option value="Kultur Bakteri" {{ old('metode_uji') === 'Kultur Bakteri' ? 'selected' : '' }}>Kultur Bakteri</option>
-                                <option value="Histopatologi" {{ old('metode_uji') === 'Histopatologi' ? 'selected' : '' }}>Histopatologi</option>
-                                <option value="Lainnya" {{ old('metode_uji') === 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
-                            </select>
-                            @error('metode_uji')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Kode Sampel Lab</label>
+                                    <div class="input-icon">
+                                        <span class="input-icon-addon"><i class="ti ti-barcode"></i></span>
+                                        <input type="text" name="kode_sampel"
+                                            class="form-control @error('kode_sampel') is-invalid @enderror fw-bold"
+                                            value="{{ old('kode_sampel', 'LAB-' . date('Y') . '-') }}" required>
+                                    </div>
+                                    @error('kode_sampel')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Laboratorium Penguji</label>
+                                    <input type="text" name="lab_penguji"
+                                        class="form-control"
+                                        value="{{ old('lab_penguji', $pelaksanaan->perencanaan->lab_uji ?? '') }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Tanggal Pengujian</label>
+                                    <input type="date" name="tanggal_uji"
+                                        class="form-control"
+                                        value="{{ old('tanggal_uji', date('Y-m-d')) }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Jenis Target di Uji</label>
+                                    <input type="text" name="jenis_hpik_diuji"
+                                        class="form-control"
+                                        value="{{ old('jenis_hpik_diuji', $pelaksanaan->perencanaan->jenis_hpik ?? '') }}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label required fw-bold mb-2">Metode Uji Utama</label>
+                                    <select name="metode_uji" class="form-select select-pill" required>
+                                        <option value="">— Pilih Metode Utama —</option>
+                                        <option value="PCR Konvensional" {{ old('metode_uji') === 'PCR Konvensional' ? 'selected' : '' }}>PCR Konvensional</option>
+                                        <option value="Real Time PCR (qPCR)" {{ old('metode_uji') === 'Real Time PCR (qPCR)' ? 'selected' : '' }}>Real Time PCR (qPCR)</option>
+                                        <option value="ELISA" {{ old('metode_uji') === 'ELISA' ? 'selected' : '' }}>ELISA</option>
+                                        <option value="Kultur Bakteri" {{ old('metode_uji') === 'Kultur Bakteri' ? 'selected' : '' }}>Kultur Bakteri</option>
+                                        <option value="Histopatologi" {{ old('metode_uji') === 'Histopatologi' ? 'selected' : '' }}>Histopatologi</option>
+                                        <option value="Lainnya" {{ old('metode_uji') === 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- ============================================================ --}}
-            {{-- CARD 3: Hasil Pemeriksaan Per Target Patogen (Kol 11-14) --}}
-            {{-- ============================================================ --}}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-virus me-2"></i>Hasil Pemeriksaan Per Target Patogen</h3>
-                    <div class="card-options">
-                        <span class="text-muted small">+ = Positif &nbsp;|&nbsp; - = Negatif &nbsp;|&nbsp; NT = Tidak Diuji</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        @foreach([
-                            ['field' => 'hasil_parasit', 'label' => 'Parasit',  'icon' => 'ti-bug',      'col' => 11],
-                            ['field' => 'hasil_bakteri', 'label' => 'Bakteri',  'icon' => 'ti-circle',   'col' => 12],
-                            ['field' => 'hasil_virus',   'label' => 'Virus',    'icon' => 'ti-virus',    'col' => 13],
-                            ['field' => 'hasil_jamur',   'label' => 'Jamur',    'icon' => 'ti-leaf',     'col' => 14],
-                        ] as $target)
-                        <div class="col-md-3">
-                            <label class="form-label">
-                                <i class="ti {{ $target['icon'] }} me-1"></i>
-                                {{ $target['label'] }}
-                                <span class="text-muted small">(Kol.{{ $target['col'] }})</span>
-                            </label>
-                            <div class="btn-group w-100" role="group">
-                                @foreach(['+' => ['label'=>'Positif','color'=>'danger'], '-' => ['label'=>'Negatif','color'=>'success'], 'NT' => ['label'=>'NT','color'=>'secondary']] as $val => $opt)
-                                <input type="radio" class="btn-check" name="{{ $target['field'] }}"
-                                    id="{{ $target['field'] }}_{{ $val }}"
-                                    value="{{ $val }}"
-                                    {{ old($target['field'], 'NT') === $val ? 'checked' : '' }}>
-                                <label class="btn btn-outline-{{ $opt['color'] }} btn-sm"
-                                    for="{{ $target['field'] }}_{{ $val }}">{{ $val }}</label>
+                {{-- Kanan: Hasil Per Patogen --}}
+                <div class="col-md-5">
+                    <div class="card card-premium mb-0 border-0 shadow-sm h-100 border-top border-azure border-4">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                            <h3 class="card-title fw-bold text-azure">
+                                <i class="ti ti-virus me-2"></i> HASIL PER PATOGEN
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="space-y-3">
+                                @foreach([
+                                    ['field' => 'hasil_parasit', 'label' => 'Parasit',  'icon' => 'ti-bug',      'col' => 11],
+                                    ['field' => 'hasil_bakteri', 'label' => 'Bakteri',  'icon' => 'ti-circle',   'col' => 12],
+                                    ['field' => 'hasil_virus',   'label' => 'Virus',    'icon' => 'ti-virus',    'col' => 13],
+                                    ['field' => 'hasil_jamur',   'label' => 'Jamur',    'icon' => 'ti-leaf',     'col' => 14],
+                                ] as $target)
+                                <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3">
+                                    <div class="fw-bold small text-muted">
+                                        <i class="ti {{ $target['icon'] }} me-1"></i> {{ $target['label'] }}
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        @foreach(['+' => 'danger', '-' => 'success', 'NT' => 'secondary'] as $val => $color)
+                                        <input type="radio" class="btn-check" name="{{ $target['field'] }}"
+                                            id="{{ $target['field'] }}_{{ $val }}"
+                                            value="{{ $val }}"
+                                            {{ old($target['field'], 'NT') === $val ? 'checked' : '' }}>
+                                        <label class="btn btn-outline-{{ $color }} btn-sm px-3"
+                                            for="{{ $target['field'] }}_{{ $val }}">{{ $val }}</label>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 @endforeach
                             </div>
-                        </div>
-                        @endforeach
-                    </div>
-
-                    {{-- Hasil Uji Keseluruhan --}}
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label required">Hasil Uji Keseluruhan</label>
-                            <select name="hasil_uji" class="form-select @error('hasil_uji') is-invalid @enderror" required>
-                                <option value="">— Pilih Hasil Akhir —</option>
-                                <option value="Negatif" {{ old('hasil_uji') === 'Negatif' ? 'selected' : '' }}>✅ Negatif (Bebas HPIK)</option>
-                                <option value="Positif" {{ old('hasil_uji') === 'Positif' ? 'selected' : '' }}>🔴 Positif (Terdeteksi HPIK)</option>
-                                <option value="Inkonklusif" {{ old('hasil_uji') === 'Inkonklusif' ? 'selected' : '' }}>⚠️ Inkonklusif</option>
-                            </select>
-                            @error('hasil_uji')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            
+                            <div class="mt-4 pt-3 border-top">
+                                <label class="form-label required fw-bold mb-2">HASIL AKHIR KESELURUHAN</label>
+                                <select name="hasil_uji" class="form-select form-select-lg fw-bold" required>
+                                    <option value="">— Pilih Hasil Akhir —</option>
+                                    <option value="Negatif" {{ old('hasil_uji') === 'Negatif' ? 'selected' : '' }} class="text-success">✅ NEGATIF (Bebas HPIK)</option>
+                                    <option value="Positif" {{ old('hasil_uji') === 'Positif' ? 'selected' : '' }} class="text-danger">🔴 POSITIF (Terdeteksi HPIK)</option>
+                                    <option value="Inkonklusif" {{ old('hasil_uji') === 'Inkonklusif' ? 'selected' : '' }} class="text-warning">⚠️ INKONKLUSIF</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- ============================================================ --}}
-            {{-- CARD 3b: Kalkulator Prevalensi & Insidensi (Formula Pedoman) --}}
-            {{-- ============================================================ --}}
-            <div class="card mb-3 border-warning">
-                <div class="card-header bg-warning-lt">
-                    <h3 class="card-title">
-                        <i class="ti ti-calculator me-2 text-warning"></i>
-                        Kalkulator Prevalensi &amp; Insidensi
-                        <span class="badge bg-warning-lt text-warning ms-2">Sesuai Pedoman HPIK</span>
-                    </h3>
-                </div>
-                <div class="card-body">
-
-                    {{-- Formula Box --}}
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <div class="alert alert-info p-2 mb-0">
-                                <div class="text-center small fw-semibold mb-1">Formula Prevalensi (Pedoman)</div>
-                                <div class="text-center">
-                                    <span class="text-nowrap">
-                                        Prevalensi =
-                                        <span class="border-bottom border-dark px-2">Jumlah ikan terinfeksi</span>
-                                        &divide;
-                                        <span class="text-muted">Jumlah total ikan uji</span>
-                                        &times; 100%
-                                    </span>
+                {{-- Baris Bawah: Kalkulator --}}
+                <div class="col-12">
+                    <div class="card card-premium mb-0 border-0 shadow-sm border-top border-warning border-4">
+                        <div class="card-header bg-warning-lt py-3">
+                            <h3 class="card-title fw-bold text-orange mb-0">
+                                <i class="ti ti-calculator me-2"></i> KALKULATOR PREVALENSI & INSIDENSI
+                                <span class="badge bg-white text-orange ms-2 px-2 border border-warning">PEDOMAN HPIK</span>
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4 align-items-center">
+                                <div class="col-md-7">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-light rounded-4 border">
+                                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Jumlah Ikan INFEKSI</label>
+                                                <div class="input-group input-group-flat">
+                                                    <input type="number" id="jml_terinfeksi" name="jumlah_ikan_terinfeksi"
+                                                        class="form-control fw-bold border-0 bg-transparent fs-2" min="0"
+                                                        value="{{ old('jumlah_ikan_terinfeksi') }}"
+                                                        placeholder="0" oninput="hitungOtomatis()">
+                                                    <span class="input-group-text bg-transparent border-0 text-muted">EKOR</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-light rounded-4 border">
+                                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Sampel DIPERIKSA</label>
+                                                <div class="input-group input-group-flat">
+                                                    <input type="number" id="jml_diperiksa" name="jumlah_sampel_diperiksa"
+                                                        class="form-control fw-bold border-0 bg-transparent fs-2" min="1"
+                                                        value="{{ old('jumlah_sampel_diperiksa', $pelaksanaan->jumlah_sampel) }}"
+                                                        oninput="hitungOtomatis()">
+                                                    <span class="input-group-text bg-transparent border-0 text-muted">EKOR</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">JUMLAH KOLAM</label>
+                                            <input type="number" id="jml_kolam" name="jumlah_kolam_uji" class="form-control form-control-sm" oninput="hitungOtomatis()">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-bold">PERIODE (HARI)</label>
+                                            <input type="number" id="periode" name="periode_pengamatan" class="form-control form-control-sm" oninput="hitungOtomatis()">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div id="kalkulasi-status" class="h-100 d-flex align-items-end">
+                                                <div class="badge bg-blue-lt text-blue p-2 w-100 text-start">
+                                                   <i class="ti ti-info-circle me-1"></i> Masukkan data untuk hitung otomatis
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="p-4 bg-azure text-white rounded-4 shadow-sm position-relative overflow-hidden">
+                                                <div class="small fw-bold text-uppercase opacity-75 mb-1">PREVALENSI (%)</div>
+                                                <div class="h1 mb-0 fw-bold" id="display_prevalensi">0.00%</div>
+                                                <input type="hidden" name="prevalensi" id="hasil_prevalensi" value="{{ old('prevalensi') }}">
+                                                <i class="ti ti-percentage position-absolute bottom-0 end-0 opacity-10" style="font-size: 5rem; margin-right: -1rem; margin-bottom: -1rem;"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="p-3 bg-white border border-orange border-2 border-dashed rounded-4">
+                                                <div class="small fw-bold text-orange text-uppercase mb-1">INSIDENSI</div>
+                                                <div class="h2 mb-0 fw-bold text-orange" id="display_insidensi">0.000000</div>
+                                                <input type="hidden" name="insidensi" id="hasil_insidensi" value="{{ old('insidensi') }}">
+                                                <div class="small text-muted" style="font-size: 0.65rem;">IKAN / KOLAM / HARI</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="alert alert-warning p-2 mb-0">
-                                <div class="text-center small fw-semibold mb-1">Formula Insidensi (Pedoman)</div>
-                                <div class="text-center">
-                                    <span class="text-nowrap">
-                                        Insidensi =
-                                        <span class="border-bottom border-dark px-2">Jumlah ikan terinfeksi</span>
-                                        &divide;
-                                        (<span class="text-muted">Kolam uji</span>
-                                        &times;
-                                        <span class="text-muted">Periode</span>)
-                                    </span>
+                    </div>
+                </div>
+
+                {{-- Card Diagnosis --}}
+                <div class="col-12">
+                    <div class="card card-premium mb-4 border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold mb-2">DIAGNOSIS AKHIR / KETERANGAN</label>
+                                    <textarea name="diagnosis_akhir" class="form-control" rows="3"
+                                        placeholder="Catatan tambahan hasil pengujian atau deviasi prosedur jika ada...">{{ old('diagnosis_akhir') }}</textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold mb-2">TANGGAL HASIL KELUAR</label>
+                                    <input type="date" name="tanggal_hasil" class="form-control" value="{{ old('tanggal_hasil', date('Y-m-d')) }}">
+                                    
+                                    <div class="mt-4 pt-4 border-top d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-pill px-4 shadow-sm">
+                                            <i class="ti ti-device-floppy me-2"></i>Simpan Hasil Lab
+                                        </button>
+                                        <a href="{{ route('laboratorium.index') }}" class="btn btn-link link-secondary">Batal</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    {{-- Input Komponen --}}
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label required">
-                                <i class="ti ti-fish me-1 text-danger"></i>Jumlah Ikan Terinfeksi
-                            </label>
-                            <div class="input-group">
-                                <input type="number" id="jml_terinfeksi" name="jumlah_ikan_terinfeksi"
-                                    class="form-control" min="0"
-                                    value="{{ old('jumlah_ikan_terinfeksi') }}"
-                                    placeholder="0" oninput="hitungOtomatis()">
-                                <span class="input-group-text">ekor</span>
-                            </div>
-                            <div class="text-muted small mt-1">Pembilang kedua formula</div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label required">
-                                <i class="ti ti-clipboard me-1 text-blue"></i>Jumlah Sampel Diperiksa
-                            </label>
-                            <div class="input-group">
-                                <input type="number" id="jml_diperiksa" name="jumlah_sampel_diperiksa"
-                                    class="form-control" min="1"
-                                    value="{{ old('jumlah_sampel_diperiksa', $pelaksanaan->jumlah_sampel ?? '') }}"
-                                    placeholder="{{ $pelaksanaan->jumlah_sampel ?? '0' }}"
-                                    oninput="hitungOtomatis()">
-                                <span class="input-group-text">ekor</span>
-                            </div>
-                            <div class="text-muted small mt-1">Penyebut Prevalensi</div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">
-                                <i class="ti ti-squares me-1 text-orange"></i>Jumlah Kolam Uji
-                            </label>
-                            <div class="input-group">
-                                <input type="number" id="jml_kolam" name="jumlah_kolam_uji"
-                                    class="form-control" min="1"
-                                    value="{{ old('jumlah_kolam_uji') }}"
-                                    placeholder="0" oninput="hitungOtomatis()">
-                                <span class="input-group-text">kolam</span>
-                            </div>
-                            <div class="text-muted small mt-1">Untuk Insidensi</div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">
-                                <i class="ti ti-calendar me-1 text-purple"></i>Periode Pengamatan
-                            </label>
-                            <div class="input-group">
-                                <input type="number" id="periode" name="periode_pengamatan"
-                                    class="form-control" min="1"
-                                    value="{{ old('periode_pengamatan') }}"
-                                    placeholder="0" oninput="hitungOtomatis()">
-                                <span class="input-group-text">hari</span>
-                            </div>
-                            <div class="text-muted small mt-1">Untuk Insidensi</div>
-                        </div>
-                    </div>
-
-                    {{-- Hasil Kalkulasi --}}
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-5">
-                            <label class="form-label">
-                                <i class="ti ti-percentage me-1"></i>Prevalensi (%)
-                                <span class="badge bg-blue-lt text-blue ms-1">Kol. 15</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-blue-lt">
-                                    <i class="ti ti-math-function text-blue"></i>
-                                </span>
-                                <input type="number" id="hasil_prevalensi" name="prevalensi"
-                                    step="0.01" min="0" max="100"
-                                    class="form-control fw-bold"
-                                    value="{{ old('prevalensi') }}"
-                                    placeholder="Otomatis terhitung">
-                                <span class="input-group-text">%</span>
-                            </div>
-                            <div class="text-muted small mt-1">
-                                <i class="ti ti-info-circle me-1"></i>
-                                Dihitung otomatis dari input di atas, dapat diubah manual
-                            </div>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-center justify-content-center">
-                            <div id="kalkulasi-status" class="text-center">
-                                <div class="text-muted small">⟵ Input komponen</div>
-                                <div class="text-muted small">untuk auto-calc ⟶</div>
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label">
-                                <i class="ti ti-chart-line me-1"></i>Insidensi
-                                <span class="badge bg-orange-lt text-orange ms-1">Kol. 16</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-orange-lt">
-                                    <i class="ti ti-math-function text-orange"></i>
-                                </span>
-                                <input type="number" id="hasil_insidensi" name="insidensi"
-                                    step="0.000001" min="0"
-                                    class="form-control fw-bold"
-                                    value="{{ old('insidensi') }}"
-                                    placeholder="Otomatis terhitung">
-                                <span class="input-group-text">ekor/kolam/hari</span>
-                            </div>
-                            <div class="text-muted small mt-1">
-                                <i class="ti ti-info-circle me-1"></i>
-                                Perlu data Kolam & Periode. Dapat diubah manual.
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-
-            {{-- ============================================================ --}}
-            {{-- CARD 4: Diagnosis & Keterangan --}}
-            {{-- ============================================================ --}}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-notes me-2"></i>Diagnosis & Keterangan</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label">Diagnosis Akhir / Keterangan</label>
-                            <textarea name="diagnosis_akhir" class="form-control" rows="3"
-                                placeholder="Catatan tambahan, kondisi khusus, atau keterangan lain (Kol. 18 Ket.)">{{ old('diagnosis_akhir') }}</textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tanggal Hasil Keluar</label>
-                            <input type="date" name="tanggal_hasil"
-                                class="form-control" value="{{ old('tanggal_hasil') }}">
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy me-1"></i>Simpan Hasil Lab
-                    </button>
-                    <a href="{{ route('laboratorium.index') }}" class="btn btn-link">Batal</a>
                 </div>
             </div>
         </form>
@@ -360,49 +273,43 @@ function hitungOtomatis() {
     var periode    = parseFloat(document.getElementById('periode').value);
 
     var statusEl = document.getElementById('kalkulasi-status');
-    var prevEl   = document.getElementById('hasil_prevalensi');
-    var insEl    = document.getElementById('hasil_insidensi');
+    var displayPrev = document.getElementById('display_prevalensi');
+    var inputPrev   = document.getElementById('hasil_prevalensi');
+    var displayIns  = document.getElementById('display_insidensi');
+    var inputIns    = document.getElementById('hasil_insidensi');
 
     var msgs = [];
 
-    // ── PREVALENSI ────────────────────────────────────────────────────────
+    // ── PREVALENSI ──
     if (!isNaN(terinfeksi) && !isNaN(diperiksa) && diperiksa > 0) {
         var prev = (terinfeksi / diperiksa) * 100;
-        prevEl.value = prev.toFixed(2);
-        prevEl.classList.add('border-primary');
-        msgs.push('✅ Prevalensi: <strong>' + prev.toFixed(2) + '%</strong>');
+        displayPrev.textContent = prev.toFixed(2) + '%';
+        inputPrev.value = prev.toFixed(2);
+        msgs.push('✅ Prevalensi terhitung');
     } else {
-        prevEl.classList.remove('border-primary');
-        if (!isNaN(terinfeksi) || !isNaN(diperiksa)) {
-            msgs.push('⚠️ Isi Terinfeksi & Diperiksa untuk Prevalensi');
-        }
+        displayPrev.textContent = '0.00%';
+        inputPrev.value = '';
     }
 
-    // ── INSIDENSI ────────────────────────────────────────────────────────
+    // ── INSIDENSI ──
     if (!isNaN(terinfeksi) && !isNaN(kolam) && !isNaN(periode) && kolam > 0 && periode > 0) {
         var ins = terinfeksi / (kolam * periode);
-        insEl.value = ins.toFixed(6);
-        insEl.classList.add('border-warning');
-        msgs.push('✅ Insidensi: <strong>' + ins.toFixed(6) + '</strong> ekor/kolam/hari');
+        displayIns.textContent = ins.toFixed(6);
+        inputIns.value = ins.toFixed(6);
+        msgs.push('✅ Insidensi terhitung');
     } else {
-        insEl.classList.remove('border-warning');
-        if (!isNaN(terinfeksi) && (isNaN(kolam) || isNaN(periode))) {
-            msgs.push('ℹ️ Isi Kolam & Periode untuk Insidensi');
-        }
+        displayIns.textContent = '0.000000';
+        inputIns.value = '';
     }
 
-    // ── Update status area ───────────────────────────────────────────────
+    // Update status
     if (msgs.length > 0) {
-        statusEl.innerHTML = '<div class="badge bg-green-lt text-success small p-2 text-wrap text-start">'
-            + msgs.join('<br>') + '</div>';
+        statusEl.innerHTML = '<div class="badge bg-green-lt text-success p-2 w-100 text-start animate-fade-in">' + msgs.join(' | ') + '</div>';
     } else {
-        statusEl.innerHTML = '<div class="text-muted small text-center">⟵ Input komponen<br>untuk auto-calc ⟶</div>';
+         statusEl.innerHTML = '<div class="badge bg-blue-lt text-blue p-2 w-100 text-start small"><i class="ti ti-info-circle me-1"></i> Masukkan data untuk hitung otomatis</div>';
     }
 }
 
-// Jalankan saat halaman load (bila ada old() input)
-document.addEventListener('DOMContentLoaded', function () {
-    hitungOtomatis();
-});
+document.addEventListener('DOMContentLoaded', hitungOtomatis);
 </script>
 @endsection

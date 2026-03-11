@@ -44,56 +44,56 @@
         <table class="table table-vcenter card-table table-hover">
             <thead>
                 <tr>
-                    <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
-                    <th class="w-1">
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => (request('sort_by') === 'id' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort_by') === 'id' ? 'active' : '' }}">
-                            ID
-                            <span class="sort-indicator">
+                    <th class="w-1 px-3"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1 sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => (request('sort_by') === 'id' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by', 'id') === 'id' ? 'sort-active' : '' }}">
+                            No
+                            <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'id' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th>
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'lokasi_pengambilan_sampel', 'sort_order' => (request('sort_by') === 'lokasi_pengambilan_sampel' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort_by') === 'lokasi_pengambilan_sampel' ? 'active' : '' }}">
-                            Wilayah / Lokasi
-                            <span class="sort-indicator">
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'lokasi_pengambilan_sampel', 'sort_order' => (request('sort_by') === 'lokasi_pengambilan_sampel' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'lokasi_pengambilan_sampel' ? 'sort-active' : '' }}">
+                            Wilayah / Lokasi Sampling
+                            <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'lokasi_pengambilan_sampel' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th>
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jenis_ikan', 'sort_order' => (request('sort_by') === 'jenis_ikan' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort_by') === 'jenis_ikan' ? 'active' : '' }}">
-                            Jenis Ikan
-                            <span class="sort-indicator">
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jenis_ikan', 'sort_order' => (request('sort_by') === 'jenis_ikan' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'jenis_ikan' ? 'sort-active' : '' }}">
+                            Komoditas Ikan
+                            <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'jenis_ikan' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th>
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jumlah_sampel', 'sort_order' => (request('sort_by') === 'jumlah_sampel' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort_by') === 'jumlah_sampel' ? 'active' : '' }}">
-                            Sampel
-                            <span class="sort-indicator">
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jumlah_sampel', 'sort_order' => (request('sort_by') === 'jumlah_sampel' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'jumlah_sampel' ? 'sort-active' : '' }}">
+                            Data Sampel
+                            <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'jumlah_sampel' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th>
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'tanggal_pemantauan', 'sort_order' => (request('sort_by') === 'tanggal_pemantauan' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort_by') === 'tanggal_pemantauan' ? 'active' : '' }}">
-                            Tgl Pantau
-                            <span class="sort-indicator">
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'tanggal_pemantauan', 'sort_order' => (request('sort_by') === 'tanggal_pemantauan' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by', 'tanggal_pemantauan') === 'tanggal_pemantauan' ? 'sort-active' : '' }}">
+                            Tgl Pelaksanaan
+                            <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'tanggal_pemantauan' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th>
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'status_lab', 'sort_order' => (request('sort_by') === 'status_lab' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort_by') === 'status_lab' ? 'active' : '' }}">
-                            Status Lab
-                            <span class="sort-indicator">
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'status_lab', 'sort_order' => (request('sort_by') === 'status_lab' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'status_lab' ? 'sort-active' : '' }}">
+                            Status Pengujian
+                            <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'status_lab' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th class="w-1 text-center">Aksi</th>
+                    <th class="w-1 text-center bg-light fw-bold small text-uppercase" style="letter-spacing: 0.1em; color: #64748b;">Aksi</th>
                 </tr>
             </thead>
             <tbody>

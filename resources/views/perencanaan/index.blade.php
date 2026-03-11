@@ -64,7 +64,7 @@
         <table class="table table-vcenter card-table table-hover">
             <thead>
                 <tr>
-                    <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1 px-3"><input type="checkbox" class="form-check-input" id="check-all"></th>
                     <th class="w-1 sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ (request('sort_by', 'id') === 'id') ? 'sort-active' : '' }}">
                             No
@@ -75,7 +75,7 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'provinsi', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'provinsi' ? 'sort-active' : '' }}">
-                            Wilayah
+                            Wilayah / Provinsi
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'provinsi' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
@@ -83,7 +83,7 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jenis_mp', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'jenis_mp' ? 'sort-active' : '' }}">
-                            Jenis MP / HPIK
+                            Jenis Komoditas & HPIK
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'jenis_mp' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
@@ -91,7 +91,7 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'target_uji', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'target_uji' ? 'sort-active' : '' }}">
-                            Target Uji
+                            Total Target
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'target_uji' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
@@ -99,13 +99,13 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'status', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'status' ? 'sort-active' : '' }}">
-                            Status
+                            Status Progress
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'status' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th class="w-1 text-center">Aksi</th>
+                    <th class="w-1 text-center bg-light fw-bold small text-uppercase" style="letter-spacing: 0.1em; color: #64748b;">Aksi</th>
                 </tr>
             </thead>
             <tbody>

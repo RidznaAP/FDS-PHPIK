@@ -29,6 +29,58 @@
         .navbar-vertical {
             background: #1e293b !important;
         }
+
+        /* --- Global Premium Table Sorting Styles --- */
+        .sort-th {
+            padding: 0 !important;
+            vertical-align: middle !important;
+            background-color: #f8fafc !important;
+        }
+        .sort-btn {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem !important;
+            color: #64748b !important;
+            font-weight: 700 !important;
+            font-size: 0.75rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+            width: 100%;
+            border: none;
+            background: none;
+            outline: none;
+        }
+        .sort-btn:hover {
+            color: var(--tblr-primary) !important;
+            background-color: rgba(32, 107, 196, 0.03) !important;
+        }
+        .sort-active {
+            color: var(--tblr-primary) !important;
+            background-color: rgba(32, 107, 196, 0.05) !important;
+            border-bottom: 2px solid var(--tblr-primary) !important;
+        }
+        .sort-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.02);
+            margin-left: 0.5rem;
+            transition: all 0.2s ease;
+            font-size: 1rem; /* Bigger icons as requested */
+        }
+        .sort-active .sort-icon {
+            background-color: var(--tblr-primary) !important;
+            color: #fff !important;
+            box-shadow: 0 2px 4px rgba(32, 107, 196, 0.2);
+        }
+        .sort-btn i {
+            transition: transform 0.2s ease;
+        }
     </style>
     @yield('styles')
 </head>
@@ -272,6 +324,7 @@
         <div class="page-wrapper">
 
             {{-- Page Header --}}
+            @if(!View::hasSection('no_header'))
             <div class="page-header d-print-none">
                 <div class="container-xl">
                     <div class="row g-2 align-items-center">
@@ -289,6 +342,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             {{-- Page Body --}}
             <div class="page-body">
@@ -377,12 +431,21 @@
         document.getElementById('confirmMessage').textContent = message || 'Apakah Anda yakin?';
         document.getElementById('confirmTitle').textContent   = title;
         document.getElementById('confirmEmoji').textContent   = emoji;
-        document.getElementById('confirmMethod').value        = method;
-        document.getElementById('confirmForm').action         = url;
+        
+        // Handle Laravel Method Spoofing correctly
+        var methodInput = document.getElementById('confirmMethod');
+        if (method === 'POST') {
+            methodInput.disabled = true; // Disable _method input for real POST request
+        } else {
+            methodInput.disabled = false;
+            methodInput.value = method;
+        }
+
+        document.getElementById('confirmForm').action = url || '#';
 
         var btn = document.getElementById('confirmBtn');
         btn.className = 'btn flex-fill ' + btnClass;
-        btn.textContent = title === 'Hapus Data?' ? 'Ya, Hapus' : 'Ya, Lanjutkan';
+        btn.textContent = (method === 'DELETE') ? 'Ya, Hapus' : 'Ya, Lanjutkan';
         
         // RESET onclick to default behavior (in case it was overridden by page-specific logic)
         btn.onclick = function() { submitConfirmForm(); };

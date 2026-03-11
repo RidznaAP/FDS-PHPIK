@@ -1,137 +1,335 @@
 @extends('layouts.app')
 
-@section('title', 'Form Perencanaan')
-@section('page_title', 'Perencanaan Baru')
-@section('page_subtitle', 'Isi formulir rencana pemantauan HPIK')
+@section('title', 'Form Perencanaan Baru')
+@section('no_header', true)
 
 @section('content')
-<div class="row justify-content-center">
+<div class="row justify-content-center animate-fade-in px-2">
     <div class="col-lg-10">
+        {{-- High-End Page Header --}}
+        <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-indigo border-5">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-start gap-4">
+                    <div class="bg-indigo text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
+                        <i class="ti ti-calendar-plus fs-1"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-indigo-lt text-indigo px-3 fs-6 rounded-pill">MODUL PERENCANAAN</span>
+                        </div>
+                        <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">Perencanaan Strategis Baru</h1>
+                        <div class="text-muted fs-3">Formulir rencana pemantauan HPIK komprehensif tahun {{ date('Y') }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ route('perencanaan.index') }}" class="btn btn-white btn-pill px-4 border shadow-sm">
+                    <i class="ti ti-arrow-left me-2"></i>Kembali ke Daftar
+                </a>
+            </div>
+        </div>
+
         <form action="{{ route('perencanaan.store') }}" method="POST">
             @csrf
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Data Lokasi & Komoditas</h3>
+            
+            <div class="row g-4 mb-4">
+                {{-- Kiri: Lokasi & Komoditas --}}
+                <div class="col-md-7">
+                    <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
+                        <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
+                            <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
+                                <i class="ti ti-map-2 me-2 text-indigo"></i> GEOGRAFI & IDENTITAS SAMPEL
+                            </h3>
+                        </div>
+                        <div class="card-body p-4 pt-2">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Provinsi Wilayah Kerja</label>
+                                    <div class="input-icon">
+                                        <span class="input-icon-addon"><i class="ti ti-map"></i></span>
+                                        <input type="text" name="provinsi" class="form-control rounded-3 border-light-dark @error('provinsi') is-invalid @enderror" 
+                                            value="{{ old('provinsi', (Auth::user()->isBkhit() || Auth::user()->isBbkhit()) ? (Auth::user()->upt_asal ?? '') : '') }}" 
+                                            placeholder="Provinsi..." required
+                                            @if((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && !empty(Auth::user()->upt_asal)) readonly @endif>
+                                    </div>
+                                    @error('provinsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Kabupaten / Kota</label>
+                                    <div class="input-icon">
+                                        <span class="input-icon-addon"><i class="ti ti-map-pin"></i></span>
+                                        <input type="text" name="kab_kota" class="form-control rounded-3 border-light-dark @error('kab_kota') is-invalid @enderror" value="{{ old('kab_kota') }}" placeholder="Kab/Kota..." required>
+                                    </div>
+                                    @error('kab_kota')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                
+                                <div class="col-12 mt-3">
+                                    <label class="form-label required fw-bold mb-2">
+                                        <i class="ti ti-fish me-1 text-indigo"></i> Media Pembawa (Komoditas Utama)
+                                    </label>
+                                    <select name="jenis_mp[]" id="jenis_mp_select" class="form-control" multiple required>
+                                        @foreach($mediaPembawas ?? [] as $mp)
+                                            <option value="{{ $mp->nama }}">{{ $mp->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="form-hint mt-2 text-muted italic small"><i class="ti ti-info-circle me-1"></i>Pilih atau ketik nama inang rentan.</div>
+                                </div>
+                                
+                                <div class="col-12 mt-3">
+                                    <label class="form-label required fw-bold mb-2">
+                                        <i class="ti ti-virus me-1 text-indigo"></i> Jenis HPIK
+                                    </label>
+                                    <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required>
+                                        @foreach($jenisPenyakits ?? [] as $jp)
+                                            <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}">
+                                                {{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label required">Provinsi</label>
-                            <input type="text" name="provinsi" class="form-control @error('provinsi') is-invalid @enderror" 
-                                value="{{ old('provinsi', (Auth::user()->isBkhit() || Auth::user()->isBbkhit()) ? Auth::user()->upt_asal : '') }}" 
-                                placeholder="Contoh: Jawa Barat" required
-                                @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit()) readonly @endif>
-                            @error('provinsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                {{-- Kanan: Teknis Lab --}}
+                <div class="col-md-5">
+                    <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
+                         <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
+                            <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
+                                <i class="ti ti-microscope me-2 text-azure"></i> METODOLOGI & KAPASITAS LAB
+                            </h3>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Kabupaten / Kota</label>
-                            <input type="text" name="kab_kota" class="form-control @error('kab_kota') is-invalid @enderror" value="{{ old('kab_kota') }}" placeholder="Contoh: Kota Bogor" required>
-                            @error('kab_kota')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Jenis MP (Media Pembawa)</label>
-                            <input type="text" name="jenis_mp" list="mp-list"
-                                class="form-control" value="{{ old('jenis_mp') }}"
-                                placeholder="Pilih atau ketik nama ikan/udang..." required autocomplete="off">
-                            <datalist id="mp-list">
-                                @foreach($mediaPembawas ?? [] as $mp)
-                                    <option value="{{ $mp->nama }}"
-                                        @if($mp->nama_latin) label="{{ $mp->nama_latin }}" @endif>
-                                @endforeach
-                            </datalist>
-                            @if(($mediaPembawas ?? collect())->isEmpty())
-                                <div class="form-hint text-warning">
-                                    <i class="ti ti-alert-triangle me-1"></i>
-                                    Belum ada master data. <a href="{{ route('master.media-pembawa.create') }}">Tambahkan</a> terlebih dahulu atau ketik manual.
+                        <div class="card-body p-4 pt-2">
+                            <div class="row g-3">
+                                <div class="col-12 mb-2">
+                                    <label class="form-label required fw-bold mb-2">
+                                        <i class="ti ti-settings me-1 text-azure"></i> Kemampuan Uji UPT
+                                    </label>
+                                    <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
+                                        <option value="PCR">PCR</option>
+                                        <option value="Real-time PCR">Real-time PCR</option>
+                                        <option value="ELISA">ELISA</option>
+                                        <option value="Kultur Bakteri">Kultur Bakteri</option>
+                                        <option value="Histopatologi">Histopatologi</option>
+                                        <option value="Isolasi & Identifikasi">Isolasi & Identifikasi</option>
+                                    </select>
                                 </div>
-                            @else
-                                <div class="form-hint">Pilih dari daftar atau ketik nama baru.</div>
-                            @endif
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Jenis HPIK (Target)</label>
-                            <input type="text" name="jenis_hpik" list="hpik-list"
-                                class="form-control" value="{{ old('jenis_hpik') }}"
-                                placeholder="Pilih atau ketik jenis penyakit..." required autocomplete="off">
-                            <datalist id="hpik-list">
-                                @foreach($jenisPenyakits ?? [] as $jp)
-                                    <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}">
-                                @endforeach
-                            </datalist>
-                            @if(($jenisPenyakits ?? collect())->isEmpty())
-                                <div class="form-hint text-warning">
-                                    <i class="ti ti-alert-triangle me-1"></i>
-                                    Belum ada master data. <a href="{{ route('master.jenis-penyakit.create') }}">Tambahkan</a> atau ketik manual.
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Metode Pengujian</label>
+                                    <select name="metode_pengujian" class="form-select rounded-3 border-light-dark shadow-sm">
+                                        <option value="Konvensional PCR" {{ old('metode_pengujian') == 'Konvensional PCR' ? 'selected' : '' }}>Konvensional PCR</option>
+                                        <option value="Real-time PCR" {{ old('metode_pengujian') == 'Real-time PCR' ? 'selected' : '' }}>Real-time PCR</option>
+                                        <option value="Isolasi & Identifikasi" {{ old('metode_pengujian') == 'Isolasi & Identifikasi' ? 'selected' : '' }}>Isolasi & Identifikasi</option>
+                                        <option value="ELISA" {{ old('metode_pengujian') == 'ELISA' ? 'selected' : '' }}>ELISA</option>
+                                    </select>
                                 </div>
-                            @else
-                                <div class="form-hint">Pilih dari daftar atau ketik nama baru.</div>
-                            @endif
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Kemampuan Uji UPT</label>
-                            <input type="text" name="kemampuan_uji_upt" class="form-control" value="{{ old('kemampuan_uji_upt') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Metode Pengujian</label>
-                            <input type="text" name="metode_pengujian" class="form-control" value="{{ old('metode_pengujian') }}" placeholder="Contoh: PCR, ELISA" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Lab Uji</label>
-                            <input type="text" name="lab_uji" class="form-control" value="{{ old('lab_uji') }}" required>
-                        </div>
-                        <div class="col-12"><hr class="my-2"></div>
-                        <div class="col-md-6">
-                            <label class="form-label">Rencana Lokasi Pengambilan Sampel</label>
-                            <input type="text" name="rencana_lokasi" class="form-control" value="{{ old('rencana_lokasi') }}" placeholder="Contoh: Tambak Udang Kec. Bireun">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Rencana Jumlah Sampel</label>
-                            <input type="number" name="rencana_jumlah_sampel" class="form-control" value="{{ old('rencana_jumlah_sampel', 0) }}" min="0">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Rencana Metode Sampling</label>
-                            <input type="text" name="rencana_metode_sampling" class="form-control" value="{{ old('rencana_metode_sampling') }}" placeholder="Contoh: Acak / Selektif">
+                                <div class="col-md-6">
+                                    <label class="form-label required fw-bold mb-2">Lab Pelaksana</label>
+                                    <input type="text" name="lab_uji" class="form-control rounded-3 border-light-dark" 
+                                        value="{{ old('lab_uji', 'Laboratorium Karantina Ikan ' . (Auth::user()->upt_asal ?? '')) }}" required>
+                                </div>
+                                
+                                <div class="col-12 border-top pt-2">
+                                    <label class="form-label fw-bold mb-2">Rencana Lokasi Sampling</label>
+                                    <input type="text" name="rencana_lokasi" class="form-control rounded-3 border-light-dark" 
+                                        value="{{ old('rencana_lokasi') }}" placeholder="Contoh: Tambak rakyat / Hatchery">
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold mb-2">Metode Sampling</label>
+                                    <select name="rencana_metode_sampling" class="form-select rounded-3 border-light-dark">
+                                        <option value="Acak" {{ old('rencana_metode_sampling') == 'Acak' ? 'selected' : '' }}>Acak / Random</option>
+                                        <option value="Selektif" {{ old('rencana_metode_sampling') == 'Selektif' ? 'selected' : '' }}>Selektif</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold mb-2">Target Uji</label>
+                                    <input type="number" name="rencana_jumlah_sampel" class="form-control rounded-3 border-light-dark shadow-sm" value="{{ old('rencana_jumlah_sampel', 0) }}" min="0">
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">Target Per Kuartal (TW)</h3>
+            {{-- Bagian 3: Target Kuartal Terminal --}}
+            <div class="card card-premium mb-5 border-0 shadow-sm border-top border-primary border-5 bg-white overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h3 class="card-title fw-bold text-indigo">
+                        <i class="ti ti-chart-arrows me-2"></i> TARGET OPERASIONAL PER KUARTAL
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <label class="form-label">TW 1</label>
-                            <input type="number" name="tw1" class="form-control text-center" value="{{ old('tw1', 0) }}" min="0">
+                <div class="card-body p-4 pt-3">
+                    <div class="row g-4 align-items-stretch">
+                        <div class="col-md-8">
+                            <div class="row g-3">
+                                @foreach([1, 2, 3, 4] as $tw)
+                                <div class="col-6 col-md-3">
+                                    <div class="p-4 bg-light-soft rounded-4 text-center border transition-all hover-border-primary hover-shadow-sm">
+                                        <label class="form-label fw-extrabold mb-3 small text-uppercase tracking-widest text-muted">TRIWULAN {{ $tw }}</label>
+                                        <input type="number" name="tw{{ $tw }}" class="form-control text-center fw-extrabold fs-2 border-0 bg-transparent text-primary p-0" value="{{ old('tw'.$tw, 0) }}" min="0" onchange="calculateTotal()" onclick="this.select()">
+                                        <div class="small text-muted fw-bold mt-2">SAMPEL</div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            <div class="mt-4 p-3 bg-primary-lt rounded-4 border border-primary border-dashed text-center">
+                                <i class="ti ti-checkup-list me-2"></i><b>Instruksi:</b> Masukkan target jumlah sampel yang akan dipantau pada setiap periode kuartal.
+                            </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label">TW 2</label>
-                            <input type="number" name="tw2" class="form-control text-center" value="{{ old('tw2', 0) }}" min="0">
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label">TW 3</label>
-                            <input type="number" name="tw3" class="form-control text-center" value="{{ old('tw3', 0) }}" min="0">
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label">TW 4</label>
-                            <input type="number" name="tw4" class="form-control text-center" value="{{ old('tw4', 0) }}" min="0">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Total Target Uji (Tahun)</label>
-                            <input type="number" name="target_uji" class="form-control" value="{{ old('target_uji') }}" required min="1">
+                        <div class="col-md-4">
+                            <div class="p-5 h-100 bg-indigo text-white rounded-4 shadow-lg text-center d-flex flex-column justify-content-center animate-scale-up border-0">
+                                <div class="small fw-extrabold text-uppercase opacity-75 mb-2 tracking-widest">Total Akumulasi Tahunan</div>
+                                <div class="display-1 mb-0 fw-extrabold tracking-tighter" id="total-display">0</div>
+                                <input type="hidden" name="target_uji" id="target_uji_hidden" value="{{ old('target_uji', 0) }}">
+                                <div class="h4 mt-2 fw-bold italic opacity-75">Target Ekor Per Tahun</div>
+                                <div class="mt-4">
+                                    <div class="bg-white-transparent p-2 rounded-pill small fw-bold"><i class="ti ti-status-up me-1"></i>AUTO-CALCULATED</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy me-1"></i> Simpan Perencanaan
+                <div class="card-footer bg-light border-0 py-4 px-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <a href="{{ route('perencanaan.index') }}" class="btn btn-ghost-secondary btn-pill px-4 fw-bold">
+                            <i class="ti ti-x me-1"></i>Batal & Keluar
+                        </a>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-pill px-5 py-3 fs-3 shadow-lg fw-extrabold hover-scale transition-all">
+                        <i class="ti ti-device-floppy me-2"></i> SIMPAN PERENCANAAN
                     </button>
-                    <a href="{{ route('perencanaan.index') }}" class="btn btn-link">Batal</a>
                 </div>
             </div>
         </form>
     </div>
 </div>
+
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+    /* Ultra-Modern Premium Select Styling */
+    .ts-wrapper .ts-control { 
+        border: 1.5px solid #e2e8f0 !important; 
+        padding: 0.75rem 1rem !important; 
+        border-radius: 0.75rem !important;
+        background-color: #f8fafc !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 52px;
+        box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02) !important;
+    }
+    .ts-wrapper.focus .ts-control {
+        border-color: #6366f1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .ts-dropdown { 
+        border-radius: 1rem !important; 
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; 
+        border: 1px solid rgba(226, 232, 240, 0.8) !important; 
+        margin-top: 10px !important;
+        padding: 8px !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(12px);
+        z-index: 2000 !important;
+    }
+    .ts-dropdown .option {
+        border-radius: 0.6rem !important;
+        padding: 10px 15px !important;
+        margin-bottom: 2px;
+        transition: all 0.2s ease;
+    }
+    .ts-dropdown .active { background-color: #6366f1 !important; color: white !important; }
+    .ts-dropdown .option:hover:not(.active) { background-color: #f1f5f9 !important; }
+    
+    .ts-wrapper .items { display: flex; flex-wrap: wrap; gap: 6px !important; padding: 6px 12px !important; }
+    
+    /* Premium Tag (Item) Styles */
+    .ts-wrapper .item { 
+        border-radius: 100px !important;
+        padding: 5px 14px !important;
+        font-weight: 700 !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+    }
+    .ts-wrapper .item:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.08) !important; }
+    
+    /* Individual Field Color Identities */
+    #jenis_mp_select + .ts-wrapper .item { background: #e0e7ff !important; color: #4338ca !important; border: 1px solid #c7d2fe !important; }
+    #jenis_hpik_select + .ts-wrapper .item { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fecaca !important; }
+    #kemampuan_uji_upt_select + .ts-wrapper .item { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #bbf7d0 !important; }
+    
+    .ts-wrapper .item .remove { 
+        margin-left: 8px; 
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.06);
+        transition: all 0.2s;
+        text-decoration: none !important;
+        font-size: 10px;
+    }
+    .ts-wrapper .item .remove:hover { background: rgba(0,0,0,0.15); color: inherit !important; }
+    select.tomselected { display: none !important; }
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialization for Tom Select
+        new TomSelect('#jenis_mp_select', {
+            plugins: ['remove_button'],
+            create: true,
+            persist: false,
+        });
+
+        new TomSelect('#jenis_hpik_select', {
+            plugins: ['remove_button'],
+            create: true,
+            persist: false,
+        });
+
+        new TomSelect('#kemampuan_uji_upt_select', {
+            plugins: ['remove_button'],
+            create: true,
+            persist: false,
+            options: [
+                {value: 'PCR', text: 'PCR'},
+                {value: 'Real-time PCR', text: 'Real-time PCR'},
+                {value: 'ELISA', text: 'ELISA'},
+                {value: 'Kultur Bakteri', text: 'Kultur Bakteri'},
+                {value: 'Histopatologi', text: 'Histopatologi'},
+                {value: 'Isolasi & Identifikasi', text: 'Isolasi & Identifikasi'}
+            ]
+        });
+
+        function calculateTotal() {
+            let t1 = parseInt(document.getElementsByName('tw1')[0].value) || 0;
+            let t2 = parseInt(document.getElementsByName('tw2')[0].value) || 0;
+            let t3 = parseInt(document.getElementsByName('tw3')[0].value) || 0;
+            let t4 = parseInt(document.getElementsByName('tw4')[0].value) || 0;
+            
+            let total = t1 + t2 + t3 + t4;
+            document.getElementById('total-display').textContent = total;
+            document.getElementById('target_uji_hidden').value = total;
+        }
+        
+        // Expose to window for inline onchange
+        window.calculateTotal = calculateTotal;
+        calculateTotal();
+    });
+</script>
+@endpush
 @endsection

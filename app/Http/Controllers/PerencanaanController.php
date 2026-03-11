@@ -116,25 +116,39 @@ class PerencanaanController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $total_tw = $request->tw1 + $request->tw2 + $request->tw3 + $request->tw4;
+        
+        $request->validate([
+            'provinsi'   => 'required',
+            'kab_kota'   => 'required',
+            'jenis_mp'   => 'required|array',
+            'jenis_hpik' => 'required|array',
+            'lab_uji'    => 'required',
+        ]);
+
+        $total_tw = (int)$request->tw1 + (int)$request->tw2 + (int)$request->tw3 + (int)$request->tw4;
 
         // Force provinsi based on user info if not PUSAT
-        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?? $request->provinsi);
+        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?: $request->provinsi);
+
+        // Convert arrays to comma separated strings
+        $jenis_mp   = is_array($request->jenis_mp) ? implode(', ', $request->jenis_mp) : $request->jenis_mp;
+        $jenis_hpik = is_array($request->jenis_hpik) ? implode(', ', $request->jenis_hpik) : $request->jenis_hpik;
+        $kemampuan_uji_upt = is_array($request->kemampuan_uji_upt) ? implode(', ', $request->kemampuan_uji_upt) : ($request->kemampuan_uji_upt ?? 'Tersedia');
 
         Perencanaan::create([
             'user_id'                 => Auth::id(),
             'provinsi'                => $provinsi,
             'kab_kota'                => $request->kab_kota,
-            'jenis_mp'                => $request->jenis_mp,
-            'jenis_hpik'              => $request->jenis_hpik,
-            'kemampuan_uji_upt'       => $request->kemampuan_uji_upt,
+            'jenis_mp'                => $jenis_mp,
+            'jenis_hpik'              => $jenis_hpik,
+            'kemampuan_uji_upt'       => $kemampuan_uji_upt,
             'metode_pengujian'        => $request->metode_pengujian,
             'lab_uji'                 => $request->lab_uji,
-            'target_uji'              => $request->target_uji,
-            'tw1'                     => $request->tw1,
-            'tw2'                     => $request->tw2,
-            'tw3'                     => $request->tw3,
-            'tw4'                     => $request->tw4,
+            'target_uji'              => $request->target_uji ?? $total_tw,
+            'tw1'                     => $request->tw1 ?? 0,
+            'tw2'                     => $request->tw2 ?? 0,
+            'tw3'                     => $request->tw3 ?? 0,
+            'tw4'                     => $request->tw4 ?? 0,
             'total_pengujian'         => $total_tw,
             'rencana_lokasi'          => $request->rencana_lokasi,
             'rencana_jumlah_sampel'   => $request->rencana_jumlah_sampel ?? 0,
@@ -169,24 +183,37 @@ class PerencanaanController extends Controller
                 ->with('error', 'Tidak diizinkan mengubah data ini.');
         }
 
-        $total_tw = $request->tw1 + $request->tw2 + $request->tw3 + $request->tw4;
+        $request->validate([
+            'provinsi'   => 'required',
+            'kab_kota'   => 'required',
+            'jenis_mp'   => 'required|array',
+            'jenis_hpik' => 'required|array',
+            'lab_uji'    => 'required',
+        ]);
+
+        $total_tw = (int)$request->tw1 + (int)$request->tw2 + (int)$request->tw3 + (int)$request->tw4;
 
         // Force provinsi based on user info if not PUSAT
-        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?? $perencanaan->provinsi);
+        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?: $perencanaan->provinsi);
+
+        // Convert arrays to comma separated strings
+        $jenis_mp   = is_array($request->jenis_mp) ? implode(', ', $request->jenis_mp) : $request->jenis_mp;
+        $jenis_hpik = is_array($request->jenis_hpik) ? implode(', ', $request->jenis_hpik) : $request->jenis_hpik;
+        $kemampuan_uji_upt = is_array($request->kemampuan_uji_upt) ? implode(', ', $request->kemampuan_uji_upt) : ($request->kemampuan_uji_upt ?? 'Tersedia');
 
         $perencanaan->update([
             'provinsi'                => $provinsi,
             'kab_kota'                => $request->kab_kota,
-            'jenis_mp'                => $request->jenis_mp,
-            'jenis_hpik'              => $request->jenis_hpik,
-            'kemampuan_uji_upt'       => $request->kemampuan_uji_upt,
+            'jenis_mp'                => $jenis_mp,
+            'jenis_hpik'              => $jenis_hpik,
+            'kemampuan_uji_upt'       => $kemampuan_uji_upt,
             'metode_pengujian'        => $request->metode_pengujian,
             'lab_uji'                 => $request->lab_uji,
-            'target_uji'              => $request->target_uji,
-            'tw1'                     => $request->tw1,
-            'tw2'                     => $request->tw2,
-            'tw3'                     => $request->tw3,
-            'tw4'                     => $request->tw4,
+            'target_uji'              => $request->target_uji ?? $total_tw,
+            'tw1'                     => $request->tw1 ?? 0,
+            'tw2'                     => $request->tw2 ?? 0,
+            'tw3'                     => $request->tw3 ?? 0,
+            'tw4'                     => $request->tw4 ?? 0,
             'total_pengujian'         => $total_tw,
             'rencana_lokasi'          => $request->rencana_lokasi,
             'rencana_jumlah_sampel'   => $request->rencana_jumlah_sampel ?? 0,

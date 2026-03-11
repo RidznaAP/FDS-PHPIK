@@ -3,207 +3,246 @@
 @section('title', 'Detail Hasil Laboratorium')
 
 @section('content')
-<div class="row detail-header align-items-center">
-    <div class="col">
-        <div class="detail-subtitle">Modul Hasil Laboratorium</div>
-        <h1 class="detail-title">Hasil Uji: {{ $lab->kode_sampel }}</h1>
-        <div class="detail-subtitle">
-            <i class="ti ti-test-pipe me-1"></i>{{ $lab->diagnosis_akhir ?? 'Diagnosis Belum Ditentukan' }}
-        </div>
-    </div>
-    <div class="col-auto">
-        <a href="{{ route('laboratorium.index') }}" class="btn btn-outline-secondary btn-pill shadow-sm">
-            <i class="ti ti-arrow-left me-1"></i>Kembali
-        </a>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-8">
-        {{-- Card: Info Lab Utama --}}
-        <div class="card card-premium mb-4 overflow-hidden">
-            <div class="card-header border-0 pb-0 shadow-none">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">
-                    Data Pengujian Real-Time
-                </h3>
-                <div class="card-options">
-                    @php
-                        $badgeRes = match($lab->hasil_uji) {
-                            'Positif' => 'bg-danger-lt text-danger',
-                            'Negatif' => 'bg-success-lt text-success',
-                            default   => 'bg-azure-lt text-azure',
-                        };
-                    @endphp
-                    <span class="badge badge-premium {{ $badgeRes }}">{{ $lab->hasil_uji }}</span>
+<div class="animate-fade-in px-2">
+    {{-- High-End Page Header --}}
+    <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-azure border-5">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-start gap-4">
+                <div class="bg-azure text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
+                    <i class="ti ti-test-pipe fs-1"></i>
                 </div>
-            </div>
-            <div class="card-body pt-4">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="info-group">
-                            <div class="info-item">
-                                <div class="info-icon"><i class="ti ti-microscope"></i></div>
-                                <div class="info-content">
-                                    <label>Diagnosis Akhir</label>
-                                    <span class="h3 text-primary mb-0 fw-bold">{{ $lab->diagnosis_akhir ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-icon bg-azure-lt text-azure"><i class="ti ti-target"></i></div>
-                                <div class="info-content">
-                                    <label>HPIK Diuji</label>
-                                    <span>{{ $lab->jenis_hpik_diuji ?? '-' }}</span>
-                                </div>
-                            </div>
-                        </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-azure-lt text-azure px-3 fs-6 rounded-pill">MODUL HASIL LABORATORIUM</span>
+                        <span class="badge bg-light text-muted px-3 fs-6 rounded-pill border">ID: #{{ $lab->kode_sampel }}</span>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-group">
-                            <div class="info-item">
-                                <div class="info-icon bg-green-lt text-green"><i class="ti ti-calendar-event"></i></div>
-                                <div class="info-content">
-                                    <label>Tanggal Pelaksanaan Uji</label>
-                                    <span>{{ $lab->tanggal_uji->format('d F Y') }}</span>
-                                    <div class="sub-text">Selesai: {{ $lab->tanggal_hasil ? $lab->tanggal_hasil->format('d M Y') : '-' }}</div>
-                                </div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-icon bg-red-lt text-red"><i class="ti ti-id"></i></div>
-                                <div class="info-content">
-                                    <label>Kode Sampel & Lab</label>
-                                    <span>#{{ $lab->kode_sampel }}</span>
-                                    <div class="sub-text">{{ $lab->lab_penguji }}</div>
-                                </div>
-                            </div>
-                        </div>
+                    <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">{{ $lab->diagnosis_akhir ?? 'ANALYSIS PENDING' }}</h1>
+                    <div class="text-muted fs-3 d-flex align-items-center">
+                        <i class="ti ti-microscope me-2 text-azure"></i>{{ $lab->lab_penguji ?? 'Scientific Lab Intelligence' }}
                     </div>
                 </div>
             </div>
         </div>
-
-        {{-- Row for Breakdown & Stats --}}
-        <div class="row g-4">
-            <div class="col-md-5">
-                {{-- Card: Breakdown Patogen --}}
-                <div class="card card-premium h-100 shadow-sm border-0">
-                    <div class="card-header border-0 pb-0">
-                        <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">Deteksi Patogen</h3>
-                    </div>
-                    <div class="card-body p-0 pt-3">
-                        <table class="table table-vcenter card-table table-borderless">
-                            <tbody>
-                                @foreach(['Virus' => 'hasil_virus', 'Bakteri' => 'hasil_bakteri', 'Parasit' => 'hasil_parasit', 'Jamur' => 'hasil_jamur'] as $label => $field)
-                                <tr class="border-bottom border-light">
-                                    <td class="ps-4">{{ $label }}</td>
-                                    <td class="text-end pe-4">
-                                        @php $val = $lab->$field ?? 'NT'; @endphp
-                                        @if($val == '+')
-                                            <span class="badge bg-danger rounded-circle p-1" title="Positif"><i class="ti ti-plus text-white"></i></span>
-                                        @elseif($val == '-')
-                                            <span class="badge bg-success rounded-circle p-1" title="Negatif"><i class="ti ti-minus text-white"></i></span>
-                                        @else
-                                            <span class="badge bg-light text-muted small px-2">N/T</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-7">
-                {{-- Card: Statistik Sampel Lab --}}
-                <div class="card card-premium h-100 shadow-sm border-0">
-                    <div class="card-header border-0 pb-0">
-                        <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">Parameter Statistik</h3>
-                    </div>
-                    <div class="card-body pt-4">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded-3">
-                                    <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Diperiksa</div>
-                                    <div class="h3 mb-0">{{ $lab->jumlah_sampel_diperiksa ?? '-' }} <small class="text-muted fw-normal">Ekor</small></div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-red-lt rounded-3">
-                                    <div class="text-red small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Terinfeksi</div>
-                                    <div class="h3 mb-0 text-red">{{ $lab->jumlah_ikan_terinfeksi ?? '-' }} <small class="fw-normal opacity-75">Ekor</small></div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-azure-lt rounded-3 border-start border-azure border-4">
-                                    <div class="text-azure small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Prevalensi</div>
-                                    <div class="h3 mb-0 text-azure">{{ $lab->prevalensi ?? '-' }}%</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-indigo-lt rounded-3 border-start border-indigo border-4">
-                                    <div class="text-indigo small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Insidensi</div>
-                                    <div class="h3 mb-0 text-indigo">{{ $lab->insidensi ?? '-' }}%</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        {{-- Link Pelaksanaan --}}
-        <div class="card card-premium mb-4">
-            <div class="card-header border-0 pb-0">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">Data Asal Lapangan</h3>
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-blue-lt p-2 rounded-3 me-3">
-                        <i class="ti ti-map-pin text-blue" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.6rem;">Lokasi Sampling</div>
-                        <div class="fw-bold">{{ $lab->pelaksanaan->lokasi_pengambilan_sampel }}</div>
-                    </div>
-                </div>
-                
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-orange-lt p-2 rounded-3 me-3">
-                        <i class="ti ti-fish text-orange" style="font-size: 1.5rem;"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.6rem;">Komoditas</div>
-                        <div class="fw-bold">{{ $lab->pelaksanaan->jenis_ikan }}</div>
-                    </div>
-                </div>
-                
-                <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-primary w-100 py-2 shadow-sm">
-                    <i class="ti ti-arrow-up-right me-1"></i>Detail Lapangan
+        <div class="col-lg-4 text-lg-end">
+            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                <a href="{{ route('laboratorium.index') }}" class="btn btn-white btn-pill px-4 border-0">
+                    <i class="ti ti-list me-2"></i>Daftar
+                </a>
+                <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-azure btn-pill px-4 border-0">
+                    <i class="ti ti-database-export me-2 text-white"></i>Sumber Lapangan
                 </a>
             </div>
         </div>
+    </div>
 
-        {{-- Tambahan Info --}}
-        <div class="card card-premium">
-            <div class="card-header border-0 pb-0">
-                <h3 class="card-title fw-bold text-uppercase" style="letter-spacing: 0.05em; color: #64748b; font-size: 0.8rem;">Informasi Teknis Uji</h3>
-            </div>
-            <div class="card-body">
-                <div class="info-group">
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded-2 hover-bg-light">
-                        <span class="text-muted small"><i class="ti ti-box me-1"></i> Kolam Uji</span>
-                        <span class="fw-bold">{{ $lab->jumlah_kolam_uji ?? '-' }} <small class="fw-normal">Unit</small></span>
+    <div class="row g-4">
+        {{-- Kiri: Analysis Intelligence --}}
+        <div class="col-lg-8">
+            {{-- Main Diagnostic Board --}}
+            <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-white">
+                <div class="card-body p-0">
+                    <div class="p-4 bg-light-soft border-bottom d-flex align-items-center justify-content-between">
+                        <h3 class="mb-0 fw-bold text-muted small text-uppercase tracking-widest">
+                            <i class="ti ti-microscope me-2 text-azure"></i> Rincian Pengujian Spesialis
+                        </h3>
+                        @php
+                            $stColor = match($lab->hasil_uji) {
+                                'Positif' => 'danger',
+                                'Negatif' => 'success',
+                                default   => 'azure',
+                            };
+                        @endphp
+                        <span class="badge bg-{{ $stColor }} text-white px-3 py-1 rounded-pill fw-bold animate-pulse">{{ strtoupper($lab->hasil_uji) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded-2 hover-bg-light">
-                        <span class="text-muted small"><i class="ti ti-clock me-1"></i> Periode Pengamatan</span>
-                        <span class="fw-bold">{{ $lab->periode_pengamatan ?? '-' }}</span>
+                    
+                    <div class="row g-0">
+                        <div class="col-md-7 border-end p-4">
+                            <div class="info-group mb-4">
+                                <label class="text-muted small fw-bold text-uppercase d-block mb-2">Penetapan Diagnosis</label>
+                                <div class="p-4 bg-{{ $stColor }}-lt rounded-4 border-start border-{{ $stColor }} border-4 shadow-sm mb-3">
+                                    <div class="h2 fw-extrabold text-{{ $stColor }} mb-0">{{ $lab->diagnosis_akhir ?? 'N/A' }}</div>
+                                    <div class="text-muted small fw-bold">FINAL DETERMINATION</div>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded-4 h-100 border transition-all hover-shadow">
+                                        <div class="text-muted small fw-bold mb-1">HPIK DIUJI</div>
+                                        <div class="fw-bold text-dark">{{ $lab->jenis_hpik_diuji ?? '—' }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded-4 h-100 border transition-all hover-shadow">
+                                        <div class="text-muted small fw-bold mb-1">METODE UJI</div>
+                                        <div class="fw-bold text-dark">{{ $lab->metode_uji ?? '—' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5 p-4 bg-light-soft">
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-3">Timeline Pengujian</label>
+                            <div class="vertical-timeline position-relative ps-4 mt-2">
+                                <div class="timeline-item mb-4 position-relative">
+                                    <div class="timeline-point bg-azure border-white border-4 rounded-circle position-absolute" style="width:16px;height:16px;left:-25px;top:2px;z-index:2;box-shadow:0 0 0 4px rgba(32,107,196,0.1)"></div>
+                                    <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size:0.65rem">MULAI PENELITIAN</div>
+                                    <div class="fw-extrabold text-dark h4 mb-0">{{ $lab->tanggal_uji->format('d M Y') }}</div>
+                                </div>
+                                <div class="timeline-item position-relative">
+                                    <div class="timeline-point bg-success border-white border-4 rounded-circle position-absolute" style="width:16px;height:16px;left:-25px;top:2px;z-index:2;box-shadow:0 0 0 4px rgba(47,179,68,0.1)"></div>
+                                    <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size:0.65rem">PENETAPAN HASIL</div>
+                                    <div class="fw-extrabold text-dark h4 mb-0">{{ $lab->tanggal_hasil ? $lab->tanggal_hasil->format('d M Y') : 'Processing...' }}</div>
+                                </div>
+                                <div class="timeline-line position-absolute bg-light" style="width:2px;top:10px;bottom:0;left:-18px;height:40px"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">ID Lab</span>
-                    <span class="fw-mono small">LAB-{{ str_pad($lab->id, 5, '0', STR_PAD_LEFT) }}</span>
+            </div>
+
+            {{-- Row for Matrix & Stats --}}
+            <div class="row g-4">
+                <div class="col-md-5">
+                    {{-- Pathogen Matrix --}}
+                    <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
+                        <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
+                            <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
+                                <i class="ti ti-dna me-2 text-red"></i> Deteksi Patogen
+                            </h3>
+                        </div>
+                        <div class="card-body p-0 pt-3">
+                            <table class="table table-vcenter card-table table-borderless table-striped-soft">
+                                <tbody>
+                                    @foreach(['Virus' => 'hasil_virus', 'Bakteri' => 'hasil_bakteri', 'Parasit' => 'hasil_parasit', 'Jamur' => 'hasil_jamur'] as $label => $field)
+                                    <tr>
+                                        <td class="ps-4 fw-medium text-muted py-3">{{ $label }}</td>
+                                        <td class="text-end pe-4 py-3">
+                                            @php $val = $lab->$field ?? 'NT'; @endphp
+                                            @if($val == '+')
+                                                <span class="badge bg-danger p-2 px-3 rounded-pill shadow-sm" title="Positif">
+                                                    <i class="ti ti-alert-triangle me-1"></i>POSITIVE
+                                                </span>
+                                            @elseif($val == '-')
+                                                <span class="badge bg-success p-2 px-3 rounded-pill shadow-sm" title="Negatif">
+                                                    <i class="ti ti-check me-1"></i>NEGATIVE
+                                                </span>
+                                            @else
+                                                <span class="badge bg-light text-muted small px-3 py-2 rounded-pill border">NOT TESTED</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    {{-- Statistical Indicators --}}
+                    <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
+                        <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
+                            <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
+                                <i class="ti ti-chart-bar me-2 text-azure"></i> Parameter Prevalensi
+                            </h3>
+                        </div>
+                        <div class="card-body pt-4 p-4">
+                            <div class="row g-4">
+                                <div class="col-6">
+                                    <div class="p-4 bg-azure-lt rounded-4 border border-azure animate-scale-up text-center h-100 shadow-sm">
+                                        <div class="text-azure small fw-bold text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">PREVALENSI</div>
+                                        <div class="h1 fw-extrabold text-azure mb-0">{{ $lab->prevalensi ?? '0' }}<span class="fs-4 fw-normal">%</span></div>
+                                        <div class="small fw-bold opacity-75 text-azure">TOTAL SAMPLE BASE</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-4 bg-indigo-lt rounded-4 border border-indigo animate-scale-up text-center h-100 shadow-sm" style="animation-delay: 0.1s">
+                                        <div class="text-indigo small fw-bold text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 1px;">INSIDENSI</div>
+                                        <div class="h1 fw-extrabold text-indigo mb-0">{{ $lab->insidensi ?? '0' }}<span class="fs-4 fw-normal">%</span></div>
+                                        <div class="small fw-bold opacity-75 text-indigo">SPREAD RATE ESTIMATE</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-4">
+                                    <div class="p-3 bg-light rounded-4 d-flex align-items-center justify-content-between border-dashed border border-muted">
+                                         <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-white p-2 rounded-circle shadow-sm"><i class="ti ti-users-group text-primary"></i></div>
+                                            <div>
+                                                <div class="text-muted small fw-bold">TOTAL SAMPEL DIUJI</div>
+                                                <div class="fw-extrabold h3 mb-0">{{ $lab->jumlah_sampel_diperiksa ?? '0' }} EKOR</div>
+                                            </div>
+                                         </div>
+                                         <div class="text-end">
+                                             <div class="text-danger small fw-bold">TERINFEKSI</div>
+                                             <div class="fw-extrabold h3 mb-0 text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '0' }} EKOR</div>
+                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Kanan: Technical Oversight --}}
+        <div class="col-lg-4">
+            {{-- Technical Metadata --}}
+            <div class="card card-premium mb-4 border-0 shadow-sm bg-white overflow-hidden animate-scale-up">
+                 <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
+                        <i class="ti ti-settings me-2 text-indigo"></i> INFORMASI TEKNIS UJI
+                    </h3>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="p-4 rounded-4 bg-indigo-lt border border-indigo mb-4 shadow-inner">
+                        <i class="ti ti-archive text-indigo mb-2" style="font-size: 4rem;"></i>
+                        <h1 class="fw-extrabold mb-0 text-dark">#{{ $lab->kode_sampel }}</h1>
+                        <div class="badge bg-indigo text-white px-3 py-1 rounded-pill small mt-2">TECHNICAL SERIAL ID</div>
+                    </div>
+
+                    <div class="list-group list-group-flush text-start border rounded-4 overflow-hidden shadow-sm bg-white">
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span class="text-muted small fw-bold">KOLAM UJI</span>
+                            <span class="badge bg-azure-lt">{{ $lab->jumlah_kolam_uji ?? '0' }} Unit</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span class="text-muted small fw-bold">PERIODE AMAT</span>
+                            <span class="fw-bold text-dark">{{ $lab->periode_pengamatan ?? '—' }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span class="text-muted small fw-bold">SUMBER ASAL</span>
+                            <span class="fw-bold text-primary">{{ $lab->pelaksanaan->jenis_ikan }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Action Tools --}}
+            <div class="card card-premium border-0 shadow-sm bg-dark text-white overflow-hidden mb-4">
+                <div class="card-body p-4">
+                    <h3 class="card-title fw-bold text-uppercase small tracking-widest opacity-75 mb-4">
+                        <i class="ti ti-bolt text-warning me-2"></i> Report Actions
+                    </h3>
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-white btn-pill fw-bold shadow-lg hvr-icon-forward" onclick="window.print()">
+                            <i class="ti ti-printer me-2 text-primary"></i> PRINT LABORATORY REPORT
+                        </button>
+                        <a href="{{ route('laboratorium.export') }}" class="btn btn-outline-light btn-pill opacity-75">
+                            <i class="ti ti-file-export me-2"></i>EXPORT DATA (XLS)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Quick Link Field --}}
+            <div class="card card-premium border-0 shadow-sm bg-white overflow-hidden">
+                <div class="card-body p-4 text-center">
+                     <div class="text-muted small fw-bold text-uppercase mb-3 tracking-widest">RESEARCH LOCATION</div>
+                     <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                        <i class="ti ti-map-pin text-danger fs-1"></i>
+                        <div class="text-dark fw-bold h4 mb-0">{{ $lab->pelaksanaan->lokasi_pengambilan_sampel }}</div>
+                     </div>
+                     <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-ghost-azure btn-sm w-100">
+                         View Source Field Laporan <i class="ti ti-chevron-right ms-1"></i>
+                     </a>
                 </div>
             </div>
         </div>

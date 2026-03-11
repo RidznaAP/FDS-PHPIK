@@ -46,35 +46,35 @@
         <div class="table-responsive">
             <table class="table table-vcenter card-table table-hover">
                 <thead>
-                    <tr>
-                        <th class="w-1"><input type="checkbox" class="form-check-input" id="check-all"></th>
-                        <th class="w-1">
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort') === 'id' ? 'active' : '' }}">
-                                ID
-                                <span class="sort-indicator">
-                                    <i class="ti {{ request('sort') === 'id' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
-                                </span>
-                            </a>
-                        </th>
-                        <th>
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort') === 'nama' ? 'active' : '' }}">
-                                Nama Media Pembawa (Inang Rentan)
-                                <span class="sort-indicator">
-                                    <i class="ti {{ request('sort') === 'nama' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
-                                </span>
-                            </a>
-                        </th>
-                        <th>Keterangan</th>
-                        <th>
-                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'aktif', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="btn-sort {{ request('sort') === 'aktif' ? 'active' : '' }}">
-                                Status
-                                <span class="sort-indicator">
-                                    <i class="ti {{ request('sort' === 'aktif') ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
-                                </span>
-                            </a>
-                        </th>
-                        <th class="w-1 text-center">Aksi</th>
-                    </tr>
+                <tr>
+                    <th class="w-1 px-3"><input type="checkbox" class="form-check-input" id="check-all"></th>
+                    <th class="w-1 sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'id', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort', 'id') === 'id' ? 'sort-active' : '' }}">
+                            No
+                            <span class="sort-icon">
+                                <i class="ti {{ request('sort') === 'id' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                            </span>
+                        </a>
+                    </th>
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'nama', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort') === 'nama' ? 'sort-active' : '' }}">
+                            Nama Media Pembawa / Jenis Ikan
+                            <span class="sort-icon">
+                                <i class="ti {{ request('sort') === 'nama' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                            </span>
+                        </a>
+                    </th>
+                    <th class="bg-light fw-bold small text-uppercase py-2 ps-3" style="letter-spacing: 0.1em; color: #64748b;">Keterangan</th>
+                    <th class="sort-th">
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'aktif', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort') === 'aktif' ? 'sort-active' : '' }}">
+                            Status
+                            <span class="sort-icon">
+                                <i class="ti {{ request('sort') === 'aktif' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                            </span>
+                        </a>
+                    </th>
+                    <th class="w-1 text-center bg-light fw-bold small text-uppercase" style="letter-spacing: 0.1em; color: #64748b;">Aksi</th>
+                </tr>
                 </thead>
                 <tbody>
                     @forelse($items as $item)
