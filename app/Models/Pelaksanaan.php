@@ -9,6 +9,7 @@ class Pelaksanaan extends Model
     protected $guarded = [];
 
     protected $casts = [
+        'tanggal_pemantauan' => 'date',
         'pengambil_sampel' => 'array',
     ];
 

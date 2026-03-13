@@ -65,7 +65,7 @@
                                 
                                 <div class="col-12 mt-3">
                                     <label class="form-label required fw-bold mb-2">
-                                        <i class="ti ti-fish me-1 text-indigo"></i> Media Pembawa (Komoditas Utama)
+                                        <i class="ti ti-fish me-1 text-indigo"></i> Media Pembawa (Inang Rentan)
                                     </label>
                                     <select name="jenis_mp" id="jenis_mp_select" class="form-select rounded-3 border-light-dark" required>
                                         <option value="" disabled {{ old('jenis_mp') ? '' : 'selected' }}>Pilih Komoditas...</option>
@@ -106,21 +106,11 @@
                                         <i class="ti ti-settings me-1 text-azure"></i> Kemampuan Uji UPT
                                     </label>
                                     <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
-                                        <option value="PCR">PCR</option>
-                                        <option value="RT-PCR">RT-PCR</option>
-                                        <option value="Real-Time PCR (qPCR)">Real-Time PCR (qPCR)</option>
-                                        <option value="Sekuensing DNA">Sekuensing DNA</option>
-                                        <option value="Isolasi Bakteri">Isolasi Bakteri</option>
-                                        <option value="Uji Biokimia">Uji Biokimia</option>
-                                        <option value="Uji Sensitivitas/Antibiogram">Uji Sensitivitas/Antibiogram</option>
-                                        <option value="Natif/Scrapping">Natif/Scrapping</option>
-                                        <option value="Sediaan Ulas (Smear)">Sediaan Ulas (Smear)</option>
-                                        <option value="Kultur Jamur">Kultur Jamur</option>
-                                        <option value="Pemeriksaan Mikroskopis Struktur Jamur">Pemeriksaan Mikroskopis Struktur Jamur</option>
-                                        <option value="Pemeriksaan Jaringan (Slide)">Pemeriksaan Jaringan (Slide)</option>
-                                        <option value="Isolasi Virus">Isolasi Virus</option>
-                                        <option value="ELISA">ELISA</option>
-                                        <option value="IFAT">IFAT</option>
+                                        @foreach($jenisPenyakits ?? [] as $jp)
+                                            <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}" {{ in_array($jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : ''), old('kemampuan_uji_upt', [])) ? 'selected' : '' }}>
+                                                {{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 metode uji.</div>
                                 </div>
@@ -165,8 +155,22 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold mb-2">Target Uji</label>
-                                    <input type="number" name="rencana_jumlah_sampel" class="form-control rounded-3 border-light-dark shadow-sm" value="{{ old('rencana_jumlah_sampel', 0) }}" min="0">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label fw-bold mb-2">Target Uji</label>
+                                            <div class="input-icon">
+                                                <span class="input-icon-addon"><i class="ti ti-target"></i></span>
+                                                <input type="number" name="target_uji" class="form-control rounded-3 border-light-dark shadow-sm" value="{{ old('target_uji', 0) }}" min="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label fw-bold mb-2">Jumlah Sampel</label>
+                                            <div class="input-icon">
+                                                <span class="input-icon-addon"><i class="ti ti-box"></i></span>
+                                                <input type="number" name="rencana_jumlah_sampel" class="form-control rounded-3 border-light-dark shadow-sm" value="{{ old('rencana_jumlah_sampel', 0) }}" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -231,8 +235,7 @@
                             <div class="p-5 h-100 bg-indigo text-white rounded-4 shadow-lg text-center d-flex flex-column justify-content-center animate-scale-up border-0">
                                 <div class="small fw-extrabold text-uppercase opacity-75 mb-2 tracking-widest">Total Akumulasi Tahunan</div>
                                 <div class="display-1 mb-0 fw-extrabold tracking-tighter" id="total-display">0</div>
-                                <input type="hidden" name="target_uji" id="target_uji_hidden" value="{{ old('target_uji', 0) }}">
-                                <div class="h4 mt-2 fw-bold italic opacity-75">Target Sampel Per Tahun</div>
+                                <div class="h4 mt-2 fw-bold italic opacity-75">Terkalkulasi Otomatis</div>
                                 <div class="mt-4">
                                     <div class="bg-white-transparent p-2 rounded-pill small fw-bold"><i class="ti ti-status-up me-1"></i>AUTO-CALCULATED</div>
                                 </div>
@@ -373,8 +376,10 @@
         new TomSelect('#kemampuan_uji_upt_select', {
             dropdownParent: 'body',
             plugins: ['remove_button'],
-            create: true,
-            persist: false
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
 
         function calculateTotal() {
@@ -385,7 +390,6 @@
             
             let total = t1 + t2 + t3 + t4;
             document.getElementById('total-display').textContent = total;
-            document.getElementById('target_uji_hidden').value = total;
         }
         
         // Expose to window for inline onchange

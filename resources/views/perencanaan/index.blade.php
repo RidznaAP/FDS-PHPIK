@@ -59,6 +59,10 @@
     </form>
 
     <div class="ms-auto d-flex gap-2">
+        <div class="btn-group" role="group">
+            <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="btn btn-sm btn-outline-primary {{ request('view', 'list') !== 'board' ? 'active' : '' }}" title="Tampilan Daftar"><i class="ti ti-list"></i></a>
+            <a href="{{ request()->fullUrlWithQuery(['view' => 'board']) }}" class="btn btn-sm btn-outline-primary {{ request('view') === 'board' ? 'active' : '' }}" title="Tampilan Board Kanban"><i class="ti ti-layout-kanban"></i></a>
+        </div>
         <button type="button" id="btn-bulk-delete" class="btn btn-sm btn-danger d-none" onclick="submitBulkDelete()">
             <i class="ti ti-trash me-1"></i>Hapus (<span id="count-selected">0</span>)
         </button>
@@ -80,6 +84,67 @@
     </div>
     <form id="form-bulk-delete" action="{{ route('perencanaan.bulk-delete') }}" method="POST">
         @csrf
+        @if(request('view') === 'board')
+            @php
+                $colDraft = []; $colLap = []; $colLab = []; $colEval = [];
+                foreach($perencanaans as $p) {
+                    if (in_array($p->status, ['draft', 'waiting'])) { $colDraft[] = $p; continue; }
+                    if ($p->evaluasi) { $colEval[] = $p; continue; }
+                    $hasLab = false; 
+                    foreach($p->pelaksanaans as $pel) { if ($pel->laboratorium) $hasLab = true; }
+                    if ($hasLab) { $colLab[] = $p; } else { $colLap[] = $p; }
+                }
+            @endphp
+            <div class="kanban-board-container p-4" style="overflow-x: auto; white-space: nowrap; min-height: 60vh; background: var(--body-bg);">
+                <!-- 1. Draft & Menunggu -->
+                <div class="kanban-col d-inline-flex flex-column align-items-center" style="width: 300px; vertical-align: top; margin-right: 1.5rem; white-space: normal;">
+                    <div class="kanban-header badge bg-secondary text-white w-100 py-2 fs-6 mb-3 rounded shadow-sm d-flex justify-content-between align-items-center">
+                        <span class="text-uppercase tracking-wider"><i class="ti ti-clipboard me-1"></i> DRAFT / PERSIAPAN</span>
+                        <span class="badge bg-white text-dark ms-2" style="font-size:0.75rem;">{{ count($colDraft) }}</span>
+                    </div>
+                    <div class="w-100" style="min-height: 200px;">
+                        @foreach($colDraft as $p) @include('perencanaan.partials.kanban_card', ['p' => $p]) @endforeach
+                        @if(count($colDraft) == 0) <div class="text-muted text-center small py-3 border border-dashed rounded bg-transparent">Kosong</div> @endif
+                    </div>
+                </div>
+
+                <!-- 2. Proses Lapangan -->
+                <div class="kanban-col d-inline-flex flex-column align-items-center" style="width: 300px; vertical-align: top; margin-right: 1.5rem; white-space: normal;">
+                    <div class="kanban-header badge bg-blue text-white w-100 py-2 fs-6 mb-3 rounded shadow-sm d-flex justify-content-between align-items-center">
+                        <span class="text-uppercase tracking-wider"><i class="ti ti-map-pin me-1"></i> PROSES LAPANGAN</span>
+                        <span class="badge bg-white text-blue ms-2" style="font-size:0.75rem;">{{ count($colLap) }}</span>
+                    </div>
+                    <div class="w-100" style="min-height: 200px;">
+                        @foreach($colLap as $p) @include('perencanaan.partials.kanban_card', ['p' => $p]) @endforeach
+                        @if(count($colLap) == 0) <div class="text-muted text-center small py-3 border border-dashed rounded bg-transparent">Kosong</div> @endif
+                    </div>
+                </div>
+
+                <!-- 3. Proses Uji Lab -->
+                <div class="kanban-col d-inline-flex flex-column align-items-center" style="width: 300px; vertical-align: top; margin-right: 1.5rem; white-space: normal;">
+                    <div class="kanban-header badge bg-purple text-white w-100 py-2 fs-6 mb-3 rounded shadow-sm d-flex justify-content-between align-items-center">
+                        <span class="text-uppercase tracking-wider"><i class="ti ti-microscope me-1"></i> PROSES LAB</span>
+                        <span class="badge bg-white text-purple ms-2" style="font-size:0.75rem;">{{ count($colLab) }}</span>
+                    </div>
+                    <div class="w-100" style="min-height: 200px;">
+                        @foreach($colLab as $p) @include('perencanaan.partials.kanban_card', ['p' => $p]) @endforeach
+                        @if(count($colLab) == 0) <div class="text-muted text-center small py-3 border border-dashed rounded bg-transparent">Kosong</div> @endif
+                    </div>
+                </div>
+
+                <!-- 4. Evaluasi Selesai -->
+                <div class="kanban-col d-inline-flex flex-column align-items-center" style="width: 300px; vertical-align: top; white-space: normal;">
+                    <div class="kanban-header badge bg-green text-white w-100 py-2 fs-6 mb-3 rounded shadow-sm d-flex justify-content-between align-items-center">
+                        <span class="text-uppercase tracking-wider"><i class="ti ti-check me-1"></i> EVALUASI AKHIR</span>
+                        <span class="badge bg-white text-green ms-2" style="font-size:0.75rem;">{{ count($colEval) }}</span>
+                    </div>
+                    <div class="w-100" style="min-height: 200px;">
+                        @foreach($colEval as $p) @include('perencanaan.partials.kanban_card', ['p' => $p]) @endforeach
+                        @if(count($colEval) == 0) <div class="text-muted text-center small py-3 border border-dashed rounded bg-transparent">Kosong</div> @endif
+                    </div>
+                </div>
+            </div>
+        @else
         <div class="table-responsive">
         <table class="table table-vcenter card-table table-hover">
             <thead>
@@ -209,6 +274,7 @@
             </tbody>
         </table>
     </div>
+    @endif
     </form>
     @if($perencanaans->hasPages())
     <div class="card-footer d-flex justify-content-center">

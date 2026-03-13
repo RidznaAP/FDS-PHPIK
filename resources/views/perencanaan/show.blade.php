@@ -106,8 +106,10 @@
                                     <i class="ti ti-flask me-2"></i> {{ $p->lab_uji }}
                                 </div>
                             </div>
+                        </div>
+
                         <div class="col-12 border-top p-3 px-4 bg-light-soft">
-                            <div class="row align-items-center">
+                            <div class="row align-items-center g-3">
                                 <div class="col-md-6">
                                     <label class="text-muted small fw-bold text-uppercase d-block mb-1">Lokasi Pengambilan Sampel</label>
                                     <div class="d-flex align-items-center">
@@ -115,16 +117,28 @@
                                         <div class="fw-bold text-azure fs-4">{{ $p->rencana_lokasi ?? '-' }}</div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 text-md-end">
-                                    <div class="d-inline-flex align-items-center p-2 bg-white rounded-3 border shadow-sm">
-                                        <div class="avatar avatar-sm rounded-circle me-3 bg-primary text-white shadow-sm">
-                                            {{ strtoupper(substr($p->user->name ?? 'A', 0, 1)) }}
-                                        </div>
-                                        <div class="text-start">
-                                            <div class="small text-muted fw-bold" style="font-size: 0.65rem;">Petugas Input:</div>
-                                            <div class="fw-bold small">{{ $p->user->name ?? '-' }}</div>
-                                        </div>
+                                <div class="col-md-3 col-6 border-start-md px-md-4">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Jumlah Sampel</label>
+                                    <div class="d-flex align-items-center">
+                                        <div class="fw-bold fs-3 text-dark">{{ $p->rencana_jumlah_sampel ?? 0 }}</div>
                                     </div>
+                                </div>
+                                <div class="col-md-3 col-6 border-start-md px-md-4">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Metode Sampling</label>
+                                    <div class="badge bg-green-lt text-green fs-6 px-3 py-1 mt-1 border border-green-subtle">
+                                        {{ mb_strtoupper($p->rencana_metode_sampling ?? '-') }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 border-top p-3 px-4 bg-white d-flex justify-content-end">
+                            <div class="d-inline-flex align-items-center p-2 bg-light rounded-3 border shadow-sm">
+                                <div class="avatar avatar-sm rounded-circle me-3 bg-primary text-white shadow-sm">
+                                    {{ strtoupper(substr(optional($p->user)->name ?? 'A', 0, 1)) }}
+                                </div>
+                                <div class="text-start">
+                                    <div class="small text-muted fw-bold" style="font-size: 0.65rem;">Petugas Input:</div>
+                                    <div class="fw-bold small">{{ optional($p->user)->name ?? '-' }}</div>
                                 </div>
                             </div>
                         </div>
@@ -138,8 +152,13 @@
                     <h3 class="fw-bold mb-0 text-muted small text-uppercase tracking-widest">
                         <i class="ti ti-chart-dots me-2 text-azure"></i> Alokasi Target Per Kuartal
                     </h3>
-                    <div class="badge bg-azure text-white px-3 py-2 rounded-pill shadow-sm">
-                        TOTAL: {{ $p->target_uji }} TARGET UJI
+                    <div class="d-flex gap-2">
+                        <div class="badge bg-indigo-lt text-indigo px-3 py-2 rounded-pill shadow-sm border border-indigo-subtle">
+                            TARGET UJI: {{ $p->target_uji }}
+                        </div>
+                        <div class="badge bg-azure text-white px-3 py-2 rounded-pill shadow-sm">
+                            TOTAL TW: {{ $p->total_pengujian }}
+                        </div>
                     </div>
                 </div>
                 <div class="row g-4">
@@ -214,7 +233,7 @@
                                             </div>
                                             <div>
                                                 <div class="fw-bold text-dark">{{ $pel->lokasi_pengambilan_sampel }}</div>
-                                                <div class="small text-muted">{{ $pel->tanggal_pemantauan->format('d M Y') }}</div>
+                                                <div class="small text-muted">{{ \Carbon\Carbon::parse($pel->tanggal_pemantauan)->format('d M Y') }}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -254,9 +273,13 @@
                         <p class="text-muted small px-5">Data pengambilan sampel belum tercatat. Hubungi tim lapangan untuk pembaruan data.</p>
                         @if(Auth::user()->isUpt() && $p->status === 'approved')
                         <div class="mt-4">
-                            <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-outline-primary btn-pill">
-                                <i class="ti ti-plus me-2"></i>TAMBAH PELAKSANAAN
-                            </a>
+                            @if($p->pelaksanaans->count() < $p->target_uji)
+                                <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-outline-primary btn-pill">
+                                    <i class="ti ti-plus me-2"></i>TAMBAH PELAKSANAAN
+                                </a>
+                            @else
+                                <div class="badge bg-green text-white px-3 py-2 rounded-pill shadow-sm"><i class="ti ti-check me-2"></i>Target Uji Terpenuhi ({{ $p->pelaksanaans->count() }}/{{ $p->target_uji }})</div>
+                            @endif
                         </div>
                         @endif
                     </div>
@@ -265,76 +288,8 @@
             </div>
         </div>
 
-        {{-- Reright: Context & Insights --}}
+        {{-- Kanan: Context & Insights --}}
         <div class="col-lg-4">
-            {{-- Status Evaluasi Dashboard --}}
-            <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden border-top border-primary border-4 animate-scale-up">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
-                    <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
-                        <i class="ti ti-target me-2 text-primary"></i> ANALISIS STATUS AKHIR
-                    </h3>
-                </div>
-                <div class="card-body p-4 text-center">
-                    @if($p->evaluasi)
-                        @php
-                            $stMap = [
-                                'hijau'  => ['color'=>'success', 'icon'=>'ti-shield-check', 'text'=>'BEBAS (AMANKAN)'],
-                                'kuning' => ['color'=>'warning', 'icon'=>'ti-alert-triangle', 'text'=>'WASPADA (PANTAU)'],
-                                'merah'  => ['color'=>'danger',  'icon'=>'ti-biohazard', 'text'=>'WABAH (ISOLASI)']
-                            ];
-                            $st = $stMap[$p->evaluasi->status_warna] ?? ['color'=>'secondary', 'icon'=>'ti-info-circle', 'text'=>'UNKNOWN'];
-                        @endphp
-                        
-                        <div class="mb-4">
-                            <div class="p-4 rounded-4 bg-{{ $st['color'] }}-lt border border-{{ $st['color'] }} shadow-sm mb-3">
-                                <i class="ti {{ $st['icon'] }} text-{{ $st['color'] }} mb-3" style="font-size: 5rem;"></i>
-                                <h2 class="fw-extrabold mb-1 text-uppercase text-{{ $st['color'] }}">{{ $p->evaluasi->kesimpulan }}</h2>
-                                <div class="badge bg-{{ $st['color'] }} text-white px-3 py-1 rounded-pill mb-2 animate-pulse">{{ $st['text'] }}</div>
-                            </div>
-                        </div>
-
-                        <div class="row g-2 mb-4 text-start">
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded-3 text-center h-100">
-                                    <div class="text-muted small fw-bold mb-1">PREVALENSI</div>
-                                    <div class="h3 fw-bold mb-0 text-primary">{{ $p->evaluasi->prevalensi ?? '0' }}%</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded-3 text-center h-100">
-                                    <div class="text-muted small fw-bold mb-1">INSIDENSI</div>
-                                    <div class="h3 fw-bold mb-0 text-primary">{{ $p->evaluasi->insidensi ?? '0' }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if($p->evaluasi->rekomendasi)
-                        <div class="text-start">
-                            <label class="text-muted small fw-bold text-uppercase d-block mb-2">Rekomendasi Strategis:</label>
-                            <div class="p-3 bg-blue-lt rounded-4 border-start border-blue border-4 small italic shadow-sm bg-white">
-                                <i class="ti ti-quote me-2 opacity-50"></i>{{ $p->evaluasi->rekomendasi }}<i class="ti ti-quote-off ms-2 opacity-50"></i>
-                            </div>
-                        </div>
-                        @endif
-                    @else
-                        <div class="py-5">
-                            <div class="bg-light p-4 rounded-circle d-inline-block mb-3 opacity-50">
-                                <i class="ti ti-chart-infographic text-muted" style="font-size: 4rem;"></i>
-                            </div>
-                            <h4 class="fw-bold text-muted">Belum Dievaluasi</h4>
-                            <p class="text-muted small px-3">Sistem menunggu validasi akhir dari tim verifikator berdasarkan data laboratorium terkumpul.</p>
-                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'approved')
-                            <div class="mt-4 px-3">
-                                <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-primary w-100 btn-pill shadow-sm">
-                                    <i class="ti ti-pencil me-2"></i>INPUT EVALUASI SEKARANG
-                                </a>
-                            </div>
-                            @endif
-                        </div>
-                    @endif
-                </div>
-            </div>
-
             {{-- Action Palette --}}
             <div class="card card-premium shadow-sm border-0 mb-4 bg-dark text-white overflow-hidden">
                 <div class="card-body p-4 position-relative">
@@ -343,9 +298,13 @@
                     </h3>
                     <div class="d-grid gap-3 position-relative" style="z-index: 2;">
                         @if(Auth::user()->isUpt() && $p->status === 'approved')
-                        <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-white btn-pill w-100 fw-bold border-0 shadow-lg">
-                            <i class="ti ti-plus me-2 text-primary"></i>PELAKSANAAN BARU
-                        </a>
+                            @if($p->pelaksanaans->count() < $p->target_uji)
+                                <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-white btn-pill w-100 fw-bold border-0 shadow-lg">
+                                    <i class="ti ti-plus me-2 text-primary"></i>PELAKSANAAN BARU
+                                </a>
+                            @else
+                                <div class="badge bg-green text-white px-3 py-2 rounded-pill shadow-sm w-100"><i class="ti ti-check me-2"></i>Target Uji Terpenuhi</div>
+                            @endif
                         @endif
                         
                         <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-light btn-pill w-100 opacity-75 hover-opacity-100">
@@ -356,16 +315,88 @@
                 </div>
             </div>
 
-            {{-- Timeline Mini --}}
-            <div class="card card-premium border-0 shadow-sm bg-white">
+            {{-- Resi Tracking Timeline --}}
+            <div class="card card-premium border-0 shadow-sm bg-white timeline-card">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted small fw-bold">DIBUAT PADA</span>
-                        <span class="badge bg-light text-dark fw-mono small border">{{ $p->created_at->format('d/m/Y H:i') }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold">TERAKHIR DIUPDATE</span>
-                        <span class="badge bg-light text-dark fw-mono small border">{{ $p->updated_at->format('d/m/Y H:i') }}</span>
+                    <h3 class="fw-bold mb-4 text-muted small text-uppercase tracking-widest border-bottom pb-3">
+                        <i class="ti ti-route me-2 text-indigo"></i> Jejak Linimasa (Tracking)
+                    </h3>
+                    
+                    @php
+                        $hasPelaksanaan = $p->pelaksanaans->count() > 0;
+                        $hasLab = false;
+                        foreach($p->pelaksanaans as $pel) { if ($pel->laboratorium) $hasLab = true; }
+                        $hasEval = $p->evaluasi ? true : false;
+                        
+                        $step1_active = true;
+                        $step2_active = $hasPelaksanaan;
+                        $step3_active = $hasLab;
+                        $step4_active = $hasEval;
+                    @endphp
+
+                    <div class="vertical-timeline position-relative ps-4 py-2">
+                        <!-- Garis penyambung utama -->
+                        <div class="timeline-line position-absolute top-0 bottom-0 ms-1 bg-light border-start border-2 border-primary" style="left: 14px; opacity: 0.2;"></div>
+
+                        <!-- 1. Perencanaan -->
+                        <div class="timeline-item position-relative mb-4">
+                            <div class="timeline-icon position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center bg-primary text-white" style="width: 32px; height: 32px; left: -16px; top: -4px;">
+                                <i class="ti ti-check" style="font-size: 1rem;"></i>
+                            </div>
+                            <div class="timeline-content ps-4">
+                                <div class="fw-bold text-dark fs-5 text-uppercase">1. Rencana Digagas</div>
+                                <div class="text-muted small mt-1"><i class="ti ti-calendar-event me-1"></i>{{ $p->created_at->format('d/m/Y H:i') }} | {{ optional($p->user)->name ?? 'Admin' }}</div>
+                                @if($p->status == 'approved')
+                                    <div class="text-success small fw-bold mt-1"><i class="ti ti-rosette-discount-check me-1"></i>Telah Disetujui</div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- 2. Pelaksanaan -->
+                        <div class="timeline-item position-relative mb-4">
+                            <div class="timeline-icon position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center {{ $step2_active ? 'bg-blue text-white' : 'bg-light text-muted border' }}" style="width: 32px; height: 32px; left: -16px; top: -4px;">
+                                <i class="ti {{ $step2_active ? 'ti-map-pin' : 'ti-dots' }}" style="font-size: 1rem;"></i>
+                            </div>
+                            <div class="timeline-content ps-4 {{ !$step2_active ? 'opacity-50' : '' }}">
+                                <div class="fw-bold text-dark fs-5 text-uppercase">2. Proses Lapangan</div>
+                                @if($step2_active)
+                                    <div class="text-muted small mt-1"><i class="ti ti-box me-1"></i>{{ $p->pelaksanaans->count() }} Sampel diambil</div>
+                                @else
+                                    <div class="text-muted small mt-1">Belum ada sampel lapangan</div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- 3. Laboratorium -->
+                        <div class="timeline-item position-relative mb-4">
+                            <div class="timeline-icon position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center {{ $step3_active ? 'bg-purple text-white' : 'bg-light text-muted border' }}" style="width: 32px; height: 32px; left: -16px; top: -4px;">
+                                <i class="ti {{ $step3_active ? 'ti-microscope' : 'ti-dots' }}" style="font-size: 1rem;"></i>
+                            </div>
+                            <div class="timeline-content ps-4 {{ !$step3_active ? 'opacity-50' : '' }}">
+                                <div class="fw-bold text-dark fs-5 text-uppercase">3. Proses Uji Lab</div>
+                                @if($step3_active)
+                                    <div class="text-muted small mt-1"><i class="ti ti-flask me-1"></i>Telah masuk Laboratorium</div>
+                                @else
+                                    <div class="text-muted small mt-1">Belum ada pengujian lab</div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- 4. Evaluasi -->
+                        <div class="timeline-item position-relative">
+                            <div class="timeline-icon position-absolute rounded-circle shadow-sm d-flex align-items-center justify-content-center {{ $step4_active ? 'bg-green text-white' : 'bg-light text-muted border' }}" style="width: 32px; height: 32px; left: -16px; top: -4px;">
+                                <i class="ti {{ $step4_active ? 'ti-flag' : 'ti-dots' }}" style="font-size: 1rem;"></i>
+                            </div>
+                            <div class="timeline-content ps-4 {{ !$step4_active ? 'opacity-50' : '' }}">
+                                <div class="fw-bold text-dark fs-5 text-uppercase">4. Evaluasi Selesai</div>
+                                @if($step4_active)
+                                    <div class="text-muted small mt-1"><i class="ti ti-chart-bar me-1"></i>Laporan Kesimpulan Terbit</div>
+                                @else
+                                    <div class="text-muted small mt-1">Belum dievaluasi final</div>
+                                @endif
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

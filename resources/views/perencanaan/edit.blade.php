@@ -97,13 +97,14 @@
                             </label>
                             @php $selectedUji = array_map('trim', explode(',', $perencanaan->kemampuan_uji_upt)); @endphp
                             <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
-                                @php $opts = ['PCR', 'RT-PCR', 'Real-Time PCR (qPCR)', 'Sekuensing DNA', 'Isolasi Bakteri', 'Uji Biokimia', 'Uji Sensitivitas/Antibiogram', 'Natif/Scrapping', 'Sediaan Ulas (Smear)', 'Kultur Jamur', 'Pemeriksaan Mikroskopis Struktur Jamur', 'Pemeriksaan Jaringan (Slide)', 'Isolasi Virus', 'ELISA', 'IFAT']; @endphp
-                                @foreach($opts as $opt)
-                                    <option value="{{ $opt }}" {{ in_array($opt, $selectedUji) ? 'selected' : '' }}>{{ $opt }}</option>
+                                @foreach($jenisPenyakits ?? [] as $jp)
+                                    @php $val = $jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : ''); @endphp
+                                    <option value="{{ $val }}" {{ in_array($val, $selectedUji) ? 'selected' : '' }}>{{ $val }}</option>
                                 @endforeach
+                                {{-- Handle virtues that might not be in master data --}}
                                 @foreach($selectedUji as $s)
-                                    @if(!in_array($s, $opts) && !empty($s))
-                                        <option value="{{ $s }}" selected>{{ $s }}</option>
+                                    @if(!collect($jenisPenyakits)->contains(fn($jp) => ($jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : '')) === $s) && !empty($s))
+                                         <option value="{{ $s }}" selected>{{ $s }}</option>
                                     @endif
                                 @endforeach
                             </select>
@@ -140,8 +141,19 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold mb-2">Target Uji</label>
-                            <input type="number" name="rencana_jumlah_sampel" class="form-control rounded-3 border-light-dark shadow-sm" 
-                                value="{{ old('rencana_jumlah_sampel', $perencanaan->rencana_jumlah_sampel) }}" min="0">
+                            <div class="input-icon">
+                                <span class="input-icon-addon"><i class="ti ti-target"></i></span>
+                                <input type="number" name="target_uji" class="form-control rounded-3 border-light-dark shadow-sm" 
+                                    value="{{ old('target_uji', $perencanaan->target_uji) }}" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-2">Jumlah Sampel</label>
+                            <div class="input-icon">
+                                <span class="input-icon-addon"><i class="ti ti-box"></i></span>
+                                <input type="number" name="rencana_jumlah_sampel" class="form-control rounded-3 border-light-dark shadow-sm" 
+                                    value="{{ old('rencana_jumlah_sampel', $perencanaan->rencana_jumlah_sampel) }}" min="0">
+                            </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold mb-2">Rencana Metode Sampling</label>
@@ -211,8 +223,7 @@
                         <div class="col-md-4">
                             <div class="p-4 bg-orange text-white rounded-4 shadow-sm text-center">
                                 <div class="small fw-bold text-uppercase opacity-75 mb-1">Total Target Tahunan</div>
-                                <div class="h1 mb-0 fw-bold" id="total-display">{{ $perencanaan->target_uji }}</div>
-                                <input type="hidden" name="target_uji" id="target_uji_hidden" value="{{ old('target_uji', $perencanaan->target_uji) }}">
+                                <div class="h1 mb-0 fw-bold" id="total-display">{{ $perencanaan->total_pengujian }}</div>
                                 <div class="small mt-1">TOTAL PELAKSANAAN</div>
                             </div>
                         </div>
@@ -350,8 +361,10 @@
         new TomSelect('#kemampuan_uji_upt_select', {
             dropdownParent: 'body',
             plugins: ['remove_button'],
-            create: true,
-            persist: false
+            sortField: {
+                field: "text",
+                direction: "asc"
+            }
         });
 
         function calculateTotal() {
@@ -362,7 +375,6 @@
             
             let total = t1 + t2 + t3 + t4;
             document.getElementById('total-display').textContent = total;
-            document.getElementById('target_uji_hidden').value = total;
         }
 
         window.calculateTotal = calculateTotal;

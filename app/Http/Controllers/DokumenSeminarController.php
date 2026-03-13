@@ -28,7 +28,7 @@ class DokumenSeminarController extends Controller
         }
         // BBKHIT lihat milik sendiri + unit bawah koordinasi
         elseif ($user->isBbkhit()) {
-            $bkhitIds = \App\Models\User::where('parent_id', $user->id)->pluck('id')->push($user->id);
+            $bkhitIds = User::where('parent_id', $user->id)->pluck('id')->push($user->id);
             $query->whereIn('user_id', $bkhitIds);
         }
         // Pusat: lihat semua

@@ -52,8 +52,8 @@
             <input type="hidden" name="pelaksanaan_id" value="{{ $pelaksanaan->id }}">
 
             <div class="row g-4">
-                {{-- Kiri: Identitas Pengujian --}}
-                <div class="col-md-7">
+                {{-- Identitas Pengujian --}}
+                <div class="col-12">
                     <div class="card card-premium mb-0 border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 pb-0">
                             <h3 class="card-title fw-bold text-primary">
@@ -118,47 +118,45 @@
                     </div>
                 </div>
 
-                {{-- Kanan: Hasil Per Patogen --}}
-                <div class="col-md-5">
+                {{-- Hasil & Kelompok Patogen --}}
+                <div class="col-12">
                     <div class="card card-premium mb-0 border-0 shadow-sm h-100 border-top border-azure border-4">
                         <div class="card-header bg-transparent border-0 pt-4 pb-0">
                             <h3 class="card-title fw-bold text-azure">
-                                <i class="ti ti-virus me-2"></i> HASIL PER PATOGEN
+                                <i class="ti ti-virus me-2"></i> KESIMPULAN HASIL UJI
                             </h3>
                         </div>
                         <div class="card-body">
-                            <div class="space-y-3">
-                                @foreach([
-                                    ['field' => 'hasil_parasit', 'label' => 'Parasit',  'icon' => 'ti-bug',      'col' => 11],
-                                    ['field' => 'hasil_bakteri', 'label' => 'Bakteri',  'icon' => 'ti-circle',   'col' => 12],
-                                    ['field' => 'hasil_virus',   'label' => 'Virus',    'icon' => 'ti-virus',    'col' => 13],
-                                    ['field' => 'hasil_jamur',   'label' => 'Jamur',    'icon' => 'ti-leaf',     'col' => 14],
-                                ] as $target)
-                                <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3">
-                                    <div class="fw-bold small text-muted">
-                                        <i class="ti {{ $target['icon'] }} me-1"></i> {{ $target['label'] }}
-                                    </div>
-                                    <div class="btn-group" role="group">
-                                        @foreach(['+' => 'danger', '-' => 'success', 'NT' => 'secondary'] as $val => $color)
-                                        <input type="radio" class="btn-check" name="{{ $target['field'] }}"
-                                            id="{{ $target['field'] }}_{{ $val }}"
-                                            value="{{ $val }}"
-                                            {{ old($target['field'], 'NT') === $val ? 'checked' : '' }}>
-                                        <label class="btn btn-outline-{{ $color }} btn-sm px-3"
-                                            for="{{ $target['field'] }}_{{ $val }}">{{ $val }}</label>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
                             
-                            <div class="mt-4 pt-3 border-top">
-                                <label class="form-label required fw-bold mb-2">HASIL AKHIR KESELURUHAN</label>
-                                <select name="hasil_uji" class="form-select form-select-lg fw-bold" required>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold mb-3">PILIH KELOMPOK</label>
+                                <div class="row g-2">
+                                    @foreach(['Virus', 'Bakteri', 'Parasit', 'Jamur'] as $kp)
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-selectgroup-item w-100">
+                                            <input type="radio" name="kelompok_patogen" value="{{ $kp }}" class="form-selectgroup-input" {{ old('kelompok_patogen') === $kp ? 'checked' : '' }}>
+                                            <span class="form-selectgroup-label d-flex align-items-center justify-content-center p-3 fs-3 shadow-sm transition-all text-center" style="border-radius: 0.5rem;">
+                                                <i class="ti {{ $kp === 'Virus' ? 'ti-virus' : ($kp === 'Bakteri' ? 'ti-circle' : ($kp === 'Parasit' ? 'ti-bug' : 'ti-leaf')) }} me-2 text-azure"></i> 
+                                                <span>{{ $kp }}</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-top">
+                                <label class="form-label required fw-bold mb-2 text-dark">NAMA PENYAKIT / HASIL AKHIR</label>
+                                <select name="hasil_uji" class="form-select form-select-lg fw-bold shadow-sm" style="border-radius: 0.5rem;" required>
                                     <option value="">— Pilih Hasil Akhir —</option>
-                                    <option value="Negatif" {{ old('hasil_uji') === 'Negatif' ? 'selected' : '' }} class="text-success">✅ NEGATIF (Bebas HPIK)</option>
-                                    <option value="Positif" {{ old('hasil_uji') === 'Positif' ? 'selected' : '' }} class="text-danger">🔴 POSITIF (Terdeteksi HPIK)</option>
-                                    <option value="Inkonklusif" {{ old('hasil_uji') === 'Inkonklusif' ? 'selected' : '' }} class="text-warning">⚠️ INKONKLUSIF</option>
+                                    <option value="NIHIL" {{ old('hasil_uji') === 'NIHIL' ? 'selected' : '' }} class="text-success fw-bold">✅ NIHIL</option>
+                                    <optgroup label="Daftar Penyakit (HPIK)">
+                                        @foreach($jenis_penyakits ?? [] as $penyakit)
+                                            <option value="{{ collect(explode(' - ', $penyakit->nama))->first() }}" {{ old('hasil_uji') === collect(explode(' - ', $penyakit->nama))->first() ? 'selected' : '' }}>
+                                                {{ $penyakit->nama }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
                                 </select>
                             </div>
                         </div>

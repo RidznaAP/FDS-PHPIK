@@ -96,6 +96,10 @@ class PelaksanaanController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        if ($rencana->pelaksanaans()->count() >= $rencana->target_uji) {
+            return redirect()->route('perencanaan.show', $id)->with('error', 'Target uji sudah terpenuhi. Tidak dapat menambahkan pelaksanaan baru.');
+        }
+
         return view('pelaksanaan.create', compact('rencana'));
     }
 
@@ -143,9 +147,13 @@ class PelaksanaanController extends Controller
         $user = Auth::user();
         $rencana = Perencanaan::with('user')->findOrFail($request->perencanaan_id);
 
-        // ── Auth-scoped Check ──────────────────────────────────────
         if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat()) {
             abort(403, 'Akses ditolak.');
+        }
+
+        // ── Target Uji Validation ──────────────────────────────────
+        if ($rencana->pelaksanaans()->count() >= $rencana->target_uji) {
+            return back()->withInput()->with('error', 'Target uji sudah terpenuhi. Tidak dapat menambahkan pelaksanaan baru.');
         }
 
         // Bersihkan array pengambil_sampel: hapus entri kosong

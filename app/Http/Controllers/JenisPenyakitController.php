@@ -51,6 +51,8 @@ class JenisPenyakitController extends Controller
             'aktif'              => $request->boolean('aktif', true),
         ]);
 
+        cache()->forget('master_jenis_penyakit');
+
         return redirect()->route('master.jenis-penyakit.index')
             ->with('success', '"' . $request->nama . '" berhasil ditambahkan ke Master Data.');
     }
@@ -78,6 +80,8 @@ class JenisPenyakitController extends Controller
             'aktif'              => $request->boolean('aktif', true),
         ]);
 
+        cache()->forget('master_jenis_penyakit');
+
         return redirect()->route('master.jenis-penyakit.index')
             ->with('success', '"' . $jenisPenyakit->nama . '" berhasil diperbarui.');
     }
@@ -86,6 +90,7 @@ class JenisPenyakitController extends Controller
     {
         $nama = $jenisPenyakit->nama;
         $jenisPenyakit->delete();
+        cache()->forget('master_jenis_penyakit');
         return redirect()->route('master.jenis-penyakit.index')
             ->with('success', '"' . $nama . '" berhasil dihapus dari Master Data.');
     }
@@ -108,6 +113,7 @@ class JenisPenyakitController extends Controller
 
         try {
             Excel::import(new JenisPenyakitImport, $request->file('file'));
+            cache()->forget('master_jenis_penyakit');
             return redirect()->back()->with('success', 'Data Jenis Penyakit berhasil diimpor!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
@@ -122,6 +128,7 @@ class JenisPenyakitController extends Controller
         }
 
         JenisPenyakit::whereIn('id', $ids)->delete();
+        cache()->forget('master_jenis_penyakit');
         return redirect()->back()->with('success', count($ids) . ' data berhasil dihapus.');
     }
 }

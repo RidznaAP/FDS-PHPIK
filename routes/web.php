@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\DokumenSeminarController;
 use App\Http\Controllers\NotifikasiController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +67,10 @@ Route::middleware('auth')->group(function () {
     // Validasi (approve) oleh BBKHIT/Pusat
     Route::middleware('role:bbkhit,pusat')->group(function () {
         Route::post('/perencanaan/approve/{id}', [PerencanaanController::class, 'approve'])->name('perencanaan.approve');
+        
+        // Penetapan Evaluasi (Warna Map)
+        Route::get('/perencanaan/{id}/evaluasi', [EvaluasiController::class, 'create'])->name('evaluasi.create');
+        Route::post('/perencanaan/evaluasi', [EvaluasiController::class, 'store'])->name('evaluasi.store');
     });
 
     // Detail Perencanaan (semua role bisa lihat)

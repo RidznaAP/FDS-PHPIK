@@ -18,8 +18,13 @@ class PerencanaanController extends Controller
     // Menampilkan Form Tambah
     public function create()
     {
-        $mediaPembawas  = MediaPembawa::aktif()->orderBy('nama')->get();
-        $jenisPenyakits = JenisPenyakit::aktif()->orderBy('nama')->get();
+        $mediaPembawas = cache()->remember('master_media_pembawa', 86400, function() {
+            return MediaPembawa::aktif()->orderBy('nama')->get();
+        });
+        $jenisPenyakits = cache()->remember('master_jenis_penyakit', 86400, function() {
+            return JenisPenyakit::aktif()->orderBy('nama')->get();
+        });
+        
         return view('perencanaan.create', compact('mediaPembawas', 'jenisPenyakits'));
     }
 
@@ -86,7 +91,8 @@ class PerencanaanController extends Controller
         }
         $years = $yearQuery->groupBy('tahun')->orderByDesc('tahun')->pluck('tahun');
 
-        $perencanaans = $query->paginate(15)->withQueryString();
+        $limit = $request->get('view') == 'board' ? 100 : 15;
+        $perencanaans = $query->paginate($limit)->withQueryString();
         return view('perencanaan.index', compact('perencanaans', 'years'));
     }
 
@@ -103,7 +109,7 @@ class PerencanaanController extends Controller
         
         if ($user->isBbkhit()) {
             // BBKHIT boleh akses data sendiri atau data unit di bawahnya
-            $owner = \App\Models\User::find($p->user_id);
+            $owner = User::find($p->user_id);
             if ($p->user_id !== $user->id && $owner->parent_id !== $user->id) {
                 abort(403, 'Data ini berada di luar wilayah koordinasi Anda.');
             }
@@ -171,7 +177,14 @@ class PerencanaanController extends Controller
                 ->with('error', 'Perencanaan tidak dapat diedit (bukan Draft atau bukan milik Anda).');
         }
 
-        return view('perencanaan.edit', compact('perencanaan'));
+        $mediaPembawas = cache()->remember('master_media_pembawa', 86400, function() {
+            return MediaPembawa::aktif()->orderBy('nama')->get();
+        });
+        $jenisPenyakits = cache()->remember('master_jenis_penyakit', 86400, function() {
+            return JenisPenyakit::aktif()->orderBy('nama')->get();
+        });
+
+        return view('perencanaan.edit', compact('perencanaan', 'mediaPembawas', 'jenisPenyakits'));
     }
 
     public function update(Request $request, $id)

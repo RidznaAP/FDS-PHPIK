@@ -46,6 +46,8 @@ class MediaPembawaController extends Controller
             'aktif'      => $request->boolean('aktif', true),
         ]);
 
+        cache()->forget('master_media_pembawa');
+
         return redirect()->route('master.media-pembawa.index')
             ->with('success', '"' . $request->nama . '" berhasil ditambahkan ke Master Data.');
     }
@@ -69,6 +71,8 @@ class MediaPembawaController extends Controller
             'aktif'      => $request->boolean('aktif', true),
         ]);
 
+        cache()->forget('master_media_pembawa');
+
         return redirect()->route('master.media-pembawa.index')
             ->with('success', '"' . $mediaPembawa->nama . '" berhasil diperbarui.');
     }
@@ -77,6 +81,7 @@ class MediaPembawaController extends Controller
     {
         $nama = $mediaPembawa->nama;
         $mediaPembawa->delete();
+        cache()->forget('master_media_pembawa');
         return redirect()->route('master.media-pembawa.index')
             ->with('success', '"' . $nama . '" berhasil dihapus dari Master Data.');
     }
@@ -99,6 +104,7 @@ class MediaPembawaController extends Controller
 
         try {
             Excel::import(new MediaPembawaImport, $request->file('file'));
+            cache()->forget('master_media_pembawa');
             return redirect()->back()->with('success', 'Data Media Pembawa berhasil diimpor!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
@@ -113,6 +119,7 @@ class MediaPembawaController extends Controller
         }
 
         MediaPembawa::whereIn('id', $ids)->delete();
+        cache()->forget('master_media_pembawa');
         return redirect()->back()->with('success', count($ids) . ' data berhasil dihapus.');
     }
 }

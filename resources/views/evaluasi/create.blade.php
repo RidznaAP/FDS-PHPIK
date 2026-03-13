@@ -124,7 +124,7 @@
                     <button type="submit" class="btn btn-primary btn-pill px-5 shadow-sm fs-3">
                         <i class="ti ti-circle-check me-2"></i> Simpan & Selesaikan Evaluasi
                     </button>
-                    <a href="{{ route('evaluasi.index') }}" class="btn btn-link link-secondary">Batalkan</a>
+                    <a href="{{ route('perencanaan.show', $perencanaan->id) }}" class="btn btn-link link-secondary">Batalkan</a>
                 </div>
             </div>
         </form>

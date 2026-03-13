@@ -81,34 +81,10 @@
                         </a>
                     </th>
                     <th class="sort-th">
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'hasil_parasit', 'sort_order' => (request('sort_by') === 'hasil_parasit' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'hasil_parasit' ? 'sort-active' : '' }}">
-                            Par
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'kelompok_patogen', 'sort_order' => (request('sort_by') === 'kelompok_patogen' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'kelompok_patogen' ? 'sort-active' : '' }}">
+                            Kelompok
                             <span class="sort-icon">
-                                <i class="ti {{ request('sort_by') === 'hasil_parasit' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
-                            </span>
-                        </a>
-                    </th>
-                    <th class="sort-th">
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'hasil_bakteri', 'sort_order' => (request('sort_by') === 'hasil_bakteri' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'hasil_bakteri' ? 'sort-active' : '' }}">
-                            Bak
-                            <span class="sort-icon">
-                                <i class="ti {{ request('sort_by') === 'hasil_bakteri' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
-                            </span>
-                        </a>
-                    </th>
-                    <th class="sort-th">
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'hasil_virus', 'sort_order' => (request('sort_by') === 'hasil_virus' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'hasil_virus' ? 'sort-active' : '' }}">
-                            Vir
-                            <span class="sort-icon">
-                                <i class="ti {{ request('sort_by') === 'hasil_virus' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
-                            </span>
-                        </a>
-                    </th>
-                    <th class="sort-th">
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'hasil_jamur', 'sort_order' => (request('sort_by') === 'hasil_jamur' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'hasil_jamur' ? 'sort-active' : '' }}">
-                            Jam
-                            <span class="sort-icon">
-                                <i class="ti {{ request('sort_by') === 'hasil_jamur' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                                <i class="ti {{ request('sort_by') === 'kelompok_patogen' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
@@ -130,6 +106,7 @@
                     </th>
                     <th class="w-1 text-center bg-light fw-bold small text-uppercase" style="letter-spacing: 0.1em; color: #64748b;">Aksi</th>
                 </tr>
+            </thead>
             <tbody>
                 @forelse($pelaksanaans as $key => $item)
                 <tr>
@@ -146,23 +123,21 @@
                     <td>{{ $item->perencanaan->jenis_mp ?? '-' }}</td>
                     <td>{{ $item->jumlah_sampel }} pelaksanaan</td>
                     <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
-                    @php
-                        $patogenBadge = [
-                            '+' => 'bg-danger-lt text-danger',
-                            '-' => 'bg-success-lt text-success',
-                            'NT' => 'bg-secondary-lt text-secondary',
-                        ];
-                    @endphp
-                    @foreach(['hasil_parasit','hasil_bakteri','hasil_virus','hasil_jamur'] as $f)
                     <td>
                         @if($item->laboratorium)
-                            @php $val = $item->laboratorium->$f ?? 'NT'; @endphp
-                            <span class="badge {{ $patogenBadge[$val] ?? 'bg-secondary-lt' }}">{{ $val }}</span>
+                            @php 
+                                $kp = $item->laboratorium->kelompok_patogen;
+                                $bgClass = match($kp) {
+                                    'NIHIL' => 'bg-success-lt text-success',
+                                    'Virus', 'Bakteri', 'Parasit', 'Jamur' => 'bg-azure-lt text-azure',
+                                    default => 'bg-secondary-lt text-secondary'
+                                };
+                            @endphp
+                            <span class="badge {{ $bgClass }}">{{ $kp ?? '—' }}</span>
                         @else
                             <span class="text-muted">—</span>
                         @endif
                     </td>
-                    @endforeach
                     <td class="text-muted small">
                         @if($item->laboratorium && $item->laboratorium->prevalensi !== null)
                             {{ $item->laboratorium->prevalensi }}%
@@ -171,7 +146,7 @@
                     </td>
                     <td>
                         @if($item->laboratorium)
-                            <span class="badge bg-success-lt text-success"><i class="ti ti-check me-1"></i>{{ $item->laboratorium->hasil_uji }}</span>
+                            <span class="badge {{ $item->laboratorium->hasil_uji === 'NIHIL' ? 'bg-success-lt text-success' : 'bg-danger-lt text-danger fw-bold' }}"><i class="ti {{ $item->laboratorium->hasil_uji === 'NIHIL' ? 'ti-check' : 'ti-alert-circle' }} me-1"></i>{{ $item->laboratorium->hasil_uji }}</span>
                         @else
                             <span class="badge bg-warning-lt text-warning"><i class="ti ti-clock me-1"></i>Menunggu</span>
                         @endif

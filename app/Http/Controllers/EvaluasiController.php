@@ -9,27 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class EvaluasiController extends Controller
 {
-    // Daftar perencanaan yang perlu dievaluasi
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-        $query = Perencanaan::with(['pelaksanaans.laboratorium', 'evaluasi']);
 
-        // ── Sorting ──────────────────────────────────────────────────────
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $allowedSorts = ['id', 'created_at', 'provinsi', 'kab_kota', 'jenis_mp'];
-        
-        if (in_array($sortBy, $allowedSorts)) {
-            $query->orderBy($sortBy, $sortOrder);
-        } else {
-            $query->latest();
-        }
-
-        // Ambil perencanaan dengan data pelaksanaan dan hasil lab
-        $perencanaans = $query->paginate(15)->withQueryString();
-        return view('evaluasi.index', compact('perencanaans'));
-    }
 
     // Form evaluasi untuk perencanaan tertentu
     public function create($id)
@@ -55,51 +35,9 @@ class EvaluasiController extends Controller
             'evaluator', 'prevalensi', 'insidensi', 'rekomendasi'
         ]));
 
-        return redirect()->route('evaluasi.index')->with('success', 'Evaluasi Berhasil Disimpan!');
+        return redirect()->route('perencanaan.show', $request->perencanaan_id)
+            ->with('success', 'Status Evaluasi Akhir berhasil ditetapkan pada Peta GIS!');
     }
 
-    // ── Show Detail Evaluasi ─────────────────────────────────────────────
-    public function show($id)
-    {
-        $evaluasi = Evaluasi::with('perencanaan')->findOrFail($id);
-        return view('evaluasi.show', compact('evaluasi'));
-    }
 
-    public function destroy($id)
-    {
-        $item = Evaluasi::findOrFail($id);
-        
-        // Jika bukan Pusat, pastikan pemilik data (lewat perencanaan)
-        if (!Auth::user()->isPusat()) {
-            if (!$item->perencanaan || $item->perencanaan->user_id !== Auth::id()) {
-                abort(403);
-            }
-        }
-        
-        $item->delete();
-        return back()->with('success', 'Data Evaluasi berhasil dihapus.');
-    }
-
-    public function bulkDelete(Request $request)
-    {
-        $ids = $request->input('ids', []);
-        if (empty($ids)) {
-            return back()->with('error', 'Pilih data yang akan dihapus.');
-        }
-
-        $query = Evaluasi::whereIn('id', $ids);
-
-        // Jika bukan Pusat, hanya boleh hapus milik sendiri
-        if (!Auth::user()->isPusat()) {
-            $query->whereHas('perencanaan', fn($q) => $q->where('user_id', Auth::id()));
-        }
-
-        $count = $query->delete();
-        
-        if ($count == 0) {
-            return back()->with('error', 'Tidak ada data yang diizinkan untuk dihapus.');
-        }
-
-        return back()->with('success', $count . ' data evaluasi berhasil dihapus.');
-    }
 }

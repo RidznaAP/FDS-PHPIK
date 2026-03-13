@@ -36,8 +36,8 @@
     </div>
 
     <div class="row g-4">
-        {{-- Kiri: Field Data Intelligence --}}
-        <div class="col-lg-8">
+        {{-- Full Width Field Data Intelligence --}}
+        <div class="col-lg-12">
             {{-- Scientific Identity Board --}}
             <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-white">
                 <div class="card-body p-0">

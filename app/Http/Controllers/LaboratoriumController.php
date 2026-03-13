@@ -85,7 +85,11 @@ class LaboratoriumController extends Controller
             }
         }
 
-        return view('laboratorium.create', compact('pelaksanaan'));
+        $jenis_penyakits = cache()->remember('master_jenis_penyakit', 86400, function() {
+            return \App\Models\JenisPenyakit::aktif()->orderBy('nama')->get();
+        });
+        
+        return view('laboratorium.create', compact('pelaksanaan', 'jenis_penyakits'));
     }
 
     // Simpan hasil laboratorium
@@ -96,14 +100,11 @@ class LaboratoriumController extends Controller
             'kode_sampel'       => 'required|unique:laboratoriums,kode_sampel',
             'metode_uji'        => 'required|string',
             'jenis_hpik_diuji'  => 'required|string',
-            'hasil_uji'         => 'required|in:Positif,Negatif,Inkonklusif',
+            'hasil_uji'         => 'required|string|max:255',
             'lab_penguji'       => 'required|string',
             'nama_petugas_uji'  => 'required|string|max:255',
             'tanggal_uji'       => 'required|date',
-            'hasil_parasit'     => 'nullable|in:+,-,NT',
-            'hasil_bakteri'     => 'nullable|in:+,-,NT',
-            'hasil_virus'       => 'nullable|in:+,-,NT',
-            'hasil_jamur'       => 'nullable|in:+,-,NT',
+            'kelompok_patogen'  => 'nullable|string|in:Virus,Bakteri,Parasit,Jamur,NIHIL',
             'prevalensi'        => 'nullable|numeric|min:0|max:100',
             'insidensi'         => 'nullable|numeric|min:0|max:100',
             'tanggal_hasil'     => 'nullable|date',
@@ -112,8 +113,7 @@ class LaboratoriumController extends Controller
         $lab = Laboratorium::create($request->only([
             'pelaksanaan_id', 'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
             'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
-            'tanggal_uji', 'tanggal_hasil',
-            'hasil_parasit', 'hasil_bakteri', 'hasil_virus', 'hasil_jamur',
+            'tanggal_uji', 'tanggal_hasil', 'kelompok_patogen',
             'prevalensi', 'insidensi',
             'jumlah_ikan_terinfeksi', 'jumlah_sampel_diperiksa',
             'jumlah_kolam_uji', 'periode_pengamatan',

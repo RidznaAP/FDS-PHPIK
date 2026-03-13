@@ -52,11 +52,7 @@
                             <i class="ti ti-microscope me-2 text-azure"></i> Rincian Pengujian Spesialis
                         </h3>
                         @php
-                            $stColor = match($lab->hasil_uji) {
-                                'Positif' => 'danger',
-                                'Negatif' => 'success',
-                                default   => 'azure',
-                            };
+                            $stColor = $lab->hasil_uji === 'NIHIL' ? 'success' : 'danger';
                         @endphp
                         <span class="badge bg-{{ $stColor }} text-white px-3 py-1 rounded-pill fw-bold animate-pulse">{{ strtoupper($lab->hasil_uji) }}</span>
                     </div>
@@ -118,25 +114,19 @@
                         <div class="card-body p-0 pt-3">
                             <table class="table table-vcenter card-table table-borderless table-striped-soft">
                                 <tbody>
-                                    @foreach(['Virus' => 'hasil_virus', 'Bakteri' => 'hasil_bakteri', 'Parasit' => 'hasil_parasit', 'Jamur' => 'hasil_jamur'] as $label => $field)
                                     <tr>
-                                        <td class="ps-4 fw-medium text-muted py-3">{{ $label }}</td>
+                                        <td class="ps-4 fw-medium text-muted py-3">Kelompok Patogen</td>
                                         <td class="text-end pe-4 py-3">
-                                            @php $val = $lab->$field ?? 'NT'; @endphp
-                                            @if($val == '+')
-                                                <span class="badge bg-danger p-2 px-3 rounded-pill shadow-sm" title="Positif">
-                                                    <i class="ti ti-alert-triangle me-1"></i>POSITIVE
-                                                </span>
-                                            @elseif($val == '-')
-                                                <span class="badge bg-success p-2 px-3 rounded-pill shadow-sm" title="Negatif">
-                                                    <i class="ti ti-check me-1"></i>NEGATIVE
-                                                </span>
-                                            @else
-                                                <span class="badge bg-light text-muted small px-3 py-2 rounded-pill border">NOT TESTED</span>
-                                            @endif
+                                            @php
+                                                $kp = $lab->kelompok_patogen ?? 'N/A';
+                                                $bgClass = $kp === 'NIHIL' ? 'bg-success' : ($kp === 'N/A' ? 'bg-secondary' : 'bg-azure');
+                                                $icon = $kp === 'Virus' ? 'ti-virus' : ($kp === 'Bakteri' ? 'ti-circle' : ($kp === 'Parasit' ? 'ti-bug' : ($kp === 'Jamur' ? 'ti-leaf' : ($kp === 'NIHIL' ? 'ti-shield-check' : 'ti-help'))));
+                                            @endphp
+                                            <span class="badge {{ $bgClass }} p-2 px-3 rounded-pill shadow-sm" style="font-size: 0.8rem;">
+                                                <i class="ti {{ $icon }} me-1"></i> {{ strtoupper($kp) }}
+                                            </span>
                                         </td>
                                     </tr>
-                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
