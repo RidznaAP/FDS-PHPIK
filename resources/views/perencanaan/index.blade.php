@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Perencanaan')
-@section('page_title', 'Modul Perencanaan')
-@section('page_subtitle', 'Daftar rencana pemantauan HPIK')
+@section('page_title', 'Perencanaan Pemantauan')
+@section('page_subtitle', 'Daftar rencana pemantauan HPIK per UPT')
 
 @section('page_actions')
     <div class="btn-list">
@@ -40,16 +40,16 @@
     <form id="filter-form" method="GET" action="{{ route('perencanaan.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
         @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
         <select name="tahun" class="form-select form-select-sm" style="width:135px;" onchange="this.form.submit()">
-            <option value="">📅 Semua Tahun</option>
+            <option value="">Semua Tahun</option>
             @foreach($years as $y)
                 <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endforeach
         </select>
         <select name="status" class="form-select form-select-sm" style="width:175px;" onchange="this.form.submit()">
-            <option value="">🔘 Semua Status</option>
-            <option value="draft"    {{ request('status') == 'draft'    ? 'selected' : '' }}>📝 Draft</option>
-            <option value="waiting"  {{ request('status') == 'waiting'  ? 'selected' : '' }}>⏳ Menunggu</option>
-            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>✅ Disetujui</option>
+            <option value="">Semua Status</option>
+            <option value="draft"    {{ request('status') == 'draft'    ? 'selected' : '' }}>Dalam Penyusunan</option>
+            <option value="waiting"  {{ request('status') == 'waiting'  ? 'selected' : '' }}>Menunggu Persetujuan</option>
+            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui &amp; Aktif</option>
         </select>
         @if(request('search') || request('tahun') || request('status'))
             <a href="{{ route('perencanaan.index') }}" class="btn btn-sm btn-outline-secondary">

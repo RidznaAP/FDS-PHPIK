@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Peta GIS')
+@section('title', 'Peta Pemantauan')
 @section('page_title', 'Peta Sebaran Pemantauan HPIK')
 @section('page_subtitle', $markers->count() . ' titik lokasi terpetakan')
 

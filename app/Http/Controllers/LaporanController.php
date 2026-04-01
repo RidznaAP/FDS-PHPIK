@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Perencanaan;
 use App\Models\Pelaksanaan;
 use App\Models\Laboratorium;
@@ -16,7 +17,7 @@ class LaporanController extends Controller
     // Halaman pusat pelaporan & ekspor
     public function index()
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
 
         // Daftar BKHIT unik untuk filter formulir & PDF
         $bkhitListQuery = User::where('role', 'bkhit')
@@ -52,7 +53,7 @@ class LaporanController extends Controller
     // ── #13: Export / Print PDF via browser print ──────────────────────────────
     public function exportPdf(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $query = Perencanaan::with(['pelaksanaans', 'evaluasi', 'user'])->latest();
 
         // ── Auth-scoped Filtering ──────────────────────────────────────
@@ -95,7 +96,7 @@ class LaporanController extends Controller
     // ── Laporan Formulir Hasil Pemantauan HPIK (Sesuai Gambar) ────────────────
     public function exportFormulir(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium'])->latest();
 
         // ── Auth-scoped Filtering ──────────────────────────────────────

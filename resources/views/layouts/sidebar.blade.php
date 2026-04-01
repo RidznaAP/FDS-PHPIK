@@ -7,8 +7,17 @@
                 </button>
                 <h1 class="navbar-brand navbar-brand-autodark">
                     <a href="{{ route('home') }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
-                        <span style="font-size:1.5rem;">🐟</span>
-                        <span class="navbar-brand-text" style="font-size:1.1rem;">SIP-HPIK</span>
+                        {{-- Logo Instansi: letakkan file logo di public/images/logo-instansi.png --}}
+                        @if(file_exists(public_path('images/logo-instansi.png')))
+                            <img src="{{ asset('images/logo-instansi.png') }}" alt="Logo Badan Karantina Indonesia"
+                                 style="height:36px;width:auto;object-fit:contain;background:#fff;border-radius:50%;padding:2px;">
+                        @else
+                            <span style="font-size:1.5rem;">🐟</span>
+                        @endif
+                        <div class="d-flex flex-column lh-1">
+                            <span class="navbar-brand-text fw-bold" style="font-size:.95rem;letter-spacing:.02em;">SIP-HPIK</span>
+                            <span style="font-size:.6rem;opacity:.65;letter-spacing:.04em;text-transform:uppercase;">Badan Karantina Indonesia</span>
+                        </div>
                     </a>
                 </h1>
 
@@ -80,17 +89,19 @@
                             </a>
                         </li>
 
-                        {{-- 4. Evaluasi (upload file seminar) --}}
+                        {{-- 4. Evaluasi (upload dokumen seperti Pelaporan) --}}
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('evaluasi*') ? 'active' : '' }}" href="{{ route('evaluasi.index') }}">
+                            <a class="nav-link {{ request()->is('seminar/evaluasi*') || request()->is('evaluasi*') ? 'active' : '' }}"
+                               href="{{ route('seminar.index', 'evaluasi') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-chart-bar" style="font-size:1.2rem;"></i>
+                                    <i class="ti ti-file-analytics" style="font-size:1.2rem;"></i>
                                 </span>
                                 <span class="nav-link-title">Evaluasi</span>
                             </a>
                         </li>
 
-                        {{-- 5. Export Data (dropdown: Peta GIS + Laporan & Ekspor) --}}
+                        {{-- 5. Export Data / Laporan & Ekspor --}}
+                        @if(Auth::user()->isPusat())
                         <li class="nav-item {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}">
                             <a class="nav-link dropdown-toggle {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}"
                                href="#exportDataSubmenu" data-bs-toggle="collapse"
@@ -98,14 +109,14 @@
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <i class="ti ti-file-export" style="font-size:1.2rem;"></i>
                                 </span>
-                                <span class="nav-link-title">Export Data</span>
+                                <span class="nav-link-title">Data & Laporan</span>
                             </a>
                             <div class="collapse {{ request()->is('peta*') || request()->is('laporan*') ? 'show' : '' }}" id="exportDataSubmenu">
                                 <ul class="nav nav-sm flex-column ms-3 border-start border-secondary ps-2 mt-1">
                                     <li class="nav-item">
                                         <a class="nav-link py-1 {{ request()->is('peta*') ? 'active' : '' }}" href="{{ route('peta.index') }}">
                                             <i class="ti ti-map me-1" style="font-size:0.9rem;"></i>
-                                            Peta GIS
+                                            Peta Pemantauan
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -117,6 +128,16 @@
                                 </ul>
                             </div>
                         </li>
+                        @else
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <i class="ti ti-file-export" style="font-size:1.2rem;"></i>
+                                </span>
+                                <span class="nav-link-title">Export Data</span>
+                            </a>
+                        </li>
+                        @endif
 
                         {{-- Manajemen Akun & Master Data --}}
                         @php $user = Auth::user(); @endphp
@@ -193,22 +214,10 @@
                     <div class="mt-auto border-top pt-3 pb-2" style="border-color: rgba(255,255,255,0.1) !important;">
                         {{-- Notification badge for BBKHIT/Pusat --}}
                         @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
-                            @php 
-                                $user = Auth::user();
-                                $pendingCount = \App\Models\Perencanaan::where('status', 'waiting')
-                                    ->when($user->isBbkhit(), function($q) use ($user) {
-                                        $q->whereIn('user_id', function($rq) use ($user) {
-                                            $rq->select('id')->from('users')
-                                              ->where('id', $user->id)
-                                              ->orWhere('parent_id', $user->id);
-                                        });
-                                    })
-                                    ->count(); 
-                            @endphp
-                            @if($pendingCount > 0)
+                            @if(($pendingApprovalCount ?? 0) > 0)
                                 <a href="{{ route('perencanaan.index') }}?status=waiting" class="d-flex align-items-center gap-2 px-3 py-2 mb-2 text-decoration-none" style="background:rgba(251,191,36,0.12);border-radius:8px;">
                                     <i class="ti ti-bell-ringing text-warning" style="font-size:1.2rem;"></i>
-                                    <span class="text-warning small fw-semibold">{{ $pendingCount }} menunggu approval</span>
+                                    <span class="text-warning small fw-semibold">{{ $pendingApprovalCount }} menunggu approval</span>
                                 </a>
                             @endif
                         @endif

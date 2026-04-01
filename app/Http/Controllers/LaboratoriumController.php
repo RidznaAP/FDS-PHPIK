@@ -104,7 +104,10 @@ class LaboratoriumController extends Controller
             'lab_penguji'       => 'required|string',
             'nama_petugas_uji'  => 'required|string|max:255',
             'tanggal_uji'       => 'required|date',
-            'kelompok_patogen'  => 'nullable|string|in:Virus,Bakteri,Parasit,Jamur,NIHIL',
+            'hasil_parasit'     => 'required|string|in:Positif (+),Negatif (-),NT',
+            'hasil_bakteri'     => 'required|string|in:Positif (+),Negatif (-),NT',
+            'hasil_virus'       => 'required|string|in:Positif (+),Negatif (-),NT',
+            'hasil_jamur'       => 'required|string|in:Positif (+),Negatif (-),NT',
             'prevalensi'        => 'nullable|numeric|min:0|max:100',
             'insidensi'         => 'nullable|numeric|min:0|max:100',
             'tanggal_hasil'     => 'nullable|date',
@@ -113,13 +116,92 @@ class LaboratoriumController extends Controller
         $lab = Laboratorium::create($request->only([
             'pelaksanaan_id', 'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
             'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
-            'tanggal_uji', 'tanggal_hasil', 'kelompok_patogen',
+            'tanggal_uji', 'tanggal_hasil', 'hasil_parasit', 'hasil_bakteri',
+            'hasil_virus', 'hasil_jamur',
             'prevalensi', 'insidensi',
             'jumlah_ikan_terinfeksi', 'jumlah_sampel_diperiksa',
             'jumlah_kolam_uji', 'periode_pengamatan',
+            'panjang', 'berat', 'asal_benih_induk', 'padat_tebar',
+            'gejala_klinis', 'jumlah_kematian'
         ]));
 
         return redirect()->route('pelaksanaan.show', $request->pelaksanaan_id)->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
+    }
+
+    public function edit($id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $lab = Laboratorium::with(['pelaksanaan.perencanaan.user'])->findOrFail($id);
+        $pelaksanaan = $lab->pelaksanaan;
+
+        // ── Auth-scoped Check ──────────────────────────────────────
+        if ($user->isBkhit() && $pelaksanaan->perencanaan->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah data ini.');
+        }
+
+        if ($user->isBbkhit()) {
+            $owner = $pelaksanaan->perencanaan->user;
+            if ($pelaksanaan->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
+                abort(403, 'Data ini berada di luar wilayah koordinasi Anda.');
+            }
+        }
+
+        $jenis_penyakits = cache()->remember('master_jenis_penyakit', 86400, function() {
+            return \App\Models\JenisPenyakit::aktif()->orderBy('nama')->get();
+        });
+        
+        return view('laboratorium.edit', compact('lab', 'pelaksanaan', 'jenis_penyakits'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $lab = Laboratorium::findOrFail($id);
+        
+        $request->validate([
+            'kode_sampel'       => 'required|unique:laboratoriums,kode_sampel,' . $lab->id,
+            'metode_uji'        => 'required|string',
+            'jenis_hpik_diuji'  => 'required|string',
+            'hasil_uji'         => 'required|string|max:255',
+            'lab_penguji'       => 'required|string',
+            'nama_petugas_uji'  => 'required|string|max:255',
+            'tanggal_uji'       => 'required|date',
+            'hasil_parasit'     => 'required|string|in:Positif (+),Negatif (-),NT',
+            'hasil_bakteri'     => 'required|string|in:Positif (+),Negatif (-),NT',
+            'hasil_virus'       => 'required|string|in:Positif (+),Negatif (-),NT',
+            'hasil_jamur'       => 'required|string|in:Positif (+),Negatif (-),NT',
+            'prevalensi'        => 'nullable|numeric|min:0|max:100',
+            'insidensi'         => 'nullable|numeric|min:0|max:100',
+            'tanggal_hasil'     => 'nullable|date',
+        ]);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $pelaksanaan = $lab->pelaksanaan;
+        
+        // ── Auth-scoped Check ──────────────────────────────────────
+        if ($user->isBkhit() && $pelaksanaan->perencanaan->user_id !== $user->id) {
+            abort(403, 'Anda tidak memiliki akses untuk mengubah data ini.');
+        }
+
+        if ($user->isBbkhit()) {
+            $owner = $pelaksanaan->perencanaan->user;
+            if ($pelaksanaan->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
+                abort(403, 'Data ini berada di luar wilayah koordinasi Anda.');
+            }
+        }
+
+        $lab->update($request->only([
+            'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
+            'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
+            'tanggal_uji', 'tanggal_hasil', 'hasil_parasit', 'hasil_bakteri',
+            'hasil_virus', 'hasil_jamur',
+            'prevalensi', 'insidensi',
+            'jumlah_ikan_terinfeksi', 'jumlah_sampel_diperiksa',
+            'jumlah_kolam_uji', 'periode_pengamatan',
+            'panjang', 'berat', 'asal_benih_induk', 'padat_tebar',
+            'gejala_klinis', 'jumlah_kematian'
+        ]));
+
+        return redirect()->route('pelaksanaan.show', $pelaksanaan->id)->with('success', 'Hasil Uji Laboratorium Berhasil Diperbarui!');
     }
 
     public function show($id)

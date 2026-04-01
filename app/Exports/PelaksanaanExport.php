@@ -30,23 +30,28 @@ class PelaksanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
         }
 
         return $query->get()->map(function ($p, $i) {
+            $lokasi = trim(($p->perencanaan->provinsi ?? '') . ', ' . ($p->perencanaan->kab_kota ?? '') . ', ' . $p->lokasi_pengambilan_sampel, ', ');
+            $jenis = trim($p->jenis_ikan . ($p->nama_latin ? " ({$p->nama_latin})" : ''));
+
             return [
                 'No'                      => $i + 1,
-                'Provinsi'                => $p->perencanaan->provinsi ?? '-',
-                'Kab/Kota'               => $p->perencanaan->kab_kota ?? '-',
-                'Jenis MP'               => $p->perencanaan->jenis_mp ?? '-',
-                'Jenis HPIK'             => $p->perencanaan->jenis_hpik ?? '-',
-                'Lokasi Sampling'         => $p->lokasi_pengambilan_sampel,
-                'Jumlah Sampel'          => $p->jumlah_sampel,
-                'Metode Sampling'        => $p->metode_pengambilan_sampel ?? '-',
-                'Latitude'               => $p->latitude ?? '-',
-                'Longitude'              => $p->longitude ?? '-',
-                'Kode Sampel Lab'        => $p->laboratorium->kode_sampel ?? 'Belum',
-                'Metode Uji'             => $p->laboratorium->metode_uji ?? '-',
-                'Hasil Uji'              => $p->laboratorium->hasil_uji ?? 'Belum',
-                'Lab Penguji'            => $p->laboratorium->lab_penguji ?? '-',
-                'Tanggal Uji'            => $p->laboratorium->tanggal_uji ?? '-',
-                'Kesimpulan Akhir'       => $p->perencanaan->evaluasi->kesimpulan ?? 'Belum Dievaluasi',
+                'Lokasi Pemantauan'       => $lokasi,
+                'Tanggal Pemantauan'      => $p->tanggal_pemantauan ? \Carbon\Carbon::parse($p->tanggal_pemantauan)->format('d/m/Y') : '-',
+                'Jenis'                   => $jenis ?: '-',
+                'Panjang (cm)'            => $p->panjang_cm ?? '-',
+                'Berat (gram)'            => $p->berat_gram ?? '-',
+                'Asal Benih/ Induk'       => $p->asal_benih_induk ?? '-',
+                'Padat Tebar'             => $p->padat_tebar ?? '-',
+                'Gejala Klinis'           => $p->gejala_klinis ?? '-',
+                'Jumlah Kematian'         => $p->jumlah_kematian ?? '-',
+                'Parasit'                 => $p->laboratorium->hasil_parasit ?? 'NT',
+                'Bakteri'                 => $p->laboratorium->hasil_bakteri ?? 'NT',
+                'Virus'                   => $p->laboratorium->hasil_virus ?? 'NT',
+                'Jamur'                   => $p->laboratorium->hasil_jamur ?? 'NT',
+                'Prev. (%)'               => $p->laboratorium->prevalensi ?? '-',
+                'Insidensi (%)'           => $p->laboratorium->insidensi ?? '-',
+                'Lab. Uji'                => $p->laboratorium->lab_penguji ?? ($p->perencanaan->lab_uji ?? '-'),
+                'Ket'                     => $p->keterangan ?? '-',
             ];
         });
     }
@@ -54,29 +59,42 @@ class PelaksanaanExport implements FromCollection, WithHeadings, WithStyles, Wit
     public function headings(): array
     {
         return [
-            'No', 'Provinsi', 'Kab/Kota', 'Jenis MP', 'Jenis HPIK',
-            'Lokasi Sampling', 'Jumlah Sampel', 'Metode Sampling',
-            'Latitude', 'Longitude',
-            'Kode Sampel Lab', 'Metode Uji', 'Hasil Uji', 'Lab Penguji', 'Tanggal Uji',
-            'Kesimpulan Akhir',
+            ['No', 'Lokasi Pemantauan (Prop/Kab/Kec.)', 'Tanggal Pemantauan', 'Contoh Uji', '', '', '', '', '', '', 'Hasil Pemeriksaan', '', '', '', 'Prev. (%)', 'Insidensi (%)', 'Lab. Uji', 'Ket.'],
+            ['', '', '', 'Jenis', 'Panjang (cm)', 'Berat (gram)', 'Asal Benih/ Induk', 'Padat Tebar', 'Gejala Klinis', 'Jumlah Kematian', 'Parasit', 'Bakteri', 'Virus', 'Jamur', '', '', '', ''],
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18']
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle('A1:O1')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+        $sheet->mergeCells('A1:A2');
+        $sheet->mergeCells('B1:B2');
+        $sheet->mergeCells('C1:C2');
+        $sheet->mergeCells('D1:J1');
+        $sheet->mergeCells('K1:N1');
+        $sheet->mergeCells('O1:O2');
+        $sheet->mergeCells('P1:P2');
+        $sheet->mergeCells('Q1:Q2');
+        $sheet->mergeCells('R1:R2');
+
+        $sheet->getStyle('A1:R3')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => '000000']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1a6e3c'],
+                'startColor' => ['rgb' => 'D3D3D3'],
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical'   => Alignment::VERTICAL_CENTER,
             ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
         ]);
 
-        return [1 => ['font' => ['bold' => true]]];
+        return [1 => ['font' => ['bold' => true]], 2 => ['font' => ['bold' => true]], 3 => ['font' => ['bold' => true]]];
     }
 
     public function title(): string

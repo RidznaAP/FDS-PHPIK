@@ -2,6 +2,14 @@
 
 @section('title', 'Detail Perencanaan')
 
+@section('breadcrumb')
+<ol class="breadcrumb" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('perencanaan.index') }}">Perencanaan</a></li>
+    <li class="breadcrumb-item active">Detail #{{ str_pad($p->id, 5, '0', STR_PAD_LEFT) }}</li>
+</ol>
+@endsection
+
 @section('content')
 <div class="animate-fade-in">
     {{-- Glassmorphism Page Header --}}
@@ -16,9 +24,9 @@
                         <span class="badge bg-primary-lt text-primary px-3 fs-6 rounded-pill">MODUL PERENCANAAN</span>
                         @php
                             $statusMap = [
-                                'draft'    => ['label'=>'Drafting Phase',     'class'=>'bg-secondary-lt text-secondary', 'icon' => 'ti-pencil'],
-                                'waiting'  => ['label'=>'Pending Validation', 'class'=>'bg-warning-lt text-warning',   'icon' => 'ti-hourglass-low'],
-                                'approved' => ['label'=>'Approved / Active',  'class'=>'bg-success-lt text-success',   'icon' => 'ti-checkbox'],
+                                'draft'    => ['label'=>'Dalam Penyusunan',     'class'=>'bg-secondary-lt text-secondary', 'icon' => 'ti-pencil'],
+                                'waiting'  => ['label'=>'Menunggu Persetujuan', 'class'=>'bg-warning-lt text-warning',   'icon' => 'ti-hourglass-low'],
+                                'approved' => ['label'=>'Disetujui & Aktif',    'class'=>'bg-success-lt text-success',   'icon' => 'ti-checkbox'],
                             ];
                             $s = $statusMap[$p->status] ?? $statusMap['draft'];
                         @endphp
@@ -294,9 +302,33 @@
             <div class="card card-premium shadow-sm border-0 mb-4 bg-dark text-white overflow-hidden">
                 <div class="card-body p-4 position-relative">
                     <h3 class="card-title fw-bold text-uppercase small tracking-widest opacity-75 mb-4">
-                        <i class="ti ti-bolt me-2 text-warning"></i> Quick Operations
+                        <i class="ti ti-bolt me-2 text-warning"></i> Operasi Cepat
                     </h3>
                     <div class="d-grid gap-3 position-relative" style="z-index: 2;">
+
+                        {{-- BKHIT: Submit jika masih draft --}}
+                        @if(Auth::user()->isBkhit() && $p->status === 'draft')
+                            <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-warning btn-pill w-100 fw-bold border-0 shadow-lg"
+                                    onclick="return confirm('Ajukan perencanaan ini untuk persetujuan BBKHIT/Pusat?')">
+                                    <i class="ti ti-send me-2"></i>AJUKAN PERSETUJUAN
+                                </button>
+                            </form>
+                        @endif
+
+                        {{-- BBKHIT/Pusat: Approve jika sedang waiting --}}
+                        @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'waiting')
+                            <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-success btn-pill w-100 fw-bold border-0 shadow-lg"
+                                    onclick="return confirm('Setujui perencanaan ini? Status akan berubah menjadi Disetujui & Aktif.')">
+                                    <i class="ti ti-circle-check me-2"></i>SETUJUI PERENCANAAN
+                                </button>
+                            </form>
+                        @endif
+
+                        {{-- BKHIT: Tambah Pelaksanaan jika approved --}}
                         @if(Auth::user()->isUpt() && $p->status === 'approved')
                             @if($p->pelaksanaans->count() < $p->target_uji)
                                 <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-white btn-pill w-100 fw-bold border-0 shadow-lg">
@@ -306,7 +338,14 @@
                                 <div class="badge bg-green text-white px-3 py-2 rounded-pill shadow-sm w-100"><i class="ti ti-check me-2"></i>Target Uji Terpenuhi</div>
                             @endif
                         @endif
-                        
+
+                        {{-- BBKHIT/Pusat: Buat Evaluasi jika approved --}}
+                        @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'approved' && !$p->evaluasi)
+                            <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-azure btn-pill w-100 fw-bold border-0 shadow-lg">
+                                <i class="ti ti-rosette-discount-check me-2"></i>BUAT EVALUASI AKHIR
+                            </a>
+                        @endif
+
                         <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-light btn-pill w-100 opacity-75 hover-opacity-100">
                             <i class="ti ti-file-export me-2"></i>EKSPOR LAPORAN
                         </a>

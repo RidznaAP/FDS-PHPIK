@@ -5,13 +5,35 @@
 @section('page_subtitle', 'Analisis hasil laboratorium dan penetapan status wilayah: ' . $perencanaan->kab_kota . ', ' . $perencanaan->provinsi)
 
 @section('content')
-<div class="row justify-content-center animate-fade-in">
-    <div class="col-lg-10">
+<div class="row justify-content-center animate-fade-in px-2">
+    <div class="col-12">
+        {{-- High-End Page Header --}}
+        <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-azure border-5">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-start gap-4">
+                    <div class="bg-azure text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
+                        <i class="ti ti-stamp fs-1"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-azure-lt text-azure px-3 fs-6 rounded-pill">MODUL EVALUASI</span>
+                        </div>
+                        <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">Penetapan Evaluasi Akhir</h1>
+                        <div class="text-muted fs-3">Analisis hasil lab dan tetapkan status wilayah {{ $perencanaan->kab_kota }}, {{ $perencanaan->provinsi }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ route('perencanaan.show', $perencanaan->id) }}" class="btn btn-white btn-pill px-4 border shadow-sm">
+                    <i class="ti ti-arrow-left me-2"></i>Kembali ke Detail
+                </a>
+            </div>
+        </div>
 
         {{-- Ringkasan Hasil Lab (Data Board) --}}
         <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden">
-            <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                <h3 class="card-title fw-bold text-azure">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest text-azure">
                     <i class="ti ti-table me-2"></i> RINGKASAN DATA LABORATORIUM
                 </h3>
             </div>
@@ -66,9 +88,9 @@
             @csrf
             <input type="hidden" name="perencanaan_id" value="{{ $perencanaan->id }}">
             
-            <div class="card card-premium mb-4 border-0 shadow-sm border-top border-primary border-4">
-                <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                    <h3 class="card-title fw-bold text-primary">
+            <div class="card card-premium mb-4 border-0 shadow-sm border-top border-primary border-5">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest text-primary">
                         <i class="ti ti-checklist me-2"></i> FORM PENETAPAN STATUS
                     </h3>
                 </div>
@@ -86,7 +108,7 @@
                         </div>
                         
                         <div class="col-md-6">
-                            <label class="form-label required fw-bold mb-2">Status Warna (GIS Dashboard)</label>
+                            <label class="form-label required fw-bold mb-2">Status Warna (Dashboard Peta)</label>
                             <select name="status_warna" class="form-select form-select-lg @error('status_warna') is-invalid @enderror" required>
                                 <option value="">— Pilih Warna Peta —</option>
                                 <option value="hijau" {{ old('status_warna') === 'hijau' ? 'selected' : '' }}>🟢 HIJAU (Aman / Bebas)</option>

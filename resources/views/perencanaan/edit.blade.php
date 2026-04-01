@@ -4,14 +4,37 @@
 @section('no_header', true)
 
 @section('content')
-<div class="row justify-content-center animate-fade-in">
-    <div class="col-lg-10">
+<div class="row justify-content-center animate-fade-in px-2">
+    <div class="col-12">
+        {{-- High-End Page Header --}}
+        <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-indigo border-5">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-start gap-4">
+                    <div class="bg-indigo text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
+                        <i class="ti ti-calendar-plus fs-1"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-indigo-lt text-indigo px-3 fs-6 rounded-pill">MODUL PERENCANAAN</span>
+                        </div>
+                        <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">Edit Perencanaan Strategis</h1>
+                        <div class="text-muted fs-3">Ubah rencana pemantauan HPIK untuk {{ $perencanaan->kab_kota }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{{ route('perencanaan.index') }}" class="btn btn-white btn-pill px-4 border shadow-sm">
+                    <i class="ti ti-arrow-left me-2"></i>Kembali ke Daftar
+                </a>
+            </div>
+        </div>
+
         <form action="{{ route('perencanaan.update', $perencanaan->id) }}" method="POST">
             @csrf
             @method('PUT')
             
             {{-- Bagian 1: Identitas & Lokasi --}}
-            <div class="card card-premium mb-4 border-0 shadow-sm">
+            <div class="card card-premium mb-4 border-0 shadow-sm bg-white">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h3 class="card-title fw-bold text-primary">
                         <i class="ti ti-map-2 me-2"></i> DATA LOKASI & KOMODITAS

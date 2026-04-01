@@ -175,12 +175,16 @@
                 <div class="container-xl">
                     <div class="row g-2 align-items-center">
                         <div class="col">
-                            <h2 class="page-title">
-                                @yield('page_title', 'Dashboard')
-                            </h2>
-                            <div class="text-secondary mt-1 small">
-                                @yield('page_subtitle', 'Sistem Informasi Pemantauan HPIK')
-                            </div>
+                            @hasSection('breadcrumb')
+                                @yield('breadcrumb')
+                            @else
+                                <h2 class="page-title">
+                                    @yield('page_title', 'Dashboard')
+                                </h2>
+                                <div class="text-secondary mt-1 small">
+                                    @yield('page_subtitle', 'Sistem Informasi Pemantauan HPIK')
+                                </div>
+                            @endif
                         </div>
                         <div class="col-auto ms-auto d-print-none">
                             @yield('page_actions')

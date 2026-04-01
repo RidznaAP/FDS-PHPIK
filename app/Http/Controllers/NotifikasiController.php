@@ -14,17 +14,32 @@ class NotifikasiController extends Controller
     }
 
     /** Halaman daftar notifikasi */
-    public function index()
+    public function index(Request $request)
     {
-        $notifikasis = Notifikasi::where('user_id', Auth::id())
-            ->with('dariUser')
-            ->latest()
-            ->paginate(20);
+        $query = Notifikasi::where('user_id', Auth::id())->with('dariUser')->latest();
 
-        // Tandai semua sebagai dibaca saat membuka halaman
-        Notifikasi::where('user_id', Auth::id())
-            ->where('dibaca', false)
-            ->update(['dibaca' => true]);
+        // Filter: sudah/belum dibaca
+        if ($request->filled('dibaca') && in_array($request->dibaca, ['0', '1'])) {
+            $query->where('dibaca', (bool) $request->dibaca);
+        }
+
+        // Search: judul atau pesan
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(function ($sq) use ($q) {
+                $sq->where('judul', 'like', "%{$q}%")
+                   ->orWhere('pesan', 'like', "%{$q}%");
+            });
+        }
+
+        $notifikasis = $query->paginate(20)->withQueryString();
+
+        // Tandai semua sebagai dibaca hanya jika tidak ada filter aktif
+        if (!$request->filled('dibaca') && !$request->filled('search')) {
+            Notifikasi::where('user_id', Auth::id())
+                ->where('dibaca', false)
+                ->update(['dibaca' => true]);
+        }
 
         return view('notifikasi.index', compact('notifikasis'));
     }

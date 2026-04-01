@@ -151,21 +151,29 @@
         <!-- ===== KIRI 50%: Branding ===== -->
         <div class="login-left">
             <div class="brand-box">
-                <span class="brand-icon">🐟</span>
+                {{-- Logo Instansi Pemerintah --}}
+                @if(file_exists(public_path('images/logo-instansi.png')))
+                    <img src="{{ asset('images/logo-instansi.png') }}" alt="Logo Badan Karantina Indonesia"
+                         style="height:110px;width:auto;object-fit:contain;margin-bottom:1.5rem;
+                                background:#fff;border-radius:50%;padding:8px;
+                                box-shadow:0 0 0 4px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.3);">
+                @else
+                    <span class="brand-icon">🐟</span>
+                @endif
                 <div class="brand-name">SIP-HPIK</div>
                 <div class="brand-desc">
                     Sistem Informasi Pemantauan<br>
-                    <strong>Hama & Penyakit Ikan Karantina</strong>
+                    <strong>Hama &amp; Penyakit Ikan Karantina</strong>
                 </div>
                 <ul class="feat-list">
-                    <li><i class="ti ti-clipboard-check"></i> Perencanaan & pelaksanaan pemantauan</li>
+                    <li><i class="ti ti-clipboard-check"></i> Perencanaan &amp; pelaksanaan pemantauan</li>
                     <li><i class="ti ti-flask"></i> Pencatatan hasil uji laboratorium</li>
                     <li><i class="ti ti-map"></i> Pemetaan GIS sebaran penyakit</li>
-                    <li><i class="ti ti-file-spreadsheet"></i> Laporan & ekspor data Excel</li>
+                    <li><i class="ti ti-file-spreadsheet"></i> Laporan &amp; ekspor data Excel</li>
                     <li><i class="ti ti-shield-check"></i> Multi-level role: BKHIT, BBKHIT, Pusat</li>
                 </ul>
             </div>
-            <div class="brand-copy">Deputi Karantina Ikan &copy; {{ date('Y') }}</div>
+            <div class="brand-copy">Badan Karantina Indonesia &copy; {{ date('Y') }}</div>
         </div>
 
         <!-- ===== KANAN 50%: Form ===== -->

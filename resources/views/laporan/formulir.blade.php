@@ -54,31 +54,31 @@
     <table class="main-table">
         <thead>
             <tr>
-                <th rowspan="2" width="20">No</th>
-                <th rowspan="2" width="120">Lokasi Pemantauan<br>(Prop/Kab/Kec.)</th>
-                <th rowspan="2" width="60">Tanggal Pemantauan</th>
-                <th colspan="7">Contoh Uji</th>
-                <th colspan="4">Hasil Pemeriksaan</th>
-                <th rowspan="2">Prev. (%)</th>
-                <th rowspan="2">Insidensi (%)</th>
-                <th rowspan="2">Lab. Uji</th>
-                <th rowspan="2">Ket.</th>
+                <th rowspan="2" align="center" width="20">No</th>
+                <th rowspan="2" align="center" width="120">Lokasi<br>Pemantauan<br>(Prop/Kab/Kec.)</th>
+                <th rowspan="2" align="center" width="60">Tanggal<br>Pemantauan</th>
+                <th colspan="7" align="center">Contoh Uji</th>
+                <th colspan="4" align="center">Hasil Pemeriksaan</th>
+                <th rowspan="2" align="center" width="40">Prev.</th>
+                <th rowspan="2" align="center" width="40">Insidensi</th>
+                <th rowspan="2" align="center" width="40">Lab.<br>Uji</th>
+                <th rowspan="2" align="center" width="40">Ket</th>
             </tr>
             <tr>
-                <th>Jenis</th>
-                <th width="40">Panjang (cm)</th>
-                <th width="40">Berat (gram)</th>
-                <th>Asal Benih/ Induk</th>
-                <th>Padat Tebar</th>
-                <th>Gejala Klinis</th>
-                <th>Jumlah Kematian</th>
-                <th width="30">Parasit</th>
-                <th width="30">Bakteri</th>
-                <th width="30">Virus</th>
-                <th width="30">Jamur</th>
+                <th align="center" width="60">Jenis</th>
+                <th align="center" width="40">Panjang<br>(cm)</th>
+                <th align="center" width="40">Berat<br>(gram)</th>
+                <th align="center" width="50">Asal<br>Benih/<br>Induk</th>
+                <th align="center" width="40">Padat<br>Tebar</th>
+                <th align="center" width="60">Gejala<br>klinis</th>
+                <th align="center" width="40">Jumlah<br>Kematian</th>
+                <th align="center" width="30">Parasit</th>
+                <th align="center" width="30">Bakteri</th>
+                <th align="center" width="30">Virus</th>
+                <th align="center" width="30">Jamur</th>
             </tr>
             <tr style="background:#eee; font-size:8px;">
-                @for($i=1; $i<=18; $i++) <th>{{ $i }}</th> @endfor
+                @for($i=1; $i<=18; $i++) <th align="center">{{ $i }}</th> @endfor
             </tr>
         </thead>
         <tbody>

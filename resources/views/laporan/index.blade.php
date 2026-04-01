@@ -67,7 +67,7 @@
                 <div class="bg-yellow-lt p-2 rounded-3"><i class="ti ti-map text-yellow fs-2"></i></div>
                 <div>
                     <div class="h2 mb-0 fw-bold">{{ $totalPeta }}</div>
-                    <div class="text-muted small">Titik Peta GIS</div>
+                    <div class="text-muted small">Titik Peta Pemantauan</div>
                 </div>
             </div>
         </div>
@@ -179,6 +179,7 @@
     </div>
 </div>
 
+@if(Auth::user()->isPusat())
 {{-- ══════════════════════════════════════════════════════════════════ --}}
 {{-- Section 2: Download / Cetak Peta                                  --}}
 {{-- ══════════════════════════════════════════════════════════════════ --}}
@@ -189,7 +190,7 @@
         </div>
         <div>
             <div class="text-teal small fw-bold text-uppercase" style="letter-spacing:.05em;">Section 2</div>
-            <div class="fw-bold fs-4">Unduh & Cetak Peta GIS</div>
+            <div class="fw-bold fs-4">Unduh & Cetak Peta Pemantauan</div>
         </div>
         <div class="ms-auto">
             <span class="badge bg-teal-lt text-teal px-3 py-2">
@@ -210,7 +211,7 @@
                         <h5 class="fw-bold">Peta Interaktif</h5>
                         <p class="text-muted small mb-4">Lihat sebaran titik pemantauan seluruh Indonesia secara interaktif dengan zoom & filter warna status.</p>
                         <a href="{{ route('peta.index') }}" class="btn btn-teal text-white w-100 btn-pill fw-bold shadow-sm">
-                            <i class="ti ti-map me-2"></i>Buka Peta GIS
+                            <i class="ti ti-map me-2"></i>Buka Peta Pemantauan
                         </a>
                     </div>
                 </div>
@@ -273,6 +274,7 @@
         </div>
     </div>
 </div>
+@endif
 
 {{-- ══════════════════════════════════════════════════════════════════ --}}
 {{-- Section 3: Info & Panduan                                          --}}
@@ -291,7 +293,7 @@
                             <li class="mb-1"><strong class="text-white">Perencanaan BKHIT</strong> → Input rencana pemantauan (media pembawa, target, lokasi).</li>
                             <li class="mb-1"><strong class="text-white">Validasi BBKHIT</strong> → Verifikasi dan setujui perencanaan yang diajukan.</li>
                             <li class="mb-1"><strong class="text-white">Pelaksanaan BKHIT</strong> → Input realisasi lapangan beserta hasil uji laboratorium.</li>
-                            <li class="mb-1"><strong class="text-white">Evaluasi BBKHIT/Pusat</strong> → Tetapkan kesimpulan akhir & status warna GIS (🟢🟡🔴).</li>
+                            <li class="mb-1"><strong class="text-white">Evaluasi BBKHIT/Pusat</strong> → Tetapkan kesimpulan akhir & status warna peta (🟢🟡🔴).</li>
                             <li><strong class="text-white">Pelaporan</strong> → Export data Excel, cetak formulir resmi, atau unduh peta sebaran.</li>
                         </ol>
                     </div>
@@ -320,7 +322,7 @@
                     <div class="col-6">
                         <div class="rounded-3 p-3" style="background:rgba(255,255,255,0.15);">
                             <div class="h3 fw-bold text-white mb-0">{{ $totalPeta }}</div>
-                            <div class="small" style="color:rgba(255,255,255,0.7);">Titik GIS</div>
+                            <div class="small" style="color:rgba(255,255,255,0.7);">Titik Peta</div>
                         </div>
                     </div>
                 </div>

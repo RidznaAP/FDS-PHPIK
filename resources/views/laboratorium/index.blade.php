@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Laboratorium')
-@section('page_title', 'Modul Laboratorium')
-@section('page_subtitle', 'Daftar sampel dan status pengujian laboratorium')
+@section('page_title', 'Pengujian Laboratorium')
+@section('page_subtitle', 'Daftar sampel dan status hasil pengujian laboratorium HPIK')
 
 @section('content')
 <div class="row g-2 mb-3">
@@ -81,10 +81,10 @@
                         </a>
                     </th>
                     <th class="sort-th">
-                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'kelompok_patogen', 'sort_order' => (request('sort_by') === 'kelompok_patogen' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'kelompok_patogen' ? 'sort-active' : '' }}">
-                            Kelompok
+                        <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'metode_uji', 'sort_order' => (request('sort_by') === 'metode_uji' && request('sort_order') === 'asc') ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'metode_uji' ? 'sort-active' : '' }}">
+                            Metode Uji
                             <span class="sort-icon">
-                                <i class="ti {{ request('sort_by') === 'kelompok_patogen' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
+                                <i class="ti {{ request('sort_by') === 'metode_uji' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
@@ -125,15 +125,7 @@
                     <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
                     <td>
                         @if($item->laboratorium)
-                            @php 
-                                $kp = $item->laboratorium->kelompok_patogen;
-                                $bgClass = match($kp) {
-                                    'NIHIL' => 'bg-success-lt text-success',
-                                    'Virus', 'Bakteri', 'Parasit', 'Jamur' => 'bg-azure-lt text-azure',
-                                    default => 'bg-secondary-lt text-secondary'
-                                };
-                            @endphp
-                            <span class="badge {{ $bgClass }}">{{ $kp ?? '—' }}</span>
+                            <span class="badge bg-secondary-lt text-secondary">{{ $item->laboratorium->metode_uji ?? '—' }}</span>
                         @else
                             <span class="text-muted">—</span>
                         @endif
@@ -155,7 +147,7 @@
                         <div class="d-flex gap-1">
                             @if($item->laboratorium)
                                 <a href="{{ route('laboratorium.show', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-primary" title="Detail Lab"><i class="ti ti-eye"></i></a>
-                                <a href="{{ route('laboratorium.create', $item->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
+                                <a href="{{ route('laboratorium.edit', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
                                 @if(Auth::user()->isPusat())
                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
                                         onclick="confirmAction('{{ route('laboratorium.destroy', $item->laboratorium->id) }}', 'Hapus hasil lab ini?', 'DELETE', 'btn-danger')">
@@ -218,14 +210,25 @@
     function submitBulkDelete() {
         const checkedCount = document.querySelectorAll('.check-item:checked').length;
         if (checkedCount === 0) return;
-        Swal.fire({
-            title: 'Hapus Banyak Hasil Lab?',
-            text: `Anda akan menghapus ${checkedCount} hasil laboratorium. Tindakan ini tidak dapat dibatalkan!`,
-            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus Semua!', cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) document.getElementById('form-bulk-delete').submit();
-        });
+
+        // Use the global confirmAction modal (no Swal dependency needed)
+        const btn = document.getElementById('confirmBtn');
+        const methodInput = document.getElementById('confirmMethod');
+
+        document.getElementById('confirmMessage').textContent = `Anda akan menghapus ${checkedCount} hasil laboratorium. Tindakan ini tidak dapat dibatalkan!`;
+        document.getElementById('confirmTitle').textContent = 'Hapus Banyak Data?';
+        document.getElementById('confirmEmoji').textContent = '🗑️';
+        document.getElementById('confirmForm').action = '#';
+        methodInput.disabled = true;
+
+        btn.className = 'btn flex-fill btn-danger';
+        btn.textContent = 'Ya, Hapus Semua!';
+        btn.onclick = function() {
+            document.getElementById('form-bulk-delete').submit();
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+        };
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
     }
 </script>
 @endpush

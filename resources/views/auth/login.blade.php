@@ -19,12 +19,12 @@
 
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <label class="form-lbl" style="margin-bottom: 0;">Password</label>
-                    <a href="{{ route('password.request') }}" style="font-size: 0.8rem; color: #2563eb; text-decoration: none; font-weight: 600;">Lupa password?</a>
+                    <label class="form-lbl" style="margin-bottom: 0;">Kata Sandi</label>
+                    <a href="{{ route('password.request') }}" style="font-size: 0.8rem; color: #2563eb; text-decoration: none; font-weight: 600;">Lupa Kata Sandi?</a>
                 </div>
                 <div class="input-group-pw">
                     <input type="password" name="password" id="password" class="form-input @error('password') error @enderror" placeholder="••••••••" required>
-                    <button type="button" class="pw-toggle" onclick="togglePassword()" title="Lihat password">
+                    <button type="button" class="pw-toggle" onclick="togglePassword()" title="Tampilkan kata sandi">
                         <i class="ti ti-eye" id="eye-icon" style="font-size: 1.2rem;"></i>
                     </button>
                 </div>
@@ -41,10 +41,11 @@
             <button type="submit" class="btn-submit">Masuk Aplikasi</button>
         </form>
 
-        <div class="divider">atau</div>
+        <div class="divider"></div>
     </div>
-    <div class="auth-card-footer">
-        Belum punya akun? <a href="{{ route('register') }}">Daftar di sini</a>
+    <div class="auth-card-footer" style="font-size:0.82rem; color:#94a3b8; text-align:center;">
+        <i class="ti ti-shield-lock" style="margin-right:4px;"></i>
+        Akses khusus pengguna terdaftar. Hubungi <strong>Admin Pusat</strong> untuk pembuatan akun baru.
     </div>
 </div>
 @endsection

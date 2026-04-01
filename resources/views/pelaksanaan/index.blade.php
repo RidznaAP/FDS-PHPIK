@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Pelaksanaan')
-@section('page_title', 'Modul Pelaksanaan')
-@section('page_subtitle', 'Data realisasi lapangan pemantauan HPIK')
+@section('page_title', 'Pelaksanaan Lapangan')
+@section('page_subtitle', 'Data realisasi pengambilan sampel dan hasil uji laboratorium')
 
 @section('content')
 {{-- ═══ TOOLBAR ═══ --}}
@@ -17,15 +17,15 @@
     <form id="filter-form-pelaksanaan" method="GET" action="{{ route('pelaksanaan.index') }}" class="d-flex gap-2 flex-wrap align-items-center">
         @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
         <select name="tahun" class="form-select form-select-sm" style="width:135px;" onchange="this.form.submit()">
-            <option value="">📅 Semua Tahun</option>
+            <option value="">Semua Tahun</option>
             @foreach($years as $y)
                 <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}</option>
             @endforeach
         </select>
         <select name="lab" class="form-select form-select-sm" style="width:175px;" onchange="this.form.submit()">
-            <option value="">🔬 Semua Status Lab</option>
-            <option value="done"    {{ request('lab') == 'done'    ? 'selected' : '' }}>✅ Sudah Diuji</option>
-            <option value="pending" {{ request('lab') == 'pending' ? 'selected' : '' }}>⏳ Belum Diuji</option>
+            <option value="">Semua Status Lab</option>
+            <option value="done"    {{ request('lab') == 'done'    ? 'selected' : '' }}>Sudah Diuji</option>
+            <option value="pending" {{ request('lab') == 'pending' ? 'selected' : '' }}>Belum Diuji</option>
         </select>
         @if(request('search') || request('tahun') || request('lab'))
             <a href="{{ route('pelaksanaan.index') }}" class="btn btn-sm btn-outline-secondary">
@@ -223,14 +223,25 @@
     function submitBulkDelete() {
         const checkedCount = document.querySelectorAll('.check-item:checked').length;
         if (checkedCount === 0) return;
-        Swal.fire({
-            title: 'Hapus Banyak Data?',
-            text: `Anda akan menghapus ${checkedCount} data pelaksanaan. Tindakan ini tidak dapat dibatalkan!`,
-            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus Semua!', cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) document.getElementById('form-bulk-delete').submit();
-        });
+
+        // Use the global confirmAction modal (no Swal dependency needed)
+        const btn = document.getElementById('confirmBtn');
+        const methodInput = document.getElementById('confirmMethod');
+
+        document.getElementById('confirmMessage').textContent = `Anda akan menghapus ${checkedCount} data pelaksanaan. Tindakan ini tidak dapat dibatalkan!`;
+        document.getElementById('confirmTitle').textContent = 'Hapus Banyak Data?';
+        document.getElementById('confirmEmoji').textContent = '🗑️';
+        document.getElementById('confirmForm').action = '#';
+        methodInput.disabled = true;
+
+        btn.className = 'btn flex-fill btn-danger';
+        btn.textContent = 'Ya, Hapus Semua!';
+        btn.onclick = function() {
+            document.getElementById('form-bulk-delete').submit();
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+        };
+
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
     }
 </script>
 @endpush

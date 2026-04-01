@@ -124,6 +124,68 @@ class PelaksanaanController extends Controller
         return view('pelaksanaan.show', compact('item'));
     }
 
+    // Edit form for pelaksanaan
+    public function edit($id)
+    {
+        $user = Auth::user();
+        $item = Pelaksanaan::with(['perencanaan.user'])->findOrFail($id);
+
+        // Auth check: only owner or Pusat can edit
+        if (!$user->isPusat()) {
+            if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses untuk mengedit data ini.');
+            }
+        }
+
+        return view('pelaksanaan.edit', compact('item'));
+    }
+
+    // Update pelaksanaan data
+    public function update(Request $request, $id)
+    {
+        $item = Pelaksanaan::with('perencanaan.user')->findOrFail($id);
+        $user = Auth::user();
+
+        // Auth check
+        if (!$user->isPusat()) {
+            if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
+                abort(403);
+            }
+        }
+
+        $request->validate([
+            'lokasi_pengambilan_sampel' => 'required|string',
+            'tanggal_pemantauan'        => 'required|date',
+            'jenis_ikan'                => 'required|string',
+            'jumlah_sampel'             => 'required|integer|min:1',
+            'metode_pengambilan_sampel' => 'required|string',
+            'jumlah_kematian'           => 'nullable|integer|min:0',
+            'panjang_cm'                => 'nullable|numeric|min:0',
+            'berat_gram'                => 'nullable|numeric|min:0',
+            'padat_tebar'               => 'nullable|integer|min:0',
+            'latitude'                  => 'nullable|numeric',
+            'longitude'                 => 'nullable|numeric',
+            'pengambil_sampel'          => 'nullable|array',
+            'pengambil_sampel.*'        => 'nullable|string|max:100',
+        ]);
+
+        $pengambil = collect($request->input('pengambil_sampel', []))
+            ->map('trim')->filter()->values()->toArray();
+
+        $data = $request->only([
+            'lokasi_pengambilan_sampel', 'tanggal_pemantauan', 'jenis_ikan',
+            'nama_latin', 'panjang_cm', 'berat_gram', 'asal_benih_induk',
+            'padat_tebar', 'gejala_klinis', 'jumlah_kematian',
+            'jumlah_sampel', 'metode_pengambilan_sampel', 'latitude', 'longitude',
+        ]);
+        $data['pengambil_sampel'] = !empty($pengambil) ? $pengambil : null;
+
+        $item->update($data);
+
+        return redirect()->route('pelaksanaan.show', $id)
+            ->with('success', 'Data Pelaksanaan berhasil diperbarui.');
+    }
+
     // Simpan data lapangan
     public function store(Request $request)
     {

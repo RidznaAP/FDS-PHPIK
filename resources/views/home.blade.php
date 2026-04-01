@@ -187,7 +187,7 @@
             <div class="kpi-number text-dark">{{ number_format($totalPerencanaan) }}</div>
             <div class="mt-2">
                 <span class="kpi-trend" style="background:#eff6ff;color:#1d4ed8;">
-                    <i class="ti ti-chart-bar"></i> Nasional
+                    <i class="ti ti-chart-bar"></i> {{ Auth::user()->isBkhit() ? 'UPT Anda' : 'Nasional' }}
                 </span>
             </div>
         </div>
@@ -206,26 +206,26 @@
             <div class="kpi-number text-dark">{{ number_format($totalPelaksanaan) }}</div>
             <div class="mt-2">
                 <span class="kpi-trend" style="background:#f0fdf4;color:#16a34a;">
-                    <i class="ti ti-map-pin"></i> Pemantauan
+                    <i class="ti ti-map-pin"></i> {{ Auth::user()->isBkhit() ? 'Giat Lapangan' : 'Nasional' }}
                 </span>
             </div>
         </div>
     </div>
 
-    {{-- UPT Aktif --}}
+    {{-- Rencana Disetujui --}}
     <div class="col-6 col-lg-3">
         <div class="card kpi-card shadow-sm p-3">
             <div class="kpi-stripe bg-warning"></div>
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="kpi-icon" style="background:#fffbeb;">
-                    <i class="ti ti-building-community text-warning"></i>
+                    <i class="ti ti-circle-check text-warning"></i>
                 </div>
-                <div class="text-muted small fw-semibold">UPT Aktif</div>
+                <div class="text-muted small fw-semibold">Rencana Disetujui</div>
             </div>
             <div class="kpi-number text-dark">{{ number_format($totalUptAktif) }}</div>
             <div class="mt-2">
                 <span class="kpi-trend" style="background:#fffbeb;color:#ca8a04;">
-                    <i class="ti ti-star"></i> Disetujui
+                    <i class="ti ti-star"></i> Aktif & Berjalan
                 </span>
             </div>
         </div>
@@ -448,90 +448,113 @@
      ZONE 5 — DASAR HUKUM + ALUR PEMANTAUAN
 ═══════════════════════════════════════════════════════════ --}}
 <div class="row g-3">
-    {{-- Dasar Hukum --}}
-    <div class="col-lg-7">
+    {{-- Aktivitas Terbaru --}}
+    <div class="col-lg-8">
         <div class="card chart-card shadow-sm h-100">
-            <div class="card-header d-flex align-items-center gap-2">
-                <div class="chart-header-icon" style="background:#fff1f2;">
-                    <i class="ti ti-certificate text-danger"></i>
+            <div class="card-header d-flex align-items-center gap-2" style="background:transparent;">
+                <div class="chart-header-icon" style="background:#ecfeff;">
+                    <i class="ti ti-activity text-cyan"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">Dasar Hukum Pemantauan HPIK</div>
-                    <div class="text-muted small">Regulasi & peraturan yang mengikat</div>
+                    <div class="fw-bold text-dark">Aktivitas Terbaru</div>
+                    <div class="text-muted small">5 pemantauan lapangan terakhir</div>
                 </div>
             </div>
-            <div class="card-body p-4">
-                <div class="row g-3">
-                    @php
-                    $regulasi = [
-                        ['uu',  'UU No. 21 Tahun 2019',         'Tentang Karantina Hewan, Ikan, dan Tumbuhan',                                          '#ef4444'],
-                        ['pp',  'PP No. 15 Tahun 2022',          'Tentang Perlakuan Terhadap Hewan Karantina, Ikan Karantina, dan Tumbuhan Karantina',  '#f59e0b'],
-                        ['pm',  'PerMeKP No. 12 Tahun 2020',     'Tentang Pemantauan Hama Penyakit Ikan Karantina',                                     '#3b82f6'],
-                        ['sk',  'Kepmen KP No. 26 Tahun 2019',   'Tentang Penetapan Hama dan Penyakit Ikan Karantina',                                  '#8b5cf6'],
-                        ['sop', 'SOP Pemantauan HPIK',           'Standar Operasional Prosedur pelaksanaan pemantauan HPIK di lapangan',               '#10b981'],
-                        ['juk', 'Juklak Pemantauan HPIK 2026',   'Petunjuk Pelaksanaan Pemantauan HPIK Tahun Anggaran 2026',                           '#f97316'],
-                    ];
-                    $regIcons = [
-                        'uu' => '⚖️', 'pp' => '📋', 'pm' => '📜',
-                        'sk' => '🔏', 'sop' => '📖', 'juk' => '📌',
-                    ];
-                    @endphp
-                    @foreach($regulasi as $reg)
-                    <div class="col-sm-6">
-                        <div class="reg-card p-3">
-                            <div class="reg-top-bar w-100 mb-3" style="background:{{ $reg[3] }};border-radius:4px 4px 0 0;margin-top:-12px;margin-left:-12px;width:calc(100% + 24px) !important;"></div>
-                            <div class="d-flex align-items-start gap-2">
-                                <div class="fs-4 flex-shrink-0">{{ $regIcons[$reg[0]] }}</div>
-                                <div>
-                                    <div class="fw-bold small" style="color:{{ $reg[3] }};">{{ $reg[1] }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;line-height:1.4;margin-top:3px;">{{ $reg[2] }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter table-hover card-table">
+                    <thead>
+                        <tr>
+                            <th>Tgl Pelaksanaan</th>
+                            @if(!Auth::user()->isBkhit()) <th>UPT</th> @endif
+                            <th>Lokasi / Komoditas</th>
+                            <th>Status Lab</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($aktivitasTerbaru as $akt)
+                        <tr>
+                            <td class="text-nowrap">
+                                <div>{{ $akt->tanggal_pemantauan ? \Carbon\Carbon::parse($akt->tanggal_pemantauan)->format('d M Y') : '—' }}</div>
+                                <div class="text-muted small">{{ $akt->created_at->diffForHumans() }}</div>
+                            </td>
+                            @if(!Auth::user()->isBkhit())
+                            <td>
+                                <div class="fw-semibold">{{ $akt->perencanaan?->user?->name ?? '—' }}</div>
+                            </td>
+                            @endif
+                            <td>
+                                <div class="text-dark">{{ Str::limit($akt->lokasi_pengambilan_sampel, 30) }}</div>
+                                <div class="text-muted small">{{ $akt->jenis_ikan }}</div>
+                            </td>
+                            <td>
+                                @if($akt->laboratorium)
+                                    <span class="badge bg-success-lt text-success">{{ $akt->laboratorium->hasil_uji }}</span>
+                                @else
+                                    <span class="badge bg-warning-lt text-warning"><i class="ti ti-clock me-1"></i>Belum Uji</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="4" class="text-center text-muted py-4">Belum ada aktivitas pelaksanaan.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    {{-- Alur Pemantauan --}}
-    <div class="col-lg-5">
+    {{-- Menunggu Tindakan --}}
+    <div class="col-lg-4">
         <div class="card chart-card shadow-sm h-100">
-            <div class="card-header d-flex align-items-center gap-2">
-                <div class="chart-header-icon" style="background:#f0fdf4;">
-                    <i class="ti ti-arrows-right text-success"></i>
+             <div class="card-header d-flex align-items-center gap-2" style="background:transparent;">
+                <div class="chart-header-icon" style="background:#fdf2f8;">
+                    <i class="ti ti-bell-ringing text-pink"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">Alur Pemantauan HPIK</div>
-                    <div class="text-muted small">Tahapan pelaksanaan di lapangan</div>
+                    <div class="fw-bold text-dark">Menunggu Tindakan</div>
+                    <div class="text-muted small">Action Required</div>
                 </div>
             </div>
-            <div class="card-body px-4 py-3">
-                @php
-                $alurSteps = [
-                    ['icon' => 'ti-file-invoice',   'title' => 'Perencanaan & Penganggaran',  'desc' => 'UPT menyusun rencana pemantauan HPIK tahunan dan mengajukan ke BBKHIT/Pusat untuk persetujuan anggaran.'],
-                    ['icon' => 'ti-checkbox',        'title' => 'Verifikasi & Persetujuan',    'desc' => 'BBKHIT dan Admin Pusat memverifikasi rencana, memberi catatan atau menyetujui untuk pelaksanaan.'],
-                    ['icon' => 'ti-map-pin-search',  'title' => 'Survei & Pengambilan Sampel', 'desc' => 'Tim lapangan melakukan survei ke lokasi pemantauan dan mengambil sampel komoditas target.'],
-                    ['icon' => 'ti-microscope',      'title' => 'Pengujian Laboratorium',      'desc' => 'Sampel diuji di laboratorium terakreditasi menggunakan metode yang sesuai standar HPIK.'],
-                    ['icon' => 'ti-report-analytics','title' => 'Pelaporan Hasil',              'desc' => 'Hasil uji laboratorium dilaporkan ke UPT, BBKHIT, dan Pusat melalui sistem informasi.'],
-                    ['icon' => 'ti-chart-bar',       'title' => 'Evaluasi & Tindak Lanjut',    'desc' => 'Data dianalisis untuk menentukan tindak lanjut: peningkatan surveilans, karantina, atau pengendalian.'],
-                ];
-                @endphp
-                @foreach($alurSteps as $i => $step)
-                <div class="alur-step">
-                    <div class="alur-num">{{ $i + 1 }}</div>
-                    <div>
-                        <div class="fw-semibold text-dark small d-flex align-items-center gap-2">
-                            <i class="ti {{ $step['icon'] }} text-primary" style="font-size:0.95rem;"></i>
-                            {{ $step['title'] }}
+            <div class="card-body p-4 d-flex flex-column justify-content-center gap-3">
+                @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#fffbeb; border:1px solid #fde68a;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:42px;height:42px;background:#f59e0b;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                            <i class="ti ti-file-certificate fs-3"></i>
                         </div>
-                        <div class="text-muted mt-1" style="font-size:.78rem;line-height:1.5;">
-                            {{ $step['desc'] }}
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:1.1rem;">{{ $menungguApproval }}</div>
+                            <div class="text-muted" style="font-size:0.8rem;">Rencana Butuh Approval</div>
                         </div>
                     </div>
+                    @if($menungguApproval > 0)
+                        <a href="{{ route('perencanaan.index') }}" class="btn btn-sm btn-warning">Cek Data</a>
+                    @endif
                 </div>
-                @endforeach
+                @endif
+                
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#eff6ff; border:1px solid #bfdbfe;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:42px;height:42px;background:#3b82f6;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                            <i class="ti ti-flask fs-3"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:1.1rem;">{{ $menungguLab }}</div>
+                            <div class="text-muted" style="font-size:0.8rem;">Lab Belum Diisi</div>
+                        </div>
+                    </div>
+                    @if($menungguLab > 0)
+                        <a href="{{ route('pelaksanaan.index') }}" class="btn btn-sm btn-primary">Isi Lab</a>
+                    @endif
+                </div>
+                
+                @if($menungguApproval == 0 && $menungguLab == 0)
+                <div class="text-center p-3">
+                    <div class="text-success mb-2" style="font-size:2rem;">🎉</div>
+                    <div class="fw-semibold text-dark">Semoga harimu menyenangkan!</div>
+                    <div class="text-muted small">Tidak ada antrian tindakan saat ini.</div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -705,26 +728,32 @@ if (mapEl) {
         };
         info.addTo(map);
     } else {
-        // Custom marker icon
-        const markerIcon = L.divIcon({
-            className: '',
-            html: `<div style="
-                width:14px;height:14px;border-radius:50%;
-                background:#3b82f6;border:3px solid #fff;
-                box-shadow:0 2px 8px rgba(59,130,246,0.5);">
-            </div>`,
-            iconSize: [14, 14],
-            iconAnchor: [7, 7],
-        });
-
         const bounds = [];
         petaData.forEach(p => {
             bounds.push([p.lat, p.lng]);
+            
+            // Map color logic
+            let hex = '#3b82f6'; // default blue
+            if (p.warna === 'hijau') hex = '#22c55e';
+            else if (p.warna === 'kuning') hex = '#eab308';
+            else if (p.warna === 'merah') hex = '#ef4444';
+
+            const markerIcon = L.divIcon({
+                className: '',
+                html: `<div style="
+                    width:14px;height:14px;border-radius:50%;
+                    background:${hex};border:3px solid #fff;
+                    box-shadow:0 2px 8px ${hex}80;">
+                </div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7],
+            });
+
             L.marker([p.lat, p.lng], { icon: markerIcon })
                 .addTo(map)
                 .bindPopup(`
                     <div style="min-width:200px;font-family:'Inter',sans-serif;">
-                        <div style="font-weight:700;font-size:.95rem;margin-bottom:8px;color:#1e293b;">
+                        <div style="font-weight:700;font-size:.95rem;margin-bottom:8px;color:#1e293b;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">
                             📍 ${p.lokasi}
                         </div>
                         <table style="font-size:.82rem;width:100%;color:#475569;">
@@ -732,6 +761,7 @@ if (mapEl) {
                             <tr><td style="padding:2px 0;color:#94a3b8;">Komoditas</td><td style="padding:2px 0 2px 8px;font-weight:600;">${p.komoditas}</td></tr>
                             <tr><td style="padding:2px 0;color:#94a3b8;">UPT</td><td style="padding:2px 0 2px 8px;font-weight:600;">${p.upt}</td></tr>
                             <tr><td style="padding:2px 0;color:#94a3b8;">Tanggal</td><td style="padding:2px 0 2px 8px;">${p.tanggal}</td></tr>
+                            <tr><td style="padding:2px 0;color:#94a3b8;">Hasil Lab</td><td style="padding:2px 0 2px 8px;"><span class="badge" style="background:${hex};color:#fff;">${p.hasil_lab}</span></td></tr>
                         </table>
                     </div>
                 `, { maxWidth: 260 });

@@ -23,8 +23,16 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Auth Routes (Login, Register, Logout, dll)
-Auth::routes();
+// Auth Routes (Login, Logout — Register dinonaktifkan, akun dibuat oleh Pusat)
+Auth::routes(['register' => false]);
+
+// Redirect /register ke login dengan pesan informasi
+Route::get('/register', function () {
+    return redirect()->route('login')->with('info', 'Pendaftaran akun mandiri tidak diizinkan. Hubungi Admin Pusat untuk pembuatan akun.');
+})->name('register');
+Route::post('/register', function () {
+    return redirect()->route('login')->with('info', 'Pendaftaran akun mandiri tidak diizinkan.');
+});
 
 // ========================================
 // SEMUA ROUTE DI BAWAH INI BUTUH LOGIN
@@ -67,11 +75,14 @@ Route::middleware('auth')->group(function () {
     // Validasi (approve) oleh BBKHIT/Pusat
     Route::middleware('role:bbkhit,pusat')->group(function () {
         Route::post('/perencanaan/approve/{id}', [PerencanaanController::class, 'approve'])->name('perencanaan.approve');
-        
+
         // Penetapan Evaluasi (Warna Map)
         Route::get('/perencanaan/{id}/evaluasi', [EvaluasiController::class, 'create'])->name('evaluasi.create');
         Route::post('/perencanaan/evaluasi', [EvaluasiController::class, 'store'])->name('evaluasi.store');
     });
+
+    // Daftar Evaluasi Penetapan (semua role)
+    Route::get('/evaluasi-data', [EvaluasiController::class, 'index'])->name('evaluasi.data.index');
 
     // Detail Perencanaan (semua role bisa lihat)
     Route::get('/perencanaan/{id}', [PerencanaanController::class, 'show'])->name('perencanaan.show');
@@ -85,6 +96,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
         Route::get('/pelaksanaan/tambah/{id}', [PelaksanaanController::class, 'create'])->name('pelaksanaan.create');
         Route::post('/pelaksanaan/simpan', [PelaksanaanController::class, 'store'])->name('pelaksanaan.store');
+        // Edit Pelaksanaan
+        Route::get('/pelaksanaan/{id}/edit', [PelaksanaanController::class, 'edit'])->name('pelaksanaan.edit');
+        Route::put('/pelaksanaan/{id}/update', [PelaksanaanController::class, 'update'])->name('pelaksanaan.update');
     });
 
     // --- Modul Laboratorium ---
@@ -97,6 +111,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
         Route::get('/laboratorium/input/{id}', [LaboratoriumController::class, 'create'])->name('laboratorium.create');
         Route::post('/laboratorium/simpan', [LaboratoriumController::class, 'store'])->name('laboratorium.store');
+        Route::get('/laboratorium/{id}/edit', [LaboratoriumController::class, 'edit'])->name('laboratorium.edit');
+        Route::put('/laboratorium/{id}/update', [LaboratoriumController::class, 'update'])->name('laboratorium.update');
     });
 
     // --- Modul Pelaporan (Upload Seminar) ---
@@ -104,10 +120,13 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('seminar.index', 'pelaporan');
     })->name('pelaporan.index');
 
-    // --- Modul Evaluasi (Upload Seminar) ---
-    Route::get('/evaluasi', function () {
+    // --- Modul Evaluasi Penetapan (Daftar Evaluasi) ---
+    Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
+
+    // --- Modul Evaluasi Seminar (Upload Dokumen) ---
+    Route::get('/evaluasi-seminar', function () {
         return redirect()->route('seminar.index', 'evaluasi');
-    })->name('evaluasi.index');
+    })->name('evaluasi.seminar');
 
     // Seminar: route bersama untuk index, store, download & hapus
     // PENTING: route spesifik (download, hapus) harus SEBELUM {modul} wildcard
@@ -115,8 +134,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/seminar/hapus/{id}', [DokumenSeminarController::class, 'destroy'])->name('seminar.destroy');
     Route::get('/seminar/{modul}', [DokumenSeminarController::class, 'index'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.index');
     Route::post('/seminar/{modul}/upload', [DokumenSeminarController::class, 'store'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.store');
-    // --- Modul Peta GIS ---
-    Route::get('/peta', [\App\Http\Controllers\PetaController::class, 'index'])->name('peta.index');
+    // --- Modul Peta Pemantauan ---
+    Route::middleware('role:pusat')->group(function () {
+        Route::get('/peta', [\App\Http\Controllers\PetaController::class, 'index'])->name('peta.index');
+    });
 
     // --- Modul Laporan & Ekspor ---
     Route::get('/laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');

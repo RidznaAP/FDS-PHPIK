@@ -34,6 +34,11 @@
                 <a href="{{ route('laboratorium.index') }}" class="btn btn-white btn-pill px-4 border-0">
                     <i class="ti ti-list me-2"></i>Daftar
                 </a>
+                @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $lab->pelaksanaan->perencanaan->user_id == Auth::id()))
+                <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-warning btn-pill px-4 border-0 text-dark fw-bold">
+                    <i class="ti ti-pencil me-2"></i>Edit
+                </a>
+                @endif
                 <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-azure btn-pill px-4 border-0">
                     <i class="ti ti-database-export me-2 text-white"></i>Sumber Lapangan
                 </a>
@@ -99,9 +104,62 @@
                         </div>
                     </div>
                 </div>
-            </div>
+        </div>
+    </div>
 
-            {{-- Row for Matrix & Stats --}}
+    {{-- Data Contoh Uji --}}
+    <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-white">
+        <div class="card-body p-0">
+            <div class="p-4 bg-purple-lt border-bottom d-flex align-items-center border-purple border-top border-4">
+                <h3 class="mb-0 fw-bold text-purple small text-uppercase tracking-widest">
+                    <i class="ti ti-ruler-measure me-2"></i> Data Contoh Uji
+                </h3>
+            </div>
+            
+            <div class="p-4">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">PANJANG (CM)</div>
+                            <div class="fw-bold text-dark">{{ $lab->panjang ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">BERAT (GRAM)</div>
+                            <div class="fw-bold text-dark">{{ $lab->berat ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">JUMLAH KEMATIAN</div>
+                            <div class="fw-bold text-dark">{{ $lab->jumlah_kematian ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">ASAL BENIH / INDUK</div>
+                            <div class="fw-bold text-dark">{{ $lab->asal_benih_induk ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">PADAT TEBAR</div>
+                            <div class="fw-bold text-dark">{{ $lab->padat_tebar ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">GEJALA KLINIS</div>
+                            <div class="fw-bold text-dark">{{ $lab->gejala_klinis ?? '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Row for Matrix & Stats --}}
             <div class="row g-4">
                 <div class="col-md-5">
                     {{-- Pathogen Matrix --}}
@@ -114,19 +172,20 @@
                         <div class="card-body p-0 pt-3">
                             <table class="table table-vcenter card-table table-borderless table-striped-soft">
                                 <tbody>
+                                    @foreach(['Parasit' => ['field' => $lab->hasil_parasit, 'icon' => 'ti-bug'], 'Bakteri' => ['field' => $lab->hasil_bakteri, 'icon' => 'ti-circle'], 'Virus' => ['field' => $lab->hasil_virus, 'icon' => 'ti-virus'], 'Jamur' => ['field' => $lab->hasil_jamur, 'icon' => 'ti-leaf']] as $label => $data)
                                     <tr>
-                                        <td class="ps-4 fw-medium text-muted py-3">Kelompok Patogen</td>
-                                        <td class="text-end pe-4 py-3">
+                                        <td class="ps-4 fw-medium text-muted py-2"><i class="ti {{ $data['icon'] }} me-2"></i>{{ $label }}</td>
+                                        <td class="text-end pe-4 py-2">
                                             @php
-                                                $kp = $lab->kelompok_patogen ?? 'N/A';
-                                                $bgClass = $kp === 'NIHIL' ? 'bg-success' : ($kp === 'N/A' ? 'bg-secondary' : 'bg-azure');
-                                                $icon = $kp === 'Virus' ? 'ti-virus' : ($kp === 'Bakteri' ? 'ti-circle' : ($kp === 'Parasit' ? 'ti-bug' : ($kp === 'Jamur' ? 'ti-leaf' : ($kp === 'NIHIL' ? 'ti-shield-check' : 'ti-help'))));
+                                                $val = $data['field'] ?? 'NT';
+                                                $bgClass = $val === 'Positif (+)' ? 'bg-danger' : ($val === 'Negatif (-)' ? 'bg-success' : 'bg-secondary');
                                             @endphp
-                                            <span class="badge {{ $bgClass }} p-2 px-3 rounded-pill shadow-sm" style="font-size: 0.8rem;">
-                                                <i class="ti {{ $icon }} me-1"></i> {{ strtoupper($kp) }}
+                                            <span class="badge {{ $bgClass }} p-2 px-3 rounded-pill shadow-sm" style="font-size: 0.75rem;">
+                                                {{ $val }}
                                             </span>
                                         </td>
                                     </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>

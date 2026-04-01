@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="row justify-content-center animate-fade-in px-2">
-    <div class="col-lg-10">
+    <div class="col-12">
         {{-- High-End Page Header --}}
         <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-indigo border-5">
             <div class="col-lg-8">

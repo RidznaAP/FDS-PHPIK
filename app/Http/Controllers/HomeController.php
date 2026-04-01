@@ -19,15 +19,41 @@ class HomeController extends Controller
 
     public function index()
     {
+        $user = Auth::user();
+
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 1 — KPI Stats (Nasional)
+        // Scoping Helper — closure untuk filter query berdasarkan role
         // ═══════════════════════════════════════════════════════════════
-        $totalPerencanaan = Perencanaan::count();
-        $totalPelaksanaan = Pelaksanaan::count();
-        $totalUptAktif    = User::where('role', 'bkhit')
-                                ->whereHas('perencanaan', fn($q) => $q->where('status', 'approved'))
-                                ->count();
-        $totalApproved    = Perencanaan::where('status', 'approved')->count();
+        $scopeUserIds = function () use ($user) {
+            if ($user->isBkhit()) {
+                return [$user->id];
+            } elseif ($user->isBbkhit()) {
+                return User::where('id', $user->id)
+                    ->orWhere('parent_id', $user->id)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            return null; // null = tidak difilter (Pusat = semua)
+        };
+
+        $userIds = $scopeUserIds();
+
+        // ═══════════════════════════════════════════════════════════════
+        // ZONE 1 — KPI Stats
+        // ═══════════════════════════════════════════════════════════════
+        $totalPerencanaan = Perencanaan::when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
+        $totalPelaksanaan = Pelaksanaan::when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))->count();
+        $totalApproved    = Perencanaan::where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
+
+        // UPT Aktif: untuk BKHIT = dirinya sendiri, untuk BBKHIT/Pusat = jumlah BKHIT scoped
+        if ($user->isBkhit()) {
+            $totalUptAktif = Perencanaan::where('user_id', $user->id)->where('status', 'approved')->exists() ? 1 : 0;
+        } else {
+            $totalUptAktif = User::where('role', 'bkhit')
+                ->when($user->isBbkhit(), fn($q) => $q->where('parent_id', $user->id))
+                ->whereHas('perencanaan', fn($q) => $q->where('status', 'approved'))
+                ->count();
+        }
 
         // ═══════════════════════════════════════════════════════════════
         // ZONE 2A — Grafik Pelaksanaan per Bulan (12 bulan terakhir)
@@ -39,14 +65,15 @@ class HomeController extends Controller
             $chartBulanLabels[] = $month->translatedFormat('M Y');
             $chartBulanData[]   = Pelaksanaan::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
+                ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
                 ->count();
         }
 
         // ═══════════════════════════════════════════════════════════════
         // ZONE 2B — Top 5 Media Pembawa Dominan
-        // Dari field jenis_mp di perencanaan (bisa berupa string tunggal)
         // ═══════════════════════════════════════════════════════════════
         $mediaPembawaRaw = Perencanaan::whereNotNull('jenis_mp')
+            ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))
             ->pluck('jenis_mp');
 
         $mediaTally = [];
@@ -62,9 +89,11 @@ class HomeController extends Controller
 
         // ═══════════════════════════════════════════════════════════════
         // ZONE 3A — Top Jenis Penyakit (HPIK) Dominan
-        // Dari field jenis_hpik di perencanaan
         // ═══════════════════════════════════════════════════════════════
-        $hpikRaw = Perencanaan::whereNotNull('jenis_hpik')->pluck('jenis_hpik');
+        $hpikRaw = Perencanaan::whereNotNull('jenis_hpik')
+            ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))
+            ->pluck('jenis_hpik');
+
         $hpikTally = [];
         foreach ($hpikRaw as $raw) {
             foreach (array_map('trim', explode(',', $raw)) as $item) {
@@ -80,15 +109,16 @@ class HomeController extends Controller
         // ZONE 3B — Status Perencanaan (Donut)
         // ═══════════════════════════════════════════════════════════════
         $statusCounts = [
-            'Draft'    => Perencanaan::where('status', 'draft')->count(),
-            'Menunggu' => Perencanaan::where('status', 'waiting')->count(),
-            'Disetujui'=> Perencanaan::where('status', 'approved')->count(),
+            'Draft'     => Perencanaan::where('status', 'draft')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Menunggu'  => Perencanaan::where('status', 'waiting')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Disetujui' => Perencanaan::where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
         ];
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 3C — Top 5 UPT Paling Aktif (by pelaksanaan count)
+        // ZONE 3C — Top 5 UPT Paling Aktif (by perencanaan approved)
         // ═══════════════════════════════════════════════════════════════
         $topUpt = User::where('role', 'bkhit')
+            ->when($user->isBbkhit(), fn($q) => $q->where('parent_id', $user->id))
             ->withCount(['perencanaan as pelaksanaan_count' => function ($q) {
                 $q->where('status', 'approved');
             }])
@@ -97,21 +127,59 @@ class HomeController extends Controller
             ->get();
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 4 — Peta (titik dari pelaksanaan yang punya lat/lng)
+        // ZONE 4 — Peta (titik dari pelaksanaan yang punya lat/lng + Status Warna)
         // ═══════════════════════════════════════════════════════════════
-        $petaData = Pelaksanaan::with('perencanaan.user')
+        $petaData = Pelaksanaan::with(['perencanaan.user', 'perencanaan.evaluasi', 'laboratorium'])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
+            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
             ->get()
-            ->map(fn($p) => [
-                'lat'        => (float) $p->latitude,
-                'lng'        => (float) $p->longitude,
-                'lokasi'     => $p->lokasi_sampling ?? ($p->perencanaan?->kab_kota ?? '—'),
-                'provinsi'   => $p->perencanaan?->provinsi ?? '—',
-                'komoditas'  => $p->komoditas_ikan ?? ($p->perencanaan?->jenis_mp ?? '—'),
-                'upt'        => $p->perencanaan?->user?->name ?? '—',
-                'tanggal'    => $p->tgl_pelaksanaan ?? $p->created_at?->format('d M Y'),
-            ]);
+            ->map(function($p) {
+                // Tentukan warna marker berdasar evaluasi wilayah atau hasil lab terakhir
+                $warna = 'blue'; // default
+                if ($p->perencanaan && $p->perencanaan->evaluasi) {
+                    $warna = strtolower($p->perencanaan->evaluasi->warna); // hijau, kuning, merah
+                } elseif ($p->laboratorium) {
+                    $warna = $p->laboratorium->hasil_uji === 'Positif' ? 'merah' : 'hijau';
+                }
+                
+                return [
+                    'lat'        => (float) $p->latitude,
+                    'lng'        => (float) $p->longitude,
+                    'lokasi'     => $p->lokasi_pengambilan_sampel ?? ($p->perencanaan?->kab_kota ?? '—'),
+                    'provinsi'   => $p->perencanaan?->provinsi ?? '—',
+                    'komoditas'  => $p->komoditas_ikan ?? ($p->perencanaan?->jenis_mp ?? '—'),
+                    'upt'        => $p->perencanaan?->user?->name ?? '—',
+                    'tanggal'    => $p->tanggal_pemantauan ? \Carbon\Carbon::parse($p->tanggal_pemantauan)->format('d M Y') : $p->created_at?->format('d M Y'),
+                    'warna'      => $warna,
+                    'hasil_lab'  => $p->laboratorium ? $p->laboratorium->hasil_uji : 'Belum Uji Lab'
+                ];
+            });
+
+        // ═══════════════════════════════════════════════════════════════
+        // ZONE 5 — Aktivitas Terbaru (5 pelaksanaan terakhir)
+        // ═══════════════════════════════════════════════════════════════
+        $aktivitasTerbaru = Pelaksanaan::with(['perencanaan.user', 'laboratorium'])
+            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+
+        // ═══════════════════════════════════════════════════════════════
+        // ZONE 6 — Menunggu Tindakan (Action Required)
+        // ═══════════════════════════════════════════════════════════════
+        $menungguApproval = 0;
+        $menungguLab = 0;
+
+        if ($user->isBbkhit() || $user->isPusat()) {
+            $menungguApproval = Perencanaan::where('status', 'waiting')
+                ->when($user->isBbkhit(), fn($q) => $q->whereHas('user', fn($uq) => $uq->where('parent_id', $user->id)))
+                ->count();
+        }
+
+        $menungguLab = Pelaksanaan::whereDoesntHave('laboratorium')
+            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
+            ->count();
 
         // Notifikasi unread count untuk badge
         $unreadNotif = Notifikasi::where('user_id', Auth::id())->where('dibaca', false)->count();
@@ -122,7 +190,8 @@ class HomeController extends Controller
             'chartMediaLabels', 'chartMediaData',
             'chartHpikLabels',  'chartHpikData',
             'statusCounts', 'topUpt',
-            'petaData', 'unreadNotif'
+            'petaData', 'unreadNotif',
+            'aktivitasTerbaru', 'menungguApproval', 'menungguLab'
         ));
     }
 }

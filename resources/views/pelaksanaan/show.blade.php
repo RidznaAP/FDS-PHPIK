@@ -2,6 +2,15 @@
 
 @section('title', 'Detail Pelaksanaan Lapangan')
 
+@section('breadcrumb')
+<ol class="breadcrumb" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('perencanaan.index') }}">Perencanaan</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('perencanaan.show', $item->perencanaan_id) }}">Detail Perencanaan</a></li>
+    <li class="breadcrumb-item active">Pelaksanaan #{{ str_pad($item->id, 5, '0', STR_PAD_LEFT) }}</li>
+</ol>
+@endsection
+
 @section('content')
 <div class="animate-fade-in px-2">
     {{-- High-End Page Header --}}
@@ -24,13 +33,18 @@
             </div>
         </div>
         <div class="col-lg-4 text-lg-end">
-            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                <a href="{{ route('pelaksanaan.index') }}" class="btn btn-white btn-pill px-4 border-0">
+            <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                <a href="{{ route('pelaksanaan.index') }}" class="btn btn-white btn-pill px-4 border-0 shadow-sm">
                     <i class="ti ti-list me-2"></i>Daftar
                 </a>
                 <a href="{{ route('perencanaan.show', $item->perencanaan_id) }}" class="btn btn-primary btn-pill px-4 border-0">
                     <i class="ti ti-file-text me-2"></i>Lihat Rencana
                 </a>
+                @if(Auth::user()->isPusat() || (Auth::user()->id === optional($item->perencanaan)->user_id))
+                <a href="{{ route('pelaksanaan.edit', $item->id) }}" class="btn btn-warning btn-pill px-4 border-0">
+                    <i class="ti ti-edit me-2"></i>Edit
+                </a>
+                @endif
             </div>
         </div>
     </div>
@@ -212,14 +226,17 @@
                         <span class="badge bg-{{ $labConfig['bg'] }} text-white px-4 py-2 fs-6 rounded-pill shadow-sm">
                             <i class="ti {{ $labConfig['icon'] }} me-1"></i> {{ $labConfig['label'] }}
                         </span>
-                        @can('delete', $lab)
-                        <div class="mt-2">
+                        @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $item->perencanaan->user_id == Auth::id()))
+                        <div class="mt-2 d-flex justify-content-end gap-2">
+                            <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-sm btn-warning">
+                                <i class="ti ti-pencil me-1"></i>Edit Lab
+                            </a>
                             <button type="button" class="btn btn-sm btn-outline-danger"
                                 onclick="confirmAction('{{ route('laboratorium.destroy', $lab->id) }}', 'Hapus hasil lab ini?', 'DELETE', 'btn-danger')">
-                                <i class="ti ti-trash me-1"></i>Hapus Hasil Lab
+                                <i class="ti ti-trash me-1"></i>Hapus Lab
                             </button>
                         </div>
-                        @endcan
+                        @endif
                     </div>
                 </div>
                 <div class="card-body p-0">
