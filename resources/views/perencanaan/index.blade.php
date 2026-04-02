@@ -146,7 +146,7 @@
             </div>
         @else
         <div class="table-responsive">
-        <table class="table table-vcenter card-table table-hover">
+        <table class="table table-vcenter table-mobile-cards card-table table-hover">
             <thead>
                 <tr>
                     <th class="w-1 px-3"><input type="checkbox" class="form-check-input" id="check-all"></th>
@@ -190,39 +190,40 @@
                             </span>
                         </a>
                     </th>
-                    <th class="w-1 text-center fw-bold small text-uppercase aksi-sticky-th" style="letter-spacing: 0.1em; color: #64748b; background: #f6f8fb;">Aksi</th>
+                    <th class="w-1 text-center fw-bold small text-uppercase aksi-sticky-th" style="letter-spacing: 0.1em; color: #64748b; background: #f6f8fb; white-space: nowrap; padding-right: 1.5rem !important;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($perencanaans as $key => $p)
                 <tr>
-                    <td><input type="checkbox" name="ids[]" value="{{ $p->id }}" class="form-check-input check-item"></td>
-                    <td class="text-muted">{{ $perencanaans->firstItem() + $key }}</td>
-                    <td>
+                    <td data-label="Pilih"><input type="checkbox" name="ids[]" value="{{ $p->id }}" class="form-check-input check-item"></td>
+                    <td data-label="No." class="text-muted">{{ $perencanaans->firstItem() + $key }}</td>
+                    <td data-label="Wilayah">
                         <div class="fw-semibold">{{ $p->kab_kota }}</div>
                         <div class="text-muted small">{{ $p->provinsi }}</div>
                     </td>
-                    <td>
+                    <td data-label="Komoditas">
                         <div>{{ $p->jenis_mp }}</div>
                         <div class="text-muted small">{{ $p->jenis_hpik }}</div>
                     </td>
-                    <td>
+                    <td data-label="Target">
                         <div class="fw-semibold">{{ $p->target_uji }}</div>
                         <div class="text-muted small">TW: {{ $p->tw1 }}/{{ $p->tw2 }}/{{ $p->tw3 }}/{{ $p->tw4 }}</div>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         @php
                             $statusMap = [
                                 'draft'    => ['label'=>'Draft',              'class'=>'bg-secondary-lt text-secondary'],
                                 'waiting'  => ['label'=>'Menunggu Validasi',  'class'=>'bg-warning-lt text-warning'],
                                 'approved' => ['label'=>'Disetujui',          'class'=>'bg-success-lt text-success'],
+                                'rejected' => ['label'=>'Ditolak',            'class'=>'bg-danger-lt text-danger fw-bold'],
                             ];
-                            $s = $statusMap[$p->status] ?? $statusMap['draft'];
+                            $s = $statusMap[$p->status] ?? current($statusMap);
                         @endphp
                         <span class="badge {{ $s['class'] }}">{{ $s['label'] }}</span>
                     </td>
-                    <td class="aksi-sticky-td">
-                        <div class="d-flex gap-1">
+                    <td data-label="Aksi" class="aksi-sticky-td">
+                        <div class="d-flex gap-1 justify-content-end">
                             <a href="{{ route('perencanaan.show', $p->id) }}" class="btn btn-sm btn-outline-primary" title="Detail">
                                 <i class="ti ti-eye"></i>
                             </a>
@@ -236,7 +237,7 @@
                                 </button>
                             @endif
                             @if((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id())
-                                @if($p->status === 'draft')
+                                @if($p->status === 'draft' || $p->status === 'rejected')
                                     <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus" onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus data?', 'DELETE', 'btn-danger')"><i class="ti ti-trash"></i></button>
                                     <button type="button" class="btn btn-sm btn-warning" onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan validasi?', 'POST', 'btn-warning')"><i class="ti ti-send me-1"></i>Ajukan</button>
@@ -320,6 +321,8 @@
     z-index: 2;
     background: #ffffff;
     box-shadow: -3px 0 8px -2px rgba(0,0,0,0.08);
+    white-space: nowrap;
+    padding-right: 1.5rem !important;
 }
 .aksi-sticky-th {
     background: #f6f8fb !important;

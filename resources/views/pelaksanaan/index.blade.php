@@ -57,7 +57,7 @@
     <form id="form-bulk-delete" action="{{ route('pelaksanaan.bulk-delete') }}" method="POST">
         @csrf
         <div class="table-responsive">
-        <table class="table table-vcenter card-table table-hover">
+        <table class="table table-vcenter table-mobile-cards card-table table-hover">
             <thead>
                 <tr>
                     <th class="w-1 px-3"><input type="checkbox" class="form-check-input" id="check-all"></th>
@@ -109,15 +109,15 @@
                             </span>
                         </a>
                     </th>
-                    <th class="w-1 text-center bg-light fw-bold small text-uppercase" style="letter-spacing: 0.1em; color: #64748b;">Aksi</th>
+                    <th class="w-1 text-center bg-light fw-bold small text-uppercase aksi-sticky-th" style="letter-spacing: 0.1em; color: #64748b; white-space: nowrap; padding-right: 1.5rem !important;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($pelaksanaans as $key => $item)
                 <tr>
-                    <td><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="form-check-input check-item"></td>
-                    <td class="text-muted">{{ $pelaksanaans->firstItem() + $key }}</td>
-                    <td>
+                    <td data-label="Pilih"><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="form-check-input check-item"></td>
+                    <td data-label="No." class="text-muted">{{ $pelaksanaans->firstItem() + $key }}</td>
+                    <td data-label="Wilayah">
                         <div class="fw-semibold">{{ $item->perencanaan->jenis_mp ?? '-' }}</div>
                         <div class="text-muted small">{{ $item->perencanaan->kab_kota ?? '-' }}, {{ $item->perencanaan->provinsi ?? '-' }}</div>
                         <div class="small">{{ $item->lokasi_pengambilan_sampel }}</div>
@@ -127,7 +127,7 @@
                             </a>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Komoditas">
                         @if($item->jenis_ikan)
                             <div class="fw-semibold">{{ $item->jenis_ikan }}</div>
                             @if($item->nama_latin)<div class="text-muted small fst-italic">{{ $item->nama_latin }}</div>@endif
@@ -135,26 +135,26 @@
                             <span class="text-muted">—</span>
                         @endif
                     </td>
-                    <td>
-                        <div class="fw-semibold">{{ $item->jumlah_sampel }} pelaksanaan</div>
+                    <td data-label="Data Sampel">
+                        <div class="fw-semibold">{{ $item->jumlah_sampel }} sampel</div>
                         <div class="text-muted small">{{ $item->metode_pengambilan_sampel }}</div>
                         @if($item->jumlah_kematian > 0)
                             <span class="badge bg-danger-lt text-danger">Mati: {{ $item->jumlah_kematian }}</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Waktu Pelaksanaan">
                         <div>{{ \Carbon\Carbon::parse($item->tanggal_pemantauan)->format('d/m/Y') }}</div>
                         <div class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</div>
                     </td>
-                    <td>
+                    <td data-label="Status Uji">
                         @if($item->laboratorium)
                             <span class="badge bg-success-lt text-success">{{ $item->laboratorium->hasil_uji }}</span>
                         @else
                             <span class="badge bg-warning-lt text-warning">Belum Diuji</span>
                         @endif
                     </td>
-                    <td>
-                        <div class="d-flex gap-1">
+                    <td data-label="Aksi" class="aksi-sticky-td">
+                        <div class="d-flex gap-1 justify-content-end">
                             <a href="{{ route('pelaksanaan.show', $item->id) }}" class="btn btn-sm btn-outline-primary" title="Detail"><i class="ti ti-eye"></i></a>
                             @if(Auth::user()->isPusat())
                                 <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
@@ -244,5 +244,26 @@
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
     }
 </script>
+
+<style>
+/* Sticky Aksi column */
+.aksi-sticky-th,
+.aksi-sticky-td {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: #ffffff;
+    box-shadow: -3px 0 8px -2px rgba(0,0,0,0.08);
+    white-space: nowrap;
+    padding-right: 1.5rem !important;
+}
+.aksi-sticky-th {
+    background: #f6f8fb !important;
+    z-index: 3;
+}
+tbody tr:hover .aksi-sticky-td {
+    background: #f8fafc;
+}
+</style>
 @endpush
 @endsection

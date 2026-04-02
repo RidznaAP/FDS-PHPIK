@@ -27,6 +27,7 @@
                                 'draft'    => ['label'=>'Dalam Penyusunan',     'class'=>'bg-secondary-lt text-secondary', 'icon' => 'ti-pencil'],
                                 'waiting'  => ['label'=>'Menunggu Persetujuan', 'class'=>'bg-warning-lt text-warning',   'icon' => 'ti-hourglass-low'],
                                 'approved' => ['label'=>'Disetujui & Aktif',    'class'=>'bg-success-lt text-success',   'icon' => 'ti-checkbox'],
+                                'rejected' => ['label'=>'Ditolak / Dikembalikan', 'class'=>'bg-danger-lt text-danger',   'icon' => 'ti-circle-x'],
                             ];
                             $s = $statusMap[$p->status] ?? $statusMap['draft'];
                         @endphp
@@ -50,7 +51,7 @@
                 <a href="{{ route('perencanaan.index') }}" class="btn btn-white btn-pill px-4 border-0">
                     <i class="ti ti-arrow-left me-2"></i>Kembali
                 </a>
-                @if($p->status === 'draft')
+                @if($p->status === 'draft' || $p->status === 'rejected')
                 <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary btn-pill px-4 border-0">
                     <i class="ti ti-edit me-2"></i>Edit Rencana
                 </a>
@@ -58,6 +59,23 @@
             </div>
         </div>
     </div>
+
+    @if($p->status === 'rejected')
+    <div class="alert alert-danger shadow-sm border-danger border-start border-5 px-4 mb-4 rounded-4" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <i class="ti ti-alert-circle text-danger fs-1"></i>
+            </div>
+            <div>
+                <h4 class="alert-title fw-bold text-danger mb-1 text-uppercase">Perencanaan Dibatalkan / Dikembalikan</h4>
+                <div class="text-danger small fw-semibold mb-2">Perencanaan ini ditolak oleh BBKHIT/Pusat dengan alasan:</div>
+                <div class="p-3 bg-red-lt rounded-3 border fw-semibold text-danger shadow-sm fst-italic">
+                    "{{ $p->alasan_penolakan ?? 'Tidak ada alasan detail yang diberikan.' }}"
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <div class="row g-4">
         {{-- Kiri: Core Intelligence --}}
@@ -299,59 +317,74 @@
         {{-- Kanan: Context & Insights --}}
         <div class="col-lg-4">
             {{-- Action Palette --}}
-            <div class="card card-premium shadow-sm border-0 mb-4 bg-dark text-white overflow-hidden">
-                <div class="card-body p-4 position-relative">
-                    <h3 class="card-title fw-bold text-uppercase small tracking-widest opacity-75 mb-4">
-                        <i class="ti ti-bolt me-2 text-warning"></i> Operasi Cepat
-                    </h3>
-                    <div class="d-grid gap-3 position-relative" style="z-index: 2;">
+            <div class="d-grid gap-2 mb-4">
 
-                        {{-- BKHIT: Submit jika masih draft --}}
-                        @if(Auth::user()->isBkhit() && $p->status === 'draft')
-                            <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-warning btn-pill w-100 fw-bold border-0 shadow-lg"
-                                    onclick="return confirm('Ajukan perencanaan ini untuk persetujuan BBKHIT/Pusat?')">
-                                    <i class="ti ti-send me-2"></i>AJUKAN PERSETUJUAN
-                                </button>
-                            </form>
-                        @endif
+                {{-- BKHIT: Submit jika masih draft atau ditolak --}}
+                @if(Auth::user()->isUpt() && ($p->status === 'draft' || $p->status === 'rejected') && $p->user_id === Auth::id())
+                    <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-warning btn-pill w-100 fw-bold border-0 shadow-sm"
+                            onclick="return confirm('Ajukan perencanaan ini untuk persetujuan BBKHIT/Pusat?')">
+                            <i class="ti ti-send me-2"></i>AJUKAN KEMBALI
+                        </button>
+                    </form>
+                @endif
 
-                        {{-- BBKHIT/Pusat: Approve jika sedang waiting --}}
-                        @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'waiting')
-                            <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-success btn-pill w-100 fw-bold border-0 shadow-lg"
-                                    onclick="return confirm('Setujui perencanaan ini? Status akan berubah menjadi Disetujui & Aktif.')">
-                                    <i class="ti ti-circle-check me-2"></i>SETUJUI PERENCANAAN
-                                </button>
-                            </form>
-                        @endif
-
-                        {{-- BKHIT: Tambah Pelaksanaan jika approved --}}
-                        @if(Auth::user()->isUpt() && $p->status === 'approved')
-                            @if($p->pelaksanaans->count() < $p->target_uji)
-                                <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-white btn-pill w-100 fw-bold border-0 shadow-lg">
-                                    <i class="ti ti-plus me-2 text-primary"></i>PELAKSANAAN BARU
-                                </a>
-                            @else
-                                <div class="badge bg-green text-white px-3 py-2 rounded-pill shadow-sm w-100"><i class="ti ti-check me-2"></i>Target Uji Terpenuhi</div>
-                            @endif
-                        @endif
-
-                        {{-- BBKHIT/Pusat: Buat Evaluasi jika approved --}}
-                        @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'approved' && !$p->evaluasi)
-                            <a href="{{ route('evaluasi.create', $p->id) }}" class="btn btn-azure btn-pill w-100 fw-bold border-0 shadow-lg">
-                                <i class="ti ti-rosette-discount-check me-2"></i>BUAT EVALUASI AKHIR
-                            </a>
-                        @endif
-
-                        <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-light btn-pill w-100 opacity-75 hover-opacity-100">
-                            <i class="ti ti-file-export me-2"></i>EKSPOR LAPORAN
-                        </a>
+                {{-- BBKHIT/Pusat: Approve/Reject jika sedang waiting --}}
+                @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'waiting')
+                    <div class="d-flex gap-2">
+                        <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST" class="w-100">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-pill w-100 fw-bold border-0 shadow-sm"
+                                onclick="return confirm('Setujui perencanaan ini? Status akan berubah menjadi Disetujui & Aktif.')">
+                                <i class="ti ti-circle-check me-1"></i>SETUJUI
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-pill w-100 fw-bold border-0 shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-reject-{{ $p->id }}">
+                            <i class="ti ti-circle-x me-1"></i>TOLAK
+                        </button>
                     </div>
-                    <i class="ti ti-rocket position-absolute bottom-0 end-0 opacity-10" style="font-size: 10rem; margin-bottom: -2rem; margin-right: -2rem;"></i>
-                </div>
+
+                    {{-- Modal Reject --}}
+                    <div class="modal modal-blur fade" id="modal-reject-{{ $p->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="color: #1e293b;">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content border-danger border-4 border-top">
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-bold text-danger"><i class="ti ti-alert-triangle me-2"></i>Tolak Perencanaan</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="{{ route('perencanaan.reject', $p->id) }}" method="POST">
+                                    @csrf
+                                    <div class="modal-body p-4 text-start">
+                                        <div class="mb-4 text-muted small">
+                                            Anda akan menolak pengajuan perencanaan ini. Data yang ditolak akan dikembalikan ke UPT bersangkutan beserta catatan Anda.
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label required fw-bold mb-2">Catatan Penolakan / Revisi</label>
+                                            <textarea name="alasan_penolakan" class="form-control" rows="4" placeholder="Tuliskan alasan mengapa perencanaan ini ditolak..." required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-danger btn-pill px-4 fw-bold">Kirim Penolakan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- BKHIT: Tambah Pelaksanaan jika approved --}}
+                @if(Auth::user()->isUpt() && $p->status === 'approved')
+                    @if($p->pelaksanaans->count() < $p->target_uji)
+                        <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-primary btn-pill w-100 fw-bold border-0 shadow-sm">
+                            <i class="ti ti-plus me-2"></i>PELAKSANAAN BARU
+                        </a>
+                    @else
+                        <div class="badge bg-green text-white px-3 py-2 rounded-pill shadow-sm w-100"><i class="ti ti-check me-2"></i>Target Uji Terpenuhi</div>
+                    @endif
+                @endif
+
             </div>
 
             {{-- Resi Tracking Timeline --}}
@@ -387,6 +420,8 @@
                                 <div class="text-muted small mt-1"><i class="ti ti-calendar-event me-1"></i>{{ $p->created_at->format('d/m/Y H:i') }} | {{ optional($p->user)->name ?? 'Admin' }}</div>
                                 @if($p->status == 'approved')
                                     <div class="text-success small fw-bold mt-1"><i class="ti ti-rosette-discount-check me-1"></i>Telah Disetujui</div>
+                                @elseif($p->status == 'rejected')
+                                    <div class="text-danger small fw-bold mt-1"><i class="ti ti-circle-x me-1"></i>Ditolak / Dikembalikan</div>
                                 @endif
                             </div>
                         </div>

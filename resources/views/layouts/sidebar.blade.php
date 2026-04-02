@@ -6,17 +6,28 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <h1 class="navbar-brand navbar-brand-autodark">
-                    <a href="{{ route('home') }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
-                        {{-- Logo Instansi: letakkan file logo di public/images/logo-instansi.png --}}
-                        @if(file_exists(public_path('images/logo-instansi.png')))
-                            <img src="{{ asset('images/logo-instansi.png') }}" alt="Logo Badan Karantina Indonesia"
-                                 style="height:36px;width:auto;object-fit:contain;background:#fff;border-radius:50%;padding:2px;">
+                    <a href="{{ route('home') }}" class="text-decoration-none d-flex align-items-center pt-3 pb-2 px-1">
+                        {{-- Logo Instansi: cached base64 to prevent flicker --}}
+                        @php
+                            $logoB64 = Cache::rememberForever('logo_instansi_b64', function() {
+                                $path = public_path('images/logo-instansi.png');
+                                if (file_exists($path)) {
+                                    return 'data:' . mime_content_type($path) . ';base64,' . base64_encode(file_get_contents($path));
+                                }
+                                return null;
+                            });
+                        @endphp
+                        @if($logoB64)
+                            <img src="{{ $logoB64 }}" alt="Logo Deputi Karantina Ikan"
+                                 style="height:48px;width:auto;object-fit:contain;margin-right:14px;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.3));" decoding="async">
                         @else
-                            <span style="font-size:1.5rem;">🐟</span>
+                            <div style="height:48px;width:48px;background:rgba(255,255,255,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-right:14px;">
+                                <span style="font-size:1.5rem;">🐟</span>
+                            </div>
                         @endif
-                        <div class="d-flex flex-column lh-1">
-                            <span class="navbar-brand-text fw-bold" style="font-size:.95rem;letter-spacing:.02em;">SIP-HPIK</span>
-                            <span style="font-size:.6rem;opacity:.65;letter-spacing:.04em;text-transform:uppercase;">Badan Karantina Indonesia</span>
+                        <div class="d-flex flex-column justify-content-center">
+                            <span class="fw-bolder text-white" style="font-size:1.35rem;letter-spacing:-0.02em;line-height:1.1;margin-bottom:2px;">SIP-HPIK</span>
+                            <span class="fw-bold text-uppercase" style="color:#7dd3fc;font-size:0.65rem;letter-spacing:0.08em;line-height:1.2;">Deputi Karantina<br>Ikan</span>
                         </div>
                     </a>
                 </h1>
@@ -205,6 +216,16 @@
                                         </li>
                                     </ul>
                                 </div>
+                            </li>
+
+                            {{-- Audit Log --}}
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('pengaturan/audit-log*') ? 'active' : '' }}" href="{{ route('audit.index') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-activity" style="font-size:1.2rem;"></i>
+                                    </span>
+                                    <span class="nav-link-title">Audit Log</span>
+                                </a>
                             </li>
                         @endif
                     </ul>

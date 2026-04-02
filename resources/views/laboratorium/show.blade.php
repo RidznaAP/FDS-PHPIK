@@ -118,34 +118,34 @@
             
             <div class="p-4">
                 <div class="row g-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="p-3 bg-light rounded-4 h-100 border transition-all">
                             <div class="text-muted small fw-bold mb-1">PANJANG (CM)</div>
                             <div class="fw-bold text-dark">{{ $lab->panjang ?? '—' }}</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="p-3 bg-light rounded-4 h-100 border transition-all">
                             <div class="text-muted small fw-bold mb-1">BERAT (GRAM)</div>
                             <div class="fw-bold text-dark">{{ $lab->berat ?? '—' }}</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="p-3 bg-light rounded-4 h-100 border transition-all">
                             <div class="text-muted small fw-bold mb-1">JUMLAH KEMATIAN</div>
                             <div class="fw-bold text-dark">{{ $lab->jumlah_kematian ?? '—' }}</div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">ASAL BENIH / INDUK</div>
-                            <div class="fw-bold text-dark">{{ $lab->asal_benih_induk ?? '—' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <div class="p-3 bg-light rounded-4 h-100 border transition-all">
                             <div class="text-muted small fw-bold mb-1">PADAT TEBAR</div>
                             <div class="fw-bold text-dark">{{ $lab->padat_tebar ?? '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                            <div class="text-muted small fw-bold mb-1">ASAL BENIH / INDUK</div>
+                            <div class="fw-bold text-dark">{{ $lab->asal_benih_induk ?? '—' }}</div>
                         </div>
                     </div>
                     <div class="col-12">
@@ -169,25 +169,20 @@
                                 <i class="ti ti-dna me-2 text-red"></i> Deteksi Patogen
                             </h3>
                         </div>
-                        <div class="card-body p-0 pt-3">
-                            <table class="table table-vcenter card-table table-borderless table-striped-soft">
-                                <tbody>
-                                    @foreach(['Parasit' => ['field' => $lab->hasil_parasit, 'icon' => 'ti-bug'], 'Bakteri' => ['field' => $lab->hasil_bakteri, 'icon' => 'ti-circle'], 'Virus' => ['field' => $lab->hasil_virus, 'icon' => 'ti-virus'], 'Jamur' => ['field' => $lab->hasil_jamur, 'icon' => 'ti-leaf']] as $label => $data)
-                                    <tr>
-                                        <td class="ps-4 fw-medium text-muted py-2"><i class="ti {{ $data['icon'] }} me-2"></i>{{ $label }}</td>
-                                        <td class="text-end pe-4 py-2">
-                                            @php
-                                                $val = $data['field'] ?? 'NT';
-                                                $bgClass = $val === 'Positif (+)' ? 'bg-danger' : ($val === 'Negatif (-)' ? 'bg-success' : 'bg-secondary');
-                                            @endphp
-                                            <span class="badge {{ $bgClass }} p-2 px-3 rounded-pill shadow-sm" style="font-size: 0.75rem;">
-                                                {{ $val }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <div class="card-body text-center p-4">
+                            @php
+                                $kelompok_patogen = null;
+                                $icon = 'ti-shield-check';
+                                $color = 'text-success';
+                                if ($lab->hasil_parasit === 'Positif (+)') { $kelompok_patogen = 'Parasit'; $icon = 'ti-bug'; $color = 'text-danger'; }
+                                elseif ($lab->hasil_bakteri === 'Positif (+)') { $kelompok_patogen = 'Bakteri'; $icon = 'ti-circle'; $color = 'text-danger'; }
+                                elseif ($lab->hasil_virus === 'Positif (+)') { $kelompok_patogen = 'Virus'; $icon = 'ti-virus'; $color = 'text-danger'; }
+                                elseif ($lab->hasil_jamur === 'Positif (+)') { $kelompok_patogen = 'Jamur'; $icon = 'ti-leaf'; $color = 'text-danger'; }
+                                else { $kelompok_patogen = 'Nihil / Negatif'; }
+                            @endphp
+                            <div class="mb-2"><i class="ti {{ $icon }} {{ $color }}" style="font-size: 3.5rem;"></i></div>
+                            <h3 class="fw-bold mb-0 {{ $color }}" style="letter-spacing: 0.05em;">{{ strtoupper($kelompok_patogen) }}</h3>
+                            <div class="text-muted small mt-1 text-uppercase fw-bold" style="font-size: 0.7rem;">Kelompok Patogen Ditemukan</div>
                         </div>
                     </div>
                 </div>
@@ -221,12 +216,12 @@
                                             <div class="bg-white p-2 rounded-circle shadow-sm"><i class="ti ti-users-group text-primary"></i></div>
                                             <div>
                                                 <div class="text-muted small fw-bold">TOTAL SAMPEL DIUJI</div>
-                                                <div class="fw-extrabold h3 mb-0">{{ $lab->jumlah_sampel_diperiksa ?? '0' }} PELAKSANAAN</div>
+                                                <div class="fw-extrabold h3 mb-0">{{ $lab->jumlah_sampel_diperiksa ?? '0' }} SAMPEL</div>
                                             </div>
                                          </div>
                                          <div class="text-end">
                                              <div class="text-danger small fw-bold">TERINFEKSI</div>
-                                             <div class="fw-extrabold h3 mb-0 text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '0' }} PELAKSANAAN</div>
+                                             <div class="fw-extrabold h3 mb-0 text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '0' }} SAMPEL</div>
                                          </div>
                                     </div>
                                 </div>
@@ -259,8 +254,8 @@
                             <span class="badge bg-azure-lt">{{ $lab->jumlah_kolam_uji ?? '0' }} Unit</span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <span class="text-muted small fw-bold">PERIODE AMAT</span>
-                            <span class="fw-bold text-dark">{{ $lab->periode_pengamatan ?? '—' }}</span>
+                            <span class="text-muted small fw-bold">PERIODE PENGAMATAN</span>
+                            <span class="fw-bold text-dark">{{ $lab->periode_pengamatan ? $lab->periode_pengamatan . ' Hari' : '—' }}</span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                             <span class="text-muted small fw-bold">PETUGAS PENGUJI</span>

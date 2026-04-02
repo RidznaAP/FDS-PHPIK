@@ -152,18 +152,26 @@
         <div class="login-left">
             <div class="brand-box">
                 {{-- Logo Instansi Pemerintah --}}
-                @if(file_exists(public_path('images/logo-instansi.png')))
-                    <img src="{{ asset('images/logo-instansi.png') }}" alt="Logo Badan Karantina Indonesia"
-                         style="height:110px;width:auto;object-fit:contain;margin-bottom:1.5rem;
-                                background:#fff;border-radius:50%;padding:8px;
-                                box-shadow:0 0 0 4px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.3);">
+                @php
+                    $logoB64 = Cache::rememberForever('logo_instansi_b64', function() {
+                        $path = public_path('images/logo-instansi.png');
+                        if (file_exists($path)) {
+                            return 'data:' . mime_content_type($path) . ';base64,' . base64_encode(file_get_contents($path));
+                        }
+                        return null;
+                    });
+                @endphp
+                @if($logoB64)
+                    <img src="{{ $logoB64 }}" alt="Logo Deputi Karantina Ikan"
+                         style="height:150px;width:auto;object-fit:contain;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.4)); margin-bottom:1.5rem;" decoding="async">
                 @else
                     <span class="brand-icon">🐟</span>
                 @endif
-                <div class="brand-name">SIP-HPIK</div>
-                <div class="brand-desc">
+                <div class="brand-name" style="font-size:3.5rem;letter-spacing:-2px;line-height:1;margin-bottom:0.5rem;">SIP-HPIK</div>
+                <div class="fw-bold" style="color:#7dd3fc; margin-bottom:1.5rem; letter-spacing: 0.15em; text-transform:uppercase; font-size:1rem;">Deputi Karantina Ikan</div>
+                <div class="brand-desc" style="font-size:1.15rem;opacity:0.9;">
                     Sistem Informasi Pemantauan<br>
-                    <strong>Hama &amp; Penyakit Ikan Karantina</strong>
+                    Hama &amp; Penyakit Ikan Karantina
                 </div>
                 <ul class="feat-list">
                     <li><i class="ti ti-clipboard-check"></i> Perencanaan &amp; pelaksanaan pemantauan</li>
@@ -173,7 +181,7 @@
                     <li><i class="ti ti-shield-check"></i> Multi-level role: BKHIT, BBKHIT, Pusat</li>
                 </ul>
             </div>
-            <div class="brand-copy">Badan Karantina Indonesia &copy; {{ date('Y') }}</div>
+            <div class="brand-copy" style="opacity:0.75;">Deputi Karantina Ikan &copy; {{ date('Y') }}</div>
         </div>
 
         <!-- ===== KANAN 50%: Form ===== -->

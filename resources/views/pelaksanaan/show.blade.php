@@ -73,39 +73,47 @@
                                 </div>
                             </div>
                             <div class="row g-3">
-                                <div class="col-6 text-center border-end">
+                                <div class="col-4 text-center border-end">
                                     <div class="text-muted small fw-bold">PANJANG RATA2</div>
-                                    <div class="h2 fw-extrabold text-azure mb-0">{{ $item->panjang_cm ?? '0' }} <span class="fs-6 fw-normal">cm</span></div>
+                                    <div class="h2 fw-extrabold text-azure mb-0">{{ $item->laboratorium->panjang ?? $item->panjang_cm ?? '0' }} <span class="fs-6 fw-normal">cm</span></div>
                                 </div>
-                                <div class="col-6 text-center">
+                                <div class="col-4 text-center border-end">
                                     <div class="text-muted small fw-bold">BERAT RATA2</div>
-                                    <div class="h2 fw-extrabold text-azure mb-0">{{ $item->berat_gram ?? '0' }} <span class="fs-6 fw-normal">g</span></div>
+                                    <div class="h2 fw-extrabold text-azure mb-0">{{ $item->laboratorium->berat ?? $item->berat_gram ?? '0' }} <span class="fs-6 fw-normal">g</span></div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="text-muted small fw-bold">PADAT TEBAR</div>
+                                    <div class="h3 fw-extrabold text-azure mt-1 mb-0">{{ $item->laboratorium->padat_tebar ?? $item->padat_tebar ?? '—' }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6 p-4">
-                            <label class="text-muted small fw-bold text-uppercase d-block mb-2">Metrik Pengambilan</label>
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-2">Metrik Pengambilan & Asal</label>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <div class="card bg-primary-lt border-0 rounded-4 p-3 shadow-inner">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <div>
-                                                <div class="text-primary small fw-bold mb-1">JUMLAH SAMPEL</div>
-                                                <div class="h1 fw-extrabold text-primary mb-0">{{ $item->jumlah_sampel }} <span class="fs-4">Sampel</span></div>
+                                                <div class="text-primary small fw-bold mb-1">ASAL BENIH / INDUK</div>
+                                                <div class="fw-extrabold text-primary mb-0 fs-3">{{ $item->laboratorium->asal_benih_induk ?? $item->asal_benih_induk ?? 'Tidak Dicantumkan' }}</div>
                                             </div>
-                                            <i class="ti ti-flask text-primary opacity-25" style="font-size: 3rem;"></i>
+                                            <i class="ti ti-map-pin text-primary opacity-25" style="font-size: 2.5rem;"></i>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <div class="card {{ $item->jumlah_kematian > 0 ? 'bg-red-lt' : 'bg-green-lt' }} border-0 rounded-4 p-3 shadow-inner">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <div class="text-{{ $item->jumlah_kematian > 0 ? 'danger' : 'success' }} small fw-bold mb-1">ANGKA KEMATIAN</div>
-                                                <div class="h1 fw-extrabold text-{{ $item->jumlah_kematian > 0 ? 'danger' : 'success' }} mb-0">{{ $item->jumlah_kematian ?? 0 }} <span class="fs-4">Ekor</span></div>
-                                            </div>
-                                            <i class="ti ti-activity-heartbeat text-{{ $item->jumlah_kematian > 0 ? 'danger' : 'success' }} opacity-25" style="font-size: 3rem;"></i>
-                                        </div>
+                                <div class="col-6">
+                                    <div class="card bg-azure-lt border-0 rounded-4 p-3 h-100 shadow-inner">
+                                        <div class="text-azure small fw-bold mb-1">JUMLAH SAMPEL</div>
+                                        <div class="h2 fw-extrabold text-azure mb-0">{{ $item->jumlah_sampel }}</div>
+                                    </div>
+                                </div>
+                                @php
+                                    $kematianVal = $item->laboratorium->jumlah_kematian ?? $item->jumlah_kematian ?? 0;
+                                @endphp
+                                <div class="col-6">
+                                    <div class="card {{ $kematianVal > 0 ? 'bg-red-lt' : 'bg-green-lt' }} border-0 rounded-4 p-3 h-100 shadow-inner">
+                                        <div class="text-{{ $kematianVal > 0 ? 'danger' : 'success' }} small fw-bold mb-1">ANGKA KEMATIAN</div>
+                                        <div class="h2 fw-extrabold text-{{ $kematianVal > 0 ? 'danger' : 'success' }} mb-0">{{ $kematianVal }} <span class="fs-6">Ekor</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -120,18 +128,21 @@
                     <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
                         <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
                             <h3 class="card-title fw-bold text-muted small text-uppercase tracking-widest">
-                                <i class="ti ti-eye me-2 text-warning"></i> Observasi Klinis Lapangan
+                                <i class="ti ti-eye me-2 text-warning"></i> Observasi Klinis
                             </h3>
                         </div>
                         <div class="card-body p-4 pt-0">
-                            @if($item->gejala_klinis)
+                            @php
+                                $gejala = $item->laboratorium->gejala_klinis ?? $item->gejala_klinis;
+                            @endphp
+                            @if($gejala)
                             <div class="p-3 bg-warning-lt rounded-4 border-start border-warning border-4 mt-2">
                                 <div class="fw-bold text-warning mb-1 small text-uppercase tracking-wider">GEJALA TERAMATI:</div>
-                                <p class="mb-0 text-dark-emphasis fw-medium italic">"{{ $item->gejala_klinis }}"</p>
+                                <p class="mb-0 text-dark-emphasis fw-medium italic">"{{ $gejala }}"</p>
                             </div>
                             @else
-                            <div class="text-center py-4 bg-light rounded-4 border border-dashed text-muted fst-italic">
-                                Tidak ada gejala klinis yang dilaporkan oleh petugas.
+                            <div class="text-center py-4 bg-light rounded-4 border border-dashed text-muted fst-italic mt-2">
+                                Tidak ada gejala klinis yang dilaporkan.
                             </div>
                             @endif
                         </div>
@@ -259,21 +270,21 @@
                                 @endif
                             </dl>
                         </div>
-                        {{-- Kolom 2: Hasil per Patogen --}}
-                        <div class="col-md-3 border-end p-4">
-                            <div class="small text-muted fw-bold text-uppercase mb-3" style="letter-spacing:.05em;">Hasil Per Patogen</div>
-                            <div class="d-flex flex-column gap-2">
-                                @foreach($patogenMap as $field => $cfg)
-                                @php
-                                    $val = $lab->$field;
-                                    $color = match($val) { '+' => 'danger', '-' => 'success', default => 'secondary' };
-                                @endphp
-                                <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3">
-                                    <span class="fw-bold small"><i class="ti {{ $cfg['icon'] }} me-1"></i>{{ $cfg['label'] }}</span>
-                                    <span class="badge bg-{{ $color }}-lt text-{{ $color }} px-3 py-1 fw-bold fs-6">{{ $val ?? 'NT' }}</span>
-                                </div>
-                                @endforeach
-                            </div>
+                        {{-- Kolom 2: Patogen Ditemukan --}}
+                        <div class="col-md-3 border-end p-4 d-flex flex-column justify-content-center text-center">
+                            @php
+                                $kelompok_patogen = null;
+                                $icon = 'ti-shield-check';
+                                $color = 'text-success';
+                                if ($lab->hasil_parasit === 'Positif (+)') { $kelompok_patogen = 'Parasit'; $icon = 'ti-bug'; $color = 'text-danger'; }
+                                elseif ($lab->hasil_bakteri === 'Positif (+)') { $kelompok_patogen = 'Bakteri'; $icon = 'ti-circle'; $color = 'text-danger'; }
+                                elseif ($lab->hasil_virus === 'Positif (+)') { $kelompok_patogen = 'Virus'; $icon = 'ti-virus'; $color = 'text-danger'; }
+                                elseif ($lab->hasil_jamur === 'Positif (+)') { $kelompok_patogen = 'Jamur'; $icon = 'ti-leaf'; $color = 'text-danger'; }
+                                else { $kelompok_patogen = 'Nihil / Negatif'; }
+                            @endphp
+                            <div class="small text-muted fw-bold text-uppercase mb-3" style="letter-spacing:.05em;">Kelompok Patogen Ditemukan</div>
+                            <div class="mb-2"><i class="ti {{ $icon }} {{ $color }}" style="font-size: 3.5rem;"></i></div>
+                            <h3 class="fw-bold mb-0 {{ $color }}" style="letter-spacing: 0.05em;">{{ strtoupper($kelompok_patogen) }}</h3>
                         </div>
                         {{-- Kolom 3: Statistik Prevalensi --}}
                         <div class="col-md-3 border-end p-4">
@@ -292,13 +303,13 @@
                                 <div class="col-6">
                                     <div class="p-2 bg-red-lt rounded-3 text-center">
                                         <div class="small text-muted fw-bold">INFEKSI</div>
-                                        <div class="fw-bold text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '—' }} ekor</div>
+                                        <div class="fw-bold text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '—' }} sampel</div>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="p-2 bg-light rounded-3 text-center">
                                         <div class="small text-muted fw-bold">DIPERIKSA</div>
-                                        <div class="fw-bold">{{ $lab->jumlah_sampel_diperiksa ?? '—' }} ekor</div>
+                                        <div class="fw-bold">{{ $lab->jumlah_sampel_diperiksa ?? '—' }} sampel</div>
                                     </div>
                                 </div>
                             </div>
@@ -316,6 +327,21 @@
                             <div class="mt-auto">
                                 <div class="text-muted small mb-1">Diinput pada:</div>
                                 <div class="fw-semibold">{{ $lab->created_at->format('d M Y, H:i') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {{-- Baris Tambahan: Data Contoh Uji --}}
+                    <div class="row g-0 border-top bg-light pb-2">
+                        <div class="col-12 p-3 px-4">
+                            <div class="small text-muted fw-bold text-uppercase mb-2" style="letter-spacing:.05em;"><i class="ti ti-ruler-measure me-1"></i> Data Contoh Uji</div>
+                            <div class="d-flex flex-wrap gap-4 mt-2">
+                                <div><span class="text-muted small">Panjang:</span> <strong class="text-dark">{{ $lab->panjang ?? '-' }} cm</strong></div>
+                                <div><span class="text-muted small">Berat:</span> <strong class="text-dark">{{ $lab->berat ?? '-' }} gram</strong></div>
+                                <div><span class="text-muted small">Mati:</span> <strong class="text-danger">{{ $lab->jumlah_kematian ?? '-' }}</strong></div>
+                                <div><span class="text-muted small">Padat Tebar:</span> <strong class="text-dark">{{ $lab->padat_tebar ?? '-' }}</strong></div>
+                                <div><span class="text-muted small">Asal:</span> <strong class="text-dark">{{ $lab->asal_benih_induk ?? '-' }}</strong></div>
+                                <div><span class="text-muted small">Gejala:</span> <strong class="text-dark fst-italic">{{ Str::limit($lab->gejala_klinis ?? 'Tidak dicantumkan', 50) }}</strong></div>
                             </div>
                         </div>
                     </div>
@@ -351,7 +377,7 @@
                             <div class="d-flex gap-3 flex-wrap">
                                 <span><i class="ti ti-fish me-1"></i><strong>Komoditas:</strong> {{ $item->jenis_ikan }}</span>
                                 <span><i class="ti ti-virus me-1"></i><strong>Target HPIK:</strong> {{ $item->perencanaan->jenis_hpik ?? '-' }}</span>
-                                <span><i class="ti ti-flask me-1"></i><strong>Jumlah Sampel:</strong> {{ $item->jumlah_sampel }} pelaksanaan</span>
+                                <span><i class="ti ti-flask me-1"></i><strong>Jumlah Sampel:</strong> {{ $item->jumlah_sampel }} sampel</span>
                                 <span><i class="ti ti-building me-1"></i><strong>Lab Rencana:</strong> {{ $item->perencanaan->lab_uji ?? '-' }}</span>
                             </div>
                         </div>
@@ -398,28 +424,51 @@
                                 </div>
                             </div>
 
+                            {{-- Data Contoh Uji --}}
+                            <div class="col-12">
+                                <h5 class="fw-bold text-purple mb-3"><i class="ti ti-ruler-measure me-2"></i>Data Contoh Uji</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Panjang (cm)</label>
+                                        <input type="text" name="panjang" class="form-control" placeholder="e.g., 5" value="{{ old('panjang') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Berat (gram)</label>
+                                        <input type="text" name="berat" class="form-control" placeholder="e.g., 6" value="{{ old('berat') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Jumlah Kematian</label>
+                                        <input type="text" name="jumlah_kematian" class="form-control" placeholder="e.g., 10" value="{{ old('jumlah_kematian') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Padat Tebar</label>
+                                        <input type="text" name="padat_tebar" class="form-control" placeholder="e.g., 500" value="{{ old('padat_tebar') }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Asal Benih/Induk</label>
+                                        <input type="text" name="asal_benih_induk" class="form-control" placeholder="..." value="{{ old('asal_benih_induk') }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Gejala Klinis</label>
+                                        <textarea name="gejala_klinis" class="form-control" rows="2" placeholder="Deskripsi...">{{ old('gejala_klinis') }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Baris 2: Hasil Per Patogen + Hasil Akhir --}}
                             <div class="col-md-6">
                                 <h5 class="fw-bold text-azure mb-3"><i class="ti ti-virus me-2"></i>Hasil Per Patogen</h5>
-                                <div class="d-flex flex-column gap-2">
-                                    @foreach([
-                                        ['field'=>'hasil_parasit','label'=>'Parasit','icon'=>'ti-bug'],
-                                        ['field'=>'hasil_bakteri','label'=>'Bakteri','icon'=>'ti-circle'],
-                                        ['field'=>'hasil_virus',  'label'=>'Virus',  'icon'=>'ti-virus'],
-                                        ['field'=>'hasil_jamur',  'label'=>'Jamur',  'icon'=>'ti-leaf'],
-                                    ] as $target)
-                                    <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3">
-                                        <span class="fw-bold small"><i class="ti {{ $target['icon'] }} me-1"></i>{{ $target['label'] }}</span>
-                                        <div class="btn-group" role="group">
-                                            @foreach(['+'=>'danger', '-'=>'success', 'NT'=>'secondary'] as $val=>$color)
-                                            <input type="radio" class="btn-check" name="{{ $target['field'] }}"
-                                                id="{{ $target['field'] }}_{{ $val }}_show"
-                                                value="{{ $val }}" {{ old($target['field'], 'NT') === $val ? 'checked' : '' }}>
-                                            <label class="btn btn-outline-{{ $color }} btn-sm px-3" for="{{ $target['field'] }}_{{ $val }}_show">{{ $val }}</label>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    @endforeach
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold required">Kelompok Patogen Ditemukan</label>
+                                    <select name="kelompok_patogen" class="form-select @error('kelompok_patogen') is-invalid @enderror" required>
+                                        <option value="">— Pilih Kelompok Patogen —</option>
+                                        <option value="Parasit" {{ old('kelompok_patogen') == 'Parasit' ? 'selected' : '' }}>Parasit</option>
+                                        <option value="Bakteri" {{ old('kelompok_patogen') == 'Bakteri' ? 'selected' : '' }}>Bakteri</option>
+                                        <option value="Virus" {{ old('kelompok_patogen') == 'Virus' ? 'selected' : '' }}>Virus</option>
+                                        <option value="Jamur" {{ old('kelompok_patogen') == 'Jamur' ? 'selected' : '' }}>Jamur</option>
+                                        <option value="Nihil" {{ old('kelompok_patogen') == 'Nihil' ? 'selected' : '' }}>Nihil / Tidak Ada Patogen</option>
+                                    </select>
+                                    @error('kelompok_patogen')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
 
                                 <div class="mt-3 pt-3 border-top">
@@ -439,22 +488,28 @@
                                 <div class="row g-2">
                                     <div class="col-6">
                                         <label class="form-label small fw-bold">Jumlah Ikan Infeksi</label>
-                                        <input type="number" id="jml_terinfeksi" name="jumlah_ikan_terinfeksi"
-                                            class="form-control" min="0" placeholder="0"
-                                            value="{{ old('jumlah_ikan_terinfeksi') }}" oninput="hitungOtomatis()">
+                                        <div class="input-group">
+                                            <input type="number" id="jml_terinfeksi" name="jumlah_ikan_terinfeksi"
+                                                class="form-control" min="0" placeholder="0"
+                                                value="{{ old('jumlah_ikan_terinfeksi') }}" oninput="hitungOtomatis()">
+                                            <span class="input-group-text bg-primary-lt border-light text-primary fw-bold text-uppercase px-2" style="font-size: 0.7rem;">Sampel</span>
+                                        </div>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label small fw-bold">Sampel Diperiksa</label>
-                                        <input type="number" id="jml_diperiksa" name="jumlah_sampel_diperiksa"
-                                            class="form-control" min="1"
-                                            value="{{ old('jumlah_sampel_diperiksa', $item->jumlah_sampel) }}" oninput="hitungOtomatis()">
+                                        <div class="input-group">
+                                            <input type="number" id="jml_diperiksa" name="jumlah_sampel_diperiksa"
+                                                class="form-control" min="1"
+                                                value="{{ old('jumlah_sampel_diperiksa', $item->jumlah_sampel) }}" oninput="hitungOtomatis()">
+                                            <span class="input-group-text bg-primary-lt border-light text-primary fw-bold text-uppercase px-2" style="font-size: 0.7rem;">Sampel</span>
+                                        </div>
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label small fw-bold">Jumlah Kolam</label>
                                         <input type="number" id="jml_kolam" name="jumlah_kolam_uji" class="form-control" oninput="hitungOtomatis()">
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label small fw-bold">Periode (Hari)</label>
+                                        <label class="form-label small fw-bold">Periode Pengamatan</label>
                                         <input type="number" id="periode" name="periode_pengamatan" class="form-control" oninput="hitungOtomatis()">
                                     </div>
                                     <div class="col-6">

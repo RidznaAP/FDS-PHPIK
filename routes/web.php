@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
     // Validasi (approve) oleh BBKHIT/Pusat
     Route::middleware('role:bbkhit,pusat')->group(function () {
         Route::post('/perencanaan/approve/{id}', [PerencanaanController::class, 'approve'])->name('perencanaan.approve');
+        Route::post('/perencanaan/reject/{id}', [PerencanaanController::class, 'reject'])->name('perencanaan.reject');
 
         // Penetapan Evaluasi (Warna Map)
         Route::get('/perencanaan/{id}/evaluasi', [EvaluasiController::class, 'create'])->name('evaluasi.create');
@@ -146,6 +147,11 @@ Route::middleware('auth')->group(function () {
     // #13 & #14: PDF print + per wilayah
     Route::get('/laporan/pdf', [\App\Http\Controllers\LaporanController::class, 'exportPdf'])->name('laporan.pdf');
     Route::get('/laporan/formulir', [\App\Http\Controllers\LaporanController::class, 'exportFormulir'])->name('laporan.formulir');
+
+    // --- Audit Log (Pusat) ---
+    Route::middleware('role:pusat')->group(function () {
+        Route::get('/pengaturan/audit-log', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit.index');
+    });
 
     // --- Manajemen Pengguna (hanya Pusat) ---
     Route::middleware('role:pusat')->group(function () {

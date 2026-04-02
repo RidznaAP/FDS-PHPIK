@@ -319,8 +319,20 @@ class PerencanaanController extends Controller
             abort(403);
         }
 
-        if ($perencanaan->status === 'draft') {
+        if (in_array($perencanaan->status, ['draft', 'rejected'])) {
+            $oldStatus = $perencanaan->status;
             $perencanaan->update(['status' => 'waiting']);
+
+            // Activity Log
+            \App\Models\ActivityLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'Submit',
+                'model' => 'Perencanaan',
+                'old_value' => json_encode(['status' => $oldStatus]),
+                'new_value' => json_encode(['status' => 'waiting']),
+                'ip' => request()->ip()
+            ]);
+
             return back()->with('success', 'Perencanaan berhasil diajukan untuk validasi.');
         }
         return back()->with('error', 'Status tidak valid untuk diajukan.');
@@ -341,9 +353,59 @@ class PerencanaanController extends Controller
         }
 
         if ($perencanaan->status === 'waiting') {
-            $perencanaan->update(['status' => 'approved']);
+            $perencanaan->update(['status' => 'approved', 'alasan_penolakan' => null]);
+            
+            // Rekam log activity
+            \App\Models\ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'Approve',
+                'model' => 'Perencanaan',
+                'old_value' => json_encode(['status' => 'waiting']),
+                'new_value' => json_encode(['status' => 'approved']),
+                'ip' => request()->ip()
+            ]);
+            
             return back()->with('success', 'Perencanaan telah disetujui!');
         }
         return back()->with('error', 'Hanya perencanaan dengan status waiting yang bisa disetujui.');
+    }
+
+    // BBKHIT/Pusat menolak perencanaan: waiting -> rejected
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'alasan_penolakan' => 'required|string|max:1000'
+        ]);
+
+        $perencanaan = Perencanaan::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->isBbkhit()) {
+            $owner = User::find($perencanaan->user_id);
+            if ($perencanaan->user_id !== $user->id && (!$owner || $owner->parent_id !== $user->id)) {
+                abort(403, 'Anda tidak memiliki wewenang memvalidasi data di luar wilayah koordinasi Anda.');
+            }
+        }
+
+        if ($perencanaan->status === 'waiting' || $perencanaan->status === 'approved') {
+            $oldStatus = $perencanaan->status;
+            $perencanaan->update([
+                'status' => 'rejected',
+                'alasan_penolakan' => $request->alasan_penolakan
+            ]);
+            
+            // Rekam log activity
+            \App\Models\ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'Reject',
+                'model' => 'Perencanaan',
+                'old_value' => json_encode(['status' => $oldStatus]),
+                'new_value' => json_encode(['status' => 'rejected', 'alasan_penolakan' => $request->alasan_penolakan]),
+                'ip' => filter_var(request()->ip(), FILTER_VALIDATE_IP) ?: null
+            ]);
+            
+            return back()->with('success', 'Perencanaan telah ditolak beserta alasan penolakannya.');
+        }
+        return back()->with('error', 'Perencanaan tidak bisa ditolak karena statusnya tidak valid.');
     }
 }

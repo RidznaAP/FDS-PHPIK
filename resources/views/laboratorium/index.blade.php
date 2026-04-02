@@ -36,7 +36,7 @@
     <form id="form-bulk-delete" action="{{ route('laboratorium.bulk-delete') }}" method="POST">
         @csrf
         <div class="table-responsive">
-        <table class="table table-vcenter card-table table-hover">
+        <table class="table table-vcenter table-mobile-cards card-table table-hover">
             <thead>
                 <tr>
                     <th class="w-1 px-3"><input type="checkbox" class="form-check-input" id="check-all"></th>
@@ -104,46 +104,46 @@
                             </span>
                         </a>
                     </th>
-                    <th class="w-1 text-center bg-light fw-bold small text-uppercase" style="letter-spacing: 0.1em; color: #64748b;">Aksi</th>
+                    <th class="w-1 text-center bg-light fw-bold small text-uppercase aksi-sticky-th" style="letter-spacing: 0.1em; color: #64748b; white-space: nowrap; padding-right: 1.5rem !important;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($pelaksanaans as $key => $item)
                 <tr>
-                    <td>
+                    <td data-label="Pilih">
                         @if($item->laboratorium)
                             <input type="checkbox" name="ids[]" value="{{ $item->laboratorium->id }}" class="form-check-input check-item">
                         @endif
                     </td>
-                    <td class="text-muted">{{ $pelaksanaans->firstItem() + $key }}</td>
-                    <td>
+                    <td data-label="No." class="text-muted">{{ $pelaksanaans->firstItem() + $key }}</td>
+                    <td data-label="Wilayah">
                         <div class="fw-semibold">{{ $item->lokasi_pengambilan_sampel }}</div>
                         <div class="text-muted small">{{ $item->perencanaan->kab_kota ?? '-' }}, {{ $item->perencanaan->provinsi ?? '-' }}</div>
                     </td>
-                    <td>{{ $item->perencanaan->jenis_mp ?? '-' }}</td>
-                    <td>{{ $item->jumlah_sampel }} pelaksanaan</td>
-                    <td class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
-                    <td>
+                    <td data-label="Media Pembawa">{{ $item->perencanaan->jenis_mp ?? '-' }}</td>
+                    <td data-label="Sampel">{{ $item->jumlah_sampel }} pelaksanaan</td>
+                    <td data-label="Tanggal Masuk" class="text-muted small">{{ $item->created_at->format('d/m/Y') }}</td>
+                    <td data-label="Metode Uji">
                         @if($item->laboratorium)
                             <span class="badge bg-secondary-lt text-secondary">{{ $item->laboratorium->metode_uji ?? '—' }}</span>
                         @else
                             <span class="text-muted">—</span>
                         @endif
                     </td>
-                    <td class="text-muted small">
+                    <td data-label="Prevalensi" class="text-muted small">
                         @if($item->laboratorium && $item->laboratorium->prevalensi !== null)
                             {{ $item->laboratorium->prevalensi }}%
                         @else —
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Status/Hasil">
                         @if($item->laboratorium)
                             <span class="badge {{ $item->laboratorium->hasil_uji === 'NIHIL' ? 'bg-success-lt text-success' : 'bg-danger-lt text-danger fw-bold' }}"><i class="ti {{ $item->laboratorium->hasil_uji === 'NIHIL' ? 'ti-check' : 'ti-alert-circle' }} me-1"></i>{{ $item->laboratorium->hasil_uji }}</span>
                         @else
                             <span class="badge bg-warning-lt text-warning"><i class="ti ti-clock me-1"></i>Menunggu</span>
                         @endif
                     </td>
-                    <td>
+                    <td data-label="Aksi" class="aksi-sticky-td">
                         <div class="d-flex gap-1">
                             @if($item->laboratorium)
                                 <a href="{{ route('laboratorium.show', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-primary" title="Detail Lab"><i class="ti ti-eye"></i></a>
@@ -230,6 +230,25 @@
 
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
     }
-</script>
+<style>
+/* Sticky Aksi column */
+.aksi-sticky-th,
+.aksi-sticky-td {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: #ffffff;
+    box-shadow: -3px 0 8px -2px rgba(0,0,0,0.08);
+    white-space: nowrap;
+    padding-right: 1.5rem !important;
+}
+.aksi-sticky-th {
+    background: #f6f8fb !important;
+    z-index: 3;
+}
+tbody tr:hover .aksi-sticky-td {
+    background: #f8fafc;
+}
+</style>
 @endpush
 @endsection

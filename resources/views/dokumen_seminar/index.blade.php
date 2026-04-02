@@ -43,6 +43,19 @@
             <div class="card-body p-4">
                 <form action="{{ route('seminar.store', $modul) }}" method="POST" enctype="multipart/form-data">
                     @csrf
+
+                    @if($modul === 'pelaporan')
+                    <div class="alert alert-info border-0 rounded-3 mb-4 shadow-sm bg-blue-lt">
+                        <div class="fw-bold mb-2 text-blue"><i class="ti ti-checkup-list me-1"></i>Dokumen Yang Perlu Diupload:</div>
+                        <ul class="mb-0 small ps-3 text-dark">
+                            <li class="mb-1">Laporan Perencanaan</li>
+                            <li class="mb-1">Laporan Kompilasi Hasil Uji</li>
+                            <li class="mb-1">Laporan Akhir Pemantauan</li>
+                            <li>Laporan Melaksanakan Seminar Regional</li>
+                        </ul>
+                    </div>
+                    @endif
+
                     <div class="mb-3">
                         <label class="form-label required fw-bold">Judul Dokumen</label>
                         <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror"

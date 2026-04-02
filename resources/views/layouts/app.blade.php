@@ -98,6 +98,33 @@
         /* ── Badges ── */
         .badge { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; border-radius: 6px; padding: 3px 8px; }
 
+        /* ── Mobile Responsive Tables to Cards ── */
+        @media (max-width: 767.98px) {
+            .table-mobile-cards, .table-mobile-cards tbody, .table-mobile-cards tr, .table-mobile-cards td {
+                display: block; width: 100%;
+            }
+            .table-mobile-cards thead { display: none; }
+            .table-mobile-cards tr {
+                background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px;
+                margin-bottom: 1rem; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            }
+            .table-mobile-cards td {
+                padding: 0.5rem 0 !important; border: none !important;
+                display: flex; justify-content: space-between; align-items: center;
+                text-align: right;
+            }
+            .table-mobile-cards td::before {
+                content: attr(data-label);
+                font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;
+                margin-right: 1rem; text-align: left;
+            }
+            .table-mobile-cards td:last-child {
+                margin-top: 0.5rem; padding-top: 1rem !important; border-top: 1px dashed #e2e8f0 !important;
+                justify-content: center;
+            }
+            .aksi-sticky-td { border: none !important; position: static !important; background: transparent !important; }
+        }
+
         /* ── Form Controls ── */
         .form-control, .form-select {
             border-radius: 8px !important; border: 1.5px solid #e2e8f0 !important;

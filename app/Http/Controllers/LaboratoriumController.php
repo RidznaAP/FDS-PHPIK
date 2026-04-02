@@ -104,26 +104,34 @@ class LaboratoriumController extends Controller
             'lab_penguji'       => 'required|string',
             'nama_petugas_uji'  => 'required|string|max:255',
             'tanggal_uji'       => 'required|date',
-            'hasil_parasit'     => 'required|string|in:Positif (+),Negatif (-),NT',
-            'hasil_bakteri'     => 'required|string|in:Positif (+),Negatif (-),NT',
-            'hasil_virus'       => 'required|string|in:Positif (+),Negatif (-),NT',
-            'hasil_jamur'       => 'required|string|in:Positif (+),Negatif (-),NT',
+            'kelompok_patogen'  => 'required|string|in:Parasit,Bakteri,Virus,Jamur,Nihil',
             'prevalensi'        => 'nullable|numeric|min:0|max:100',
             'insidensi'         => 'nullable|numeric|min:0|max:100',
             'tanggal_hasil'     => 'nullable|date',
         ]);
 
-        $lab = Laboratorium::create($request->only([
+        $data = $request->only([
             'pelaksanaan_id', 'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
             'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
-            'tanggal_uji', 'tanggal_hasil', 'hasil_parasit', 'hasil_bakteri',
-            'hasil_virus', 'hasil_jamur',
+            'tanggal_uji', 'tanggal_hasil',
             'prevalensi', 'insidensi',
             'jumlah_ikan_terinfeksi', 'jumlah_sampel_diperiksa',
             'jumlah_kolam_uji', 'periode_pengamatan',
-            'panjang', 'berat', 'asal_benih_induk', 'padat_tebar',
-            'gejala_klinis', 'jumlah_kematian'
-        ]));
+            'panjang', 'berat', 'asal_benih_induk',
+            'padat_tebar', 'gejala_klinis', 'jumlah_kematian'
+        ]);
+
+        $data['hasil_parasit'] = 'Negatif (-)';
+        $data['hasil_bakteri'] = 'Negatif (-)';
+        $data['hasil_virus'] = 'Negatif (-)';
+        $data['hasil_jamur'] = 'Negatif (-)';
+
+        if ($request->kelompok_patogen === 'Parasit') $data['hasil_parasit'] = 'Positif (+)';
+        elseif ($request->kelompok_patogen === 'Bakteri') $data['hasil_bakteri'] = 'Positif (+)';
+        elseif ($request->kelompok_patogen === 'Virus') $data['hasil_virus'] = 'Positif (+)';
+        elseif ($request->kelompok_patogen === 'Jamur') $data['hasil_jamur'] = 'Positif (+)';
+
+        $lab = Laboratorium::create($data);
 
         return redirect()->route('pelaksanaan.show', $request->pelaksanaan_id)->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
     }
@@ -165,10 +173,7 @@ class LaboratoriumController extends Controller
             'lab_penguji'       => 'required|string',
             'nama_petugas_uji'  => 'required|string|max:255',
             'tanggal_uji'       => 'required|date',
-            'hasil_parasit'     => 'required|string|in:Positif (+),Negatif (-),NT',
-            'hasil_bakteri'     => 'required|string|in:Positif (+),Negatif (-),NT',
-            'hasil_virus'       => 'required|string|in:Positif (+),Negatif (-),NT',
-            'hasil_jamur'       => 'required|string|in:Positif (+),Negatif (-),NT',
+            'kelompok_patogen'  => 'required|string|in:Parasit,Bakteri,Virus,Jamur,Nihil',
             'prevalensi'        => 'nullable|numeric|min:0|max:100',
             'insidensi'         => 'nullable|numeric|min:0|max:100',
             'tanggal_hasil'     => 'nullable|date',
@@ -189,17 +194,28 @@ class LaboratoriumController extends Controller
             }
         }
 
-        $lab->update($request->only([
+        $data = $request->only([
             'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
             'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
-            'tanggal_uji', 'tanggal_hasil', 'hasil_parasit', 'hasil_bakteri',
-            'hasil_virus', 'hasil_jamur',
+            'tanggal_uji', 'tanggal_hasil',
             'prevalensi', 'insidensi',
             'jumlah_ikan_terinfeksi', 'jumlah_sampel_diperiksa',
             'jumlah_kolam_uji', 'periode_pengamatan',
-            'panjang', 'berat', 'asal_benih_induk', 'padat_tebar',
-            'gejala_klinis', 'jumlah_kematian'
-        ]));
+            'panjang', 'berat', 'asal_benih_induk',
+            'padat_tebar', 'gejala_klinis', 'jumlah_kematian'
+        ]);
+
+        $data['hasil_parasit'] = 'Negatif (-)';
+        $data['hasil_bakteri'] = 'Negatif (-)';
+        $data['hasil_virus'] = 'Negatif (-)';
+        $data['hasil_jamur'] = 'Negatif (-)';
+
+        if ($request->kelompok_patogen === 'Parasit') $data['hasil_parasit'] = 'Positif (+)';
+        elseif ($request->kelompok_patogen === 'Bakteri') $data['hasil_bakteri'] = 'Positif (+)';
+        elseif ($request->kelompok_patogen === 'Virus') $data['hasil_virus'] = 'Positif (+)';
+        elseif ($request->kelompok_patogen === 'Jamur') $data['hasil_jamur'] = 'Positif (+)';
+
+        $lab->update($data);
 
         return redirect()->route('pelaksanaan.show', $pelaksanaan->id)->with('success', 'Hasil Uji Laboratorium Berhasil Diperbarui!');
     }

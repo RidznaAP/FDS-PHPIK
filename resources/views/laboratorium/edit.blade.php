@@ -145,25 +145,25 @@
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted text-uppercase mb-2">Panjang (cm)</label>
                                     <input type="text" name="panjang" class="form-control bg-light" placeholder="e.g., 5" value="{{ old('panjang', $lab->panjang) }}">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted text-uppercase mb-2">Berat (gram)</label>
                                     <input type="text" name="berat" class="form-control bg-light" placeholder="e.g., 6" value="{{ old('berat', $lab->berat) }}">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold small text-muted text-uppercase mb-2">Jumlah Kematian</label>
                                     <input type="text" name="jumlah_kematian" class="form-control bg-light" placeholder="e.g., 10" value="{{ old('jumlah_kematian', $lab->jumlah_kematian) }}">
                                 </div>
-                                <div class="col-md-6 mt-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-muted text-uppercase mb-2">Padat Tebar</label>
+                                    <input type="text" name="padat_tebar" class="form-control bg-light" placeholder="e.g., 500" value="{{ old('padat_tebar', $lab->padat_tebar) }}">
+                                </div>
+                                <div class="col-12 mt-3">
                                     <label class="form-label fw-bold small text-muted text-uppercase mb-2">Asal Benih / Induk</label>
                                     <input type="text" name="asal_benih_induk" class="form-control bg-light" placeholder="..." value="{{ old('asal_benih_induk', $lab->asal_benih_induk) }}">
-                                </div>
-                                <div class="col-md-6 mt-3">
-                                    <label class="form-label fw-bold small text-muted text-uppercase mb-2">Padat Tebar</label>
-                                    <input type="text" name="padat_tebar" class="form-control bg-light" placeholder="..." value="{{ old('padat_tebar', $lab->padat_tebar) }}">
                                 </div>
                                 <div class="col-12 mt-3">
                                     <label class="form-label fw-bold small text-muted text-uppercase mb-2">Gejala Klinis</label>
@@ -183,26 +183,30 @@
                             </h3>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info bg-azure-lt border-azure d-flex gap-3 mb-4">
-                                <i class="ti ti-info-circle fs-2 mt-1"></i>
-                                <div>
-                                    <div class="fw-bold">Petunjuk Pengisian</div>
-                                    <div class="small">Isi hasil pemeriksaan dengan <strong>Positif (+)</strong> atau <strong>Negatif (-)</strong> untuk HPIK target. Jika tidak diuji, biarkan <strong>NT (Not Tested)</strong>.</div>
-                                </div>
-                            </div>
-                            
+
+                            @php
+                                $kelompok_patogen = old('kelompok_patogen');
+                                if (!$kelompok_patogen && isset($lab)) {
+                                    if ($lab->hasil_parasit === 'Positif (+)') $kelompok_patogen = 'Parasit';
+                                    elseif ($lab->hasil_bakteri === 'Positif (+)') $kelompok_patogen = 'Bakteri';
+                                    elseif ($lab->hasil_virus === 'Positif (+)') $kelompok_patogen = 'Virus';
+                                    elseif ($lab->hasil_jamur === 'Positif (+)') $kelompok_patogen = 'Jamur';
+                                    else $kelompok_patogen = 'Nihil';
+                                }
+                            @endphp
                             <div class="row g-3 mb-4">
-                                @foreach(['Parasit' => 'hasil_parasit', 'Bakteri' => 'hasil_bakteri', 'Virus' => 'hasil_virus', 'Jamur' => 'hasil_jamur'] as $label => $name)
-                                <div class="col-md-3">
-                                    <label class="form-label fw-bold required">{{ $label }}</label>
-                                    <select name="{{ $name }}" class="form-select @error($name) is-invalid @enderror" required>
-                                        <option value="NT" {{ old($name, $lab->{$name}) == 'NT' ? 'selected' : '' }}>NT (Belum/Tidak Diuji)</option>
-                                        <option value="Positif (+)" {{ old($name, $lab->{$name}) == 'Positif (+)' ? 'selected' : '' }}>Positif (+)</option>
-                                        <option value="Negatif (-)" {{ old($name, $lab->{$name}) == 'Negatif (-)' ? 'selected' : '' }}>Negatif (-)</option>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold required">Kelompok Patogen Ditemukan</label>
+                                    <select name="kelompok_patogen" class="form-select @error('kelompok_patogen') is-invalid @enderror" required>
+                                        <option value="">— Pilih Kelompok Patogen —</option>
+                                        <option value="Parasit" {{ $kelompok_patogen == 'Parasit' ? 'selected' : '' }}>Parasit</option>
+                                        <option value="Bakteri" {{ $kelompok_patogen == 'Bakteri' ? 'selected' : '' }}>Bakteri</option>
+                                        <option value="Virus" {{ $kelompok_patogen == 'Virus' ? 'selected' : '' }}>Virus</option>
+                                        <option value="Jamur" {{ $kelompok_patogen == 'Jamur' ? 'selected' : '' }}>Jamur</option>
+                                        <option value="Nihil" {{ $kelompok_patogen == 'Nihil' ? 'selected' : '' }}>Nihil / Tidak Ada Patogen</option>
                                     </select>
-                                    @error($name)<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    @error('kelompok_patogen')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                                @endforeach
                             </div>
 
                             <div class="mt-4 pt-4 border-top">
@@ -237,26 +241,26 @@
                                 <div class="col-md-7">
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <div class="p-3 bg-light rounded-4 border">
+                                            <div class="p-3 bg-white rounded-4 border shadow-sm">
                                                 <label class="form-label fw-bold small text-muted text-uppercase mb-2">Jumlah Ikan INFEKSI</label>
-                                                <div class="input-group input-group-flat">
+                                                <div class="input-group">
                                                     <input type="number" id="jml_terinfeksi" name="jumlah_ikan_terinfeksi"
-                                                        class="form-control fw-bold border-0 bg-transparent fs-2" min="0"
+                                                        class="form-control fw-bold border-light bg-light text-primary py-2" style="font-size: 1.5rem;" min="0"
                                                         value="{{ old('jumlah_ikan_terinfeksi', $lab->jumlah_ikan_terinfeksi) }}"
                                                         placeholder="0" oninput="hitungOtomatis()">
-                                                    <span class="input-group-text bg-transparent border-0 text-muted">PELAKSANAAN</span>
+                                                    <span class="input-group-text bg-primary-lt border-light text-primary fw-bold text-uppercase px-3" style="letter-spacing: 0.05em; font-size: 0.8rem;">Sampel</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="p-3 bg-light rounded-4 border">
+                                            <div class="p-3 bg-white rounded-4 border shadow-sm">
                                                 <label class="form-label fw-bold small text-muted text-uppercase mb-2">Sampel DIPERIKSA</label>
-                                                <div class="input-group input-group-flat">
+                                                <div class="input-group">
                                                     <input type="number" id="jml_diperiksa" name="jumlah_sampel_diperiksa"
-                                                        class="form-control fw-bold border-0 bg-transparent fs-2" min="1"
+                                                        class="form-control fw-bold border-light bg-light text-primary py-2" style="font-size: 1.5rem;" min="1"
                                                         value="{{ old('jumlah_sampel_diperiksa', $lab->jumlah_sampel_diperiksa ?? $pelaksanaan->jumlah_sampel) }}"
                                                         oninput="hitungOtomatis()">
-                                                    <span class="input-group-text bg-transparent border-0 text-muted">PELAKSANAAN</span>
+                                                    <span class="input-group-text bg-primary-lt border-light text-primary fw-bold text-uppercase px-3" style="letter-spacing: 0.05em; font-size: 0.8rem;">Sampel</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -265,7 +269,7 @@
                                             <input type="number" id="jml_kolam" name="jumlah_kolam_uji" class="form-control form-control-sm" value="{{ old('jumlah_kolam_uji', $lab->jumlah_kolam_uji) }}" oninput="hitungOtomatis()">
                                         </div>
                                         <div class="col-md-3">
-                                            <label class="form-label small fw-bold">PERIODE (HARI)</label>
+                                            <label class="form-label small fw-bold">PERIODE PENGAMATAN</label>
                                             <input type="number" id="periode" name="periode_pengamatan" class="form-control form-control-sm" value="{{ old('periode_pengamatan', $lab->periode_pengamatan) }}" oninput="hitungOtomatis()">
                                         </div>
                                         <div class="col-md-6">

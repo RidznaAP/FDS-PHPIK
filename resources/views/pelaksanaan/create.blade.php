@@ -154,7 +154,7 @@
                             <div class="row g-4">
                                 <div class="col-md-12">
                                     <h3 class="card-title fw-bold text-azure mb-3">
-                                        <i class="ti ti-list-numbers me-1"></i> JUMLAH SAMPEL (PELAKSANAAN)
+                                        <i class="ti ti-list-numbers me-1"></i> JUMLAH SAMPEL
                                     </h3>
                                     <div class="row g-3">
                                         <div class="col-md-4">
