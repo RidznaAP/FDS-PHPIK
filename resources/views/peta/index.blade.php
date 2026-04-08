@@ -20,37 +20,50 @@
 
 @section('content')
 
-{{-- Stat Cards --}}
+{{-- Stat Cards: Ringkasan Titik --}}
 <div class="row row-deck row-cards mb-3">
-    <div class="col-6 col-md-3">
-        <div class="card" style="border-top: 3px solid #28a745;">
-            <div class="card-body text-center py-3">
-                <div class="h2 mb-0 text-success">{{ $stats['hijau'] }}</div>
-                <div class="text-muted small">🟢 Bebas HPIK</div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100" style="border-top: 3px solid #6366f1;">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="font-size:2.5rem; line-height:1;">🗺️</div>
+                    <div>
+                        <div class="h2 mb-0">{{ $stats['total'] }}</div>
+                        <div class="text-muted small">Total Titik Terpetakan</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mt-3 pt-3 border-top small text-muted flex-wrap">
+                    <span><span class="badge bg-success-lt me-1">{{ $stats['hijau'] }}</span> Bebas</span>
+                    <span><span class="badge bg-warning-lt me-1">{{ $stats['kuning'] }}</span> Waspada</span>
+                    <span><span class="badge bg-danger-lt me-1">{{ $stats['merah'] }}</span> Positif</span>
+                    <span><span class="badge bg-secondary-lt me-1">{{ $stats['abu'] }}</span> Belum Evaluasi</span>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card" style="border-top: 3px solid #ffc107;">
-            <div class="card-body text-center py-3">
-                <div class="h2 mb-0 text-warning">{{ $stats['kuning'] }}</div>
-                <div class="text-muted small">🟡 Waspada</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card" style="border-top: 3px solid #dc3545;">
-            <div class="card-body text-center py-3">
-                <div class="h2 mb-0 text-danger">{{ $stats['merah'] }}</div>
-                <div class="text-muted small">🔴 Positif HPIK</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card" style="border-top: 3px solid #6c757d;">
-            <div class="card-body text-center py-3">
-                <div class="h2 mb-0 text-secondary">{{ $stats['abu'] }}</div>
-                <div class="text-muted small">⚪ Belum Dievaluasi</div>
+    <div class="col-12 col-md-8">
+        <div class="card h-100" style="border-top: 3px solid #ef4444;">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-semibold text-dark">🦠 Jenis HPIK Terdeteksi (berdasar hasil uji lab)</div>
+                    <div class="badge bg-danger-lt text-danger">{{ $stats['merah'] }} Positif</div>
+                </div>
+                @if(count($topPenyakit) > 0)
+                    @php $maxPositif = max(array_column($topPenyakit, 'positif')) ?: 1; @endphp
+                    @foreach($topPenyakit as $nama => $data)
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="text-truncate" style="min-width:160px; max-width:200px; font-size:0.82rem; font-weight:600;">{{ $nama }}</div>
+                        <div class="flex-fill" style="position:relative; height:18px; background:#f1f5f9; border-radius:99px; overflow:hidden;">
+                            <div style="width:{{ $maxPositif > 0 ? round(($data['positif']/$maxPositif)*100) : 0 }}%; height:100%; background:linear-gradient(90deg,#ef4444,#f97316); border-radius:99px; transition:width 0.5s ease;"></div>
+                        </div>
+                        <div class="text-nowrap small text-muted">
+                            <span class="text-danger fw-bold">{{ $data['positif'] }}+</span> / {{ $data['total'] }} uji
+                        </div>
+                    </div>
+                    @endforeach
+                @else
+                    <div class="text-muted small text-center py-2">Belum ada data hasil lab yang tersedia.</div>
+                @endif
             </div>
         </div>
     </div>

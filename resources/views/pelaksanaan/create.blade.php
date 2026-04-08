@@ -4,31 +4,15 @@
 @section('page_title', 'Input Pelaksanaan Lapangan')
 @section('page_subtitle', $rencana->jenis_mp . ' — ' . $rencana->kab_kota . ', ' . $rencana->provinsi)
 
+@section('page_actions')
+<a href="{{ route('pelaksanaan.index') }}" class="btn btn-outline-secondary">
+    <i class="ti ti-arrow-left me-2"></i>Kembali
+</a>
+@endsection
+
 @section('content')
 <div class="row justify-content-center animate-fade-in px-2">
     <div class="col-12">
-        {{-- High-End Page Header --}}
-        <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-azure border-5">
-            <div class="col-lg-8">
-                <div class="d-flex align-items-start gap-4">
-                    <div class="bg-azure text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
-                        <i class="ti ti-clipboard-list fs-1"></i>
-                    </div>
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-azure-lt text-azure px-3 fs-6 rounded-pill">MODUL PELAKSANAAN</span>
-                        </div>
-                        <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">Input Pelaksanaan Lapangan</h1>
-                        <div class="text-muted fs-3">Catat hasil pengambilan sampel dari kegiatan lapangan</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 text-lg-end">
-                <a href="{{ route('pelaksanaan.index') }}" class="btn btn-white btn-pill px-4 border shadow-sm">
-                    <i class="ti ti-arrow-left me-2"></i>Kembali ke Daftar
-                </a>
-            </div>
-        </div>
 
         <form action="{{ route('pelaksanaan.store') }}" method="POST">
             @csrf

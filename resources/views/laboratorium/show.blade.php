@@ -2,49 +2,27 @@
 
 @section('title', 'Detail Hasil Laboratorium')
 
+@section('page_title', 'Hasil Lab: ' . ($lab->diagnosis_akhir ?? 'ANALYSIS PENDING'))
+@section('page_subtitle', 'Kode: ' . $lab->kode_sampel . ' | Penguji: ' . ($lab->lab_penguji ?? '-'))
+
+@section('page_actions')
+<div class="d-flex flex-wrap gap-2">
+    <a href="{{ route('laboratorium.index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-2"></i>Kembali
+    </a>
+    <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-primary">
+        <i class="ti ti-database-export me-2"></i>Data Lapangan
+    </a>
+    @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $lab->pelaksanaan->perencanaan->user_id == Auth::id()))
+    <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-warning">
+        <i class="ti ti-edit me-2"></i>Edit
+    </a>
+    @endif
+</div>
+@endsection
+
 @section('content')
 <div class="animate-fade-in px-2">
-    {{-- High-End Page Header --}}
-    <div class="row align-items-center mb-5 g-4 shadow-sm p-4 bg-white rounded-4 border-start border-azure border-5">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-start gap-4">
-                <div class="bg-azure text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
-                    <i class="ti ti-test-pipe fs-1"></i>
-                </div>
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-azure-lt text-azure px-3 fs-6 rounded-pill">MODUL HASIL LABORATORIUM</span>
-                        <span class="badge bg-light text-muted px-3 fs-6 rounded-pill border">ID: #{{ $lab->kode_sampel }}</span>
-                    </div>
-                    <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">{{ $lab->diagnosis_akhir ?? 'ANALYSIS PENDING' }}</h1>
-                    <div class="d-flex align-items-center">
-                        <i class="ti ti-microscope me-2 text-azure"></i>
-                        <span>{{ $lab->lab_penguji ?? 'Scientific Lab Intelligence' }}</span>
-                        @if($lab->nama_petugas_uji)
-                        <span class="badge bg-azure-lt text-azure ms-3 px-3 py-1 rounded-pill">
-                            <i class="ti ti-user-check me-1"></i>{{ $lab->nama_petugas_uji }}
-                        </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                <a href="{{ route('laboratorium.index') }}" class="btn btn-white btn-pill px-4 border-0">
-                    <i class="ti ti-list me-2"></i>Daftar
-                </a>
-                @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $lab->pelaksanaan->perencanaan->user_id == Auth::id()))
-                <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-warning btn-pill px-4 border-0 text-dark fw-bold">
-                    <i class="ti ti-pencil me-2"></i>Edit
-                </a>
-                @endif
-                <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-azure btn-pill px-4 border-0">
-                    <i class="ti ti-database-export me-2 text-white"></i>Sumber Lapangan
-                </a>
-            </div>
-        </div>
-    </div>
 
     <div class="row g-4">
         {{-- Kiri: Analysis Intelligence --}}

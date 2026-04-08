@@ -714,15 +714,69 @@ if (mapEl) {
     }).addTo(map);
 
     const petaData = @json($petaData);
+    const dominantProvinsi = @json($dominantProvinsi ?? []);
+
+    // ── Overlay GeoJSON 38 Provinsi Indonesia ────────────────────────
+    fetch('https://raw.githubusercontent.com/ardian28/GeoJson-Indonesia-38-Provinsi/master/Provinsi/38%20Provinsi%20Indonesia%20-%20Provinsi.json')
+        .then(res => res.json())
+        .then(data => {
+            L.geoJSON(data, {
+                style: function(feature) {
+                    // property key dari dataset ardian28 adalah "PROVINSI"
+                    let provName = (feature.properties.PROVINSI || '').toUpperCase().trim();
+                    let color = 'transparent';
+                    let fillOp = 0;
+
+                    for (let key in dominantProvinsi) {
+                        let bkKey = key.toUpperCase().trim();
+                        if (provName === bkKey || provName.includes(bkKey) || bkKey.includes(provName)) {
+                            color = dominantProvinsi[key].color;
+                            fillOp = 0.5;
+                            break;
+                        }
+                    }
+
+                    return {
+                        fillColor: color,
+                        weight: 1,
+                        opacity: 1,
+                        color: fillOp > 0 ? '#ffffff' : '#cbd5e1',
+                        fillOpacity: fillOp
+                    };
+                },
+                onEachFeature: function(feature, layer) {
+                    let provName = (feature.properties.PROVINSI || '').toUpperCase().trim();
+                    let info = '';
+
+                    for (let key in dominantProvinsi) {
+                        let bkKey = key.toUpperCase().trim();
+                        if (provName === bkKey || provName.includes(bkKey) || bkKey.includes(provName)) {
+                            let d = dominantProvinsi[key];
+                            info = `<br><span style="font-size:0.8rem;color:#64748b;">Dominan:</span> <b style="color:${d.color}">${d.dominant}</b> (${d.count} Uji Positif)`;
+                            break;
+                        }
+                    }
+
+                    if (info !== '') {
+                        layer.bindTooltip('<b>' + feature.properties.PROVINSI + '</b>' + info, { sticky: true });
+                        layer.on({
+                            mouseover: function(e) { e.target.setStyle({ fillOpacity: 0.8, weight: 2 }); },
+                            mouseout: function(e)  { e.target.setStyle({ fillOpacity: 0.5, weight: 1 }); }
+                        });
+                    }
+                }
+            }).addTo(map);
+        })
+        .catch(err => console.error("Error load GeoJSON:", err));
 
     if (petaData.length === 0) {
-        // Tampilkan pesan jika tidak ada titik
+        // Tampilkan pesan jika tidak ada titik marker
         const info = L.control({position: 'topright'});
         info.onAdd = () => {
             const div = L.DomUtil.create('div');
             div.innerHTML = `<div style="background:white;padding:10px 15px;border-radius:10px;
                 box-shadow:0 2px 10px rgba(0,0,0,0.15);font-size:13px;color:#64748b;">
-                📍 Belum ada titik lokasi. UPT perlu memasukkan koordinat saat input pelaksanaan.
+                📍 Belum ada titik lokasi/marker pengujian masuk.
             </div>`;
             return div;
         };
@@ -766,10 +820,6 @@ if (mapEl) {
                     </div>
                 `, { maxWidth: 260 });
         });
-
-        // Memastikan frame peta default tetap 1 Indonesia (zoom: 5, center: -2.5, 118)
-        // daripada fitBounds yang bisa jadi nge-zoom ke 1 titik secara ekstrim.
-        // if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40] });
     }
 }
 </script>

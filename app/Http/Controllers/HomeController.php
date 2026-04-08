@@ -45,13 +45,12 @@ class HomeController extends Controller
         $totalPelaksanaan = Pelaksanaan::when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))->count();
         $totalApproved    = Perencanaan::where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
 
-        // UPT Aktif: untuk BKHIT = dirinya sendiri, untuk BBKHIT/Pusat = jumlah BKHIT scoped
+        // UPT Aktif: Total institusi UPT (BKHIT) yang terdaftar di bawah BBKHIT / Nasional
         if ($user->isBkhit()) {
-            $totalUptAktif = Perencanaan::where('user_id', $user->id)->where('status', 'approved')->exists() ? 1 : 0;
+            $totalUptAktif = 1;
         } else {
             $totalUptAktif = User::where('role', 'bkhit')
                 ->when($user->isBbkhit(), fn($q) => $q->where('parent_id', $user->id))
-                ->whereHas('perencanaan', fn($q) => $q->where('status', 'approved'))
                 ->count();
         }
 
@@ -148,13 +147,52 @@ class HomeController extends Controller
                     'lng'        => (float) $p->longitude,
                     'lokasi'     => $p->lokasi_pengambilan_sampel ?? ($p->perencanaan?->kab_kota ?? '—'),
                     'provinsi'   => $p->perencanaan?->provinsi ?? '—',
-                    'komoditas'  => $p->komoditas_ikan ?? ($p->perencanaan?->jenis_mp ?? '—'),
+                    'komoditas'  => $p->jenis_ikan ?? ($p->perencanaan?->jenis_mp ?? '—'),
                     'upt'        => $p->perencanaan?->user?->name ?? '—',
                     'tanggal'    => $p->tanggal_pemantauan ? \Carbon\Carbon::parse($p->tanggal_pemantauan)->format('d M Y') : $p->created_at?->format('d M Y'),
                     'warna'      => $warna,
                     'hasil_lab'  => $p->laboratorium ? $p->laboratorium->hasil_uji : 'Belum Uji Lab'
                 ];
             });
+
+        // ═══════════════════════════════════════════════════════════════
+        // ZONE 4B — Agregasi Dominan Penyakit per Provinsi (Untuk Polygon)
+        // ═══════════════════════════════════════════════════════════════
+        $provinsiSakit = Pelaksanaan::whereHas('laboratorium', function($q) {
+                $q->where('hasil_uji', 'Positif');
+            })
+            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
+            ->with(['perencanaan', 'laboratorium'])->get();
+
+        $agg = [];
+        foreach($provinsiSakit as $p) {
+             $prov = strtoupper(Trim($p->perencanaan?->provinsi));
+             if (empty($prov) || $prov === '—') continue;
+             $penyakit = strtoupper($p->laboratorium->diagnosis_akhir ?: $p->laboratorium->jenis_hpik_diuji ?: 'HPIK');
+             if(!isset($agg[$prov])) $agg[$prov] = [];
+             if(!isset($agg[$prov][$penyakit])) $agg[$prov][$penyakit] = 0;
+             $agg[$prov][$penyakit]++;
+        }
+
+        $dominantProvinsi = [];
+        // Palette warna untuk membedakan jenis penyakit di provinsi
+        $colorPalette = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#6366f1', '#a855f7', '#ec4899'];
+        $diseaseToColor = [];
+        $ci = 0;
+
+        foreach($agg as $prov => $penyakits) {
+            arsort($penyakits); // Sort desc by count
+            $dominant = array_key_first($penyakits);
+            if(!isset($diseaseToColor[$dominant])) {
+                 $diseaseToColor[$dominant] = $colorPalette[$ci % count($colorPalette)];
+                 $ci++;
+            }
+            $dominantProvinsi[$prov] = [
+                'dominant' => $dominant,
+                'count' => $penyakits[$dominant],
+                'color' => $diseaseToColor[$dominant]
+            ];
+        }
 
         // ═══════════════════════════════════════════════════════════════
         // ZONE 5 — Aktivitas Terbaru (5 pelaksanaan terakhir)
@@ -190,6 +228,7 @@ class HomeController extends Controller
             'chartMediaLabels', 'chartMediaData',
             'chartHpikLabels',  'chartHpikData',
             'statusCounts', 'topUpt',
+            'dominantProvinsi',
             'petaData', 'unreadNotif',
             'aktivitasTerbaru', 'menungguApproval', 'menungguLab'
         ));

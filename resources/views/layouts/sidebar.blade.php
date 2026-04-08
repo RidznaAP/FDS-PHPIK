@@ -103,7 +103,7 @@
                         {{-- 4. Evaluasi (upload dokumen seperti Pelaporan) --}}
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('seminar/evaluasi*') || request()->is('evaluasi*') ? 'active' : '' }}"
-                               href="{{ route('seminar.index', 'evaluasi') }}">
+                               href="{{ route('evaluasi.data.index') }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <i class="ti ti-file-analytics" style="font-size:1.2rem;"></i>
                                 </span>
@@ -230,7 +230,6 @@
                         @endif
                     </ul>
 
-                    {{-- Bottom: User Profile --}}
                     {{-- Bottom: User Profile --}}
                     <div class="mt-auto border-top pt-3 pb-2" style="border-color: rgba(255,255,255,0.1) !important;">
                         {{-- Notification badge for BBKHIT/Pusat --}}

@@ -11,54 +11,35 @@
 @endsection
 
 @section('content')
+@section('page_title', 'Detail Perencanaan: ' . $p->jenis_mp)
+@section('page_subtitle', $p->kab_kota . ', ' . $p->provinsi)
+
+@section('page_actions')
+<div class="d-flex flex-wrap gap-2">
+    <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-2"></i>Kembali
+    </a>
+    @if(($p->status === 'draft' || $p->status === 'rejected') && (Auth::user()->isBkhit() || Auth::user()->isBbkhit()))
+    <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary">
+        <i class="ti ti-edit me-2"></i>Edit
+    </a>
+    <button type="button" class="btn btn-warning" onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan validasi perencanaan ini?', 'POST', 'btn-warning')">
+        <i class="ti ti-send me-1"></i>Ajukan
+    </button>
+    @endif
+    @if($p->status === 'waiting' && (Auth::user()->isBbkhit() || Auth::user()->isPusat()))
+    <button type="button" class="btn btn-danger" onclick="confirmAction('{{ route('perencanaan.reject', $p->id) }}', 'Tolak perencanaan ini? Anda bisa memasukkan alasan nanti.', 'POST', 'btn-danger')">
+        <i class="ti ti-x me-1"></i>Tolak
+    </button>
+    <button type="button" class="btn btn-success" onclick="confirmAction('{{ route('perencanaan.approve', $p->id) }}', 'Setujui perencanaan ini?', 'POST', 'btn-success')">
+        <i class="ti ti-check me-1"></i>Setujui
+    </button>
+    @endif
+</div>
+@endsection
+
+@section('content')
 <div class="animate-fade-in">
-    {{-- Glassmorphism Page Header --}}
-    <div class="row align-items-center mb-5 g-4">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-start gap-4">
-                <div class="bg-primary text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
-                    <i class="ti ti-report-analytics fs-1"></i>
-                </div>
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-primary-lt text-primary px-3 fs-6 rounded-pill">MODUL PERENCANAAN</span>
-                        @php
-                            $statusMap = [
-                                'draft'    => ['label'=>'Dalam Penyusunan',     'class'=>'bg-secondary-lt text-secondary', 'icon' => 'ti-pencil'],
-                                'waiting'  => ['label'=>'Menunggu Persetujuan', 'class'=>'bg-warning-lt text-warning',   'icon' => 'ti-hourglass-low'],
-                                'approved' => ['label'=>'Disetujui & Aktif',    'class'=>'bg-success-lt text-success',   'icon' => 'ti-checkbox'],
-                                'rejected' => ['label'=>'Ditolak / Dikembalikan', 'class'=>'bg-danger-lt text-danger',   'icon' => 'ti-circle-x'],
-                            ];
-                            $s = $statusMap[$p->status] ?? $statusMap['draft'];
-                        @endphp
-                        <span class="badge {{ $s['class'] }} px-3 fs-6 rounded-pill">
-                            <i class="ti {{ $s['icon'] }} me-1"></i> {{ $s['label'] }}
-                        </span>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2 mb-1">
-                        @foreach(array_map('trim', explode(',', $p->jenis_mp)) as $mp)
-                            <h1 class="display-5 fw-bold text-dark mb-0 tracking-tight">{{ $mp }}{{ !$loop->last ? ',' : '' }}</h1>
-                        @endforeach
-                    </div>
-                    <div class="text-muted fs-3 d-flex align-items-center">
-                        <i class="ti ti-map-pin me-2 text-red"></i>{{ $p->kab_kota }}, {{ $p->provinsi }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                <a href="{{ route('perencanaan.index') }}" class="btn btn-white btn-pill px-4 border-0">
-                    <i class="ti ti-arrow-left me-2"></i>Kembali
-                </a>
-                @if($p->status === 'draft' || $p->status === 'rejected')
-                <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary btn-pill px-4 border-0">
-                    <i class="ti ti-edit me-2"></i>Edit Rencana
-                </a>
-                @endif
-            </div>
-        </div>
-    </div>
 
     @if($p->status === 'rejected')
     <div class="alert alert-danger shadow-sm border-danger border-start border-5 px-4 mb-4 rounded-4" role="alert">

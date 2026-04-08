@@ -11,43 +11,27 @@
 </ol>
 @endsection
 
+@section('page_title', 'Pelaksanaan: ' . $item->jenis_ikan)
+@section('page_subtitle', $item->lokasi_pengambilan_sampel)
+
+@section('page_actions')
+<div class="d-flex flex-wrap gap-2">
+    <a href="{{ route('pelaksanaan.index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-2"></i>Kembali
+    </a>
+    <a href="{{ route('perencanaan.show', $item->perencanaan_id) }}" class="btn btn-primary">
+        <i class="ti ti-file-text me-2"></i>Lihat Rencana
+    </a>
+    @if(Auth::user()->isPusat() || (Auth::user()->id === optional($item->perencanaan)->user_id))
+    <a href="{{ route('pelaksanaan.edit', $item->id) }}" class="btn btn-warning">
+        <i class="ti ti-edit me-2"></i>Edit
+    </a>
+    @endif
+</div>
+@endsection
+
 @section('content')
 <div class="animate-fade-in px-2">
-    {{-- High-End Page Header --}}
-    <div class="row align-items-center mb-5 g-4">
-        <div class="col-lg-8">
-            <div class="d-flex align-items-start gap-4">
-                <div class="bg-azure text-white p-4 rounded-4 shadow-lg animate-bounce-in d-none d-md-block">
-                    <i class="ti ti-broadcast fs-1"></i>
-                </div>
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-azure-lt text-azure px-3 fs-6 rounded-pill">LAPORAN LAPANGAN</span>
-                        <span class="badge bg-light text-muted px-3 fs-6 rounded-pill border">ID: #{{ str_pad($item->id, 5, '0', STR_PAD_LEFT) }}</span>
-                    </div>
-                    <h1 class="display-5 fw-bold text-dark mb-1 tracking-tight">{{ $item->jenis_ikan }}</h1>
-                    <div class="text-muted fs-3 d-flex align-items-center">
-                        <i class="ti ti-map-pin me-2 text-danger"></i>{{ $item->lokasi_pengambilan_sampel }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4 text-lg-end">
-            <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
-                <a href="{{ route('pelaksanaan.index') }}" class="btn btn-white btn-pill px-4 border-0 shadow-sm">
-                    <i class="ti ti-list me-2"></i>Daftar
-                </a>
-                <a href="{{ route('perencanaan.show', $item->perencanaan_id) }}" class="btn btn-primary btn-pill px-4 border-0">
-                    <i class="ti ti-file-text me-2"></i>Lihat Rencana
-                </a>
-                @if(Auth::user()->isPusat() || (Auth::user()->id === optional($item->perencanaan)->user_id))
-                <a href="{{ route('pelaksanaan.edit', $item->id) }}" class="btn btn-warning btn-pill px-4 border-0">
-                    <i class="ti ti-edit me-2"></i>Edit
-                </a>
-                @endif
-            </div>
-        </div>
-    </div>
 
     <div class="row g-4">
         {{-- Full Width Field Data Intelligence --}}
@@ -239,9 +223,6 @@
                         </span>
                         @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $item->perencanaan->user_id == Auth::id()))
                         <div class="mt-2 d-flex justify-content-end gap-2">
-                            <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-sm btn-warning">
-                                <i class="ti ti-pencil me-1"></i>Edit Lab
-                            </a>
                             <button type="button" class="btn btn-sm btn-outline-danger"
                                 onclick="confirmAction('{{ route('laboratorium.destroy', $lab->id) }}', 'Hapus hasil lab ini?', 'DELETE', 'btn-danger')">
                                 <i class="ti ti-trash me-1"></i>Hapus Lab
@@ -250,101 +231,16 @@
                         @endif
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="row g-0">
-                        {{-- Kolom 1: Info Identitas --}}
-                        <div class="col-md-3 border-end p-4">
-                            <div class="small text-muted fw-bold text-uppercase mb-3" style="letter-spacing:.05em;">Identitas Pengujian</div>
-                            <dl class="mb-0">
-                                <dt class="text-muted small">Laboratorium Penguji</dt>
-                                <dd class="fw-bold mb-3">{{ $lab->lab_penguji }}</dd>
-                                <dt class="text-muted small">Metode Uji</dt>
-                                <dd class="mb-3"><span class="badge bg-azure-lt text-azure">{{ $lab->metode_uji }}</span></dd>
-                                <dt class="text-muted small">Jenis HPIK Diuji</dt>
-                                <dd class="fw-semibold text-primary mb-3">{{ $lab->jenis_hpik_diuji }}</dd>
-                                <dt class="text-muted small">Tanggal Pengujian</dt>
-                                <dd class="mb-3">{{ $lab->tanggal_uji->format('d M Y') }}</dd>
-                                @if($lab->tanggal_hasil)
-                                <dt class="text-muted small">Tanggal Hasil Keluar</dt>
-                                <dd>{{ $lab->tanggal_hasil->format('d M Y') }}</dd>
-                                @endif
-                            </dl>
-                        </div>
-                        {{-- Kolom 2: Patogen Ditemukan --}}
-                        <div class="col-md-3 border-end p-4 d-flex flex-column justify-content-center text-center">
-                            @php
-                                $kelompok_patogen = null;
-                                $icon = 'ti-shield-check';
-                                $color = 'text-success';
-                                if ($lab->hasil_parasit === 'Positif (+)') { $kelompok_patogen = 'Parasit'; $icon = 'ti-bug'; $color = 'text-danger'; }
-                                elseif ($lab->hasil_bakteri === 'Positif (+)') { $kelompok_patogen = 'Bakteri'; $icon = 'ti-circle'; $color = 'text-danger'; }
-                                elseif ($lab->hasil_virus === 'Positif (+)') { $kelompok_patogen = 'Virus'; $icon = 'ti-virus'; $color = 'text-danger'; }
-                                elseif ($lab->hasil_jamur === 'Positif (+)') { $kelompok_patogen = 'Jamur'; $icon = 'ti-leaf'; $color = 'text-danger'; }
-                                else { $kelompok_patogen = 'Nihil / Negatif'; }
-                            @endphp
-                            <div class="small text-muted fw-bold text-uppercase mb-3" style="letter-spacing:.05em;">Kelompok Patogen Ditemukan</div>
-                            <div class="mb-2"><i class="ti {{ $icon }} {{ $color }}" style="font-size: 3.5rem;"></i></div>
-                            <h3 class="fw-bold mb-0 {{ $color }}" style="letter-spacing: 0.05em;">{{ strtoupper($kelompok_patogen) }}</h3>
-                        </div>
-                        {{-- Kolom 3: Statistik Prevalensi --}}
-                        <div class="col-md-3 border-end p-4">
-                            <div class="small text-muted fw-bold text-uppercase mb-3" style="letter-spacing:.05em;">Statistik Epidemiologi</div>
-                            <div class="mb-3 p-3 bg-azure text-white rounded-4">
-                                <div class="small fw-bold opacity-75 mb-1">PREVALENSI</div>
-                                <div class="h2 fw-bold mb-0">{{ $lab->prevalensi ? number_format($lab->prevalensi, 2).'%' : '—' }}</div>
-                            </div>
-                            <div class="p-3 border border-orange border-2 border-dashed rounded-4">
-                                <div class="small fw-bold text-orange mb-1">INSIDENSI</div>
-                                <div class="h4 fw-bold text-orange mb-0">{{ $lab->insidensi ? number_format($lab->insidensi, 6) : '—' }}</div>
-                                <div class="small text-muted" style="font-size:.65rem;">IKAN / KOLAM / HARI</div>
-                            </div>
-                            @if($lab->jumlah_ikan_terinfeksi || $lab->jumlah_sampel_diperiksa)
-                            <div class="mt-3 row g-2">
-                                <div class="col-6">
-                                    <div class="p-2 bg-red-lt rounded-3 text-center">
-                                        <div class="small text-muted fw-bold">INFEKSI</div>
-                                        <div class="fw-bold text-danger">{{ $lab->jumlah_ikan_terinfeksi ?? '—' }} sampel</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="p-2 bg-light rounded-3 text-center">
-                                        <div class="small text-muted fw-bold">DIPERIKSA</div>
-                                        <div class="fw-bold">{{ $lab->jumlah_sampel_diperiksa ?? '—' }} sampel</div>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                        {{-- Kolom 4: Diagnosis & Waktu --}}
-                        <div class="col-md-3 p-4">
-                            <div class="small text-muted fw-bold text-uppercase mb-3" style="letter-spacing:.05em;">Diagnosis & Catatan</div>
-                            @if($lab->diagnosis_akhir)
-                            <div class="p-3 bg-warning-lt rounded-4 border-start border-warning border-4 mb-3">
-                                <div class="small fw-bold text-warning mb-1">DIAGNOSIS AKHIR</div>
-                                <p class="mb-0 text-dark fw-medium fst-italic small">{{ $lab->diagnosis_akhir }}</p>
-                            </div>
-                            @endif
-                            <div class="mt-auto">
-                                <div class="text-muted small mb-1">Diinput pada:</div>
-                                <div class="fw-semibold">{{ $lab->created_at->format('d M Y, H:i') }}</div>
-                            </div>
-                        </div>
+                <div class="card-body text-center p-5">
+                    <div class="mb-3">
+                        <i class="ti ti-microscope text-muted opacity-50" style="font-size: 4rem;"></i>
                     </div>
+                    <h3 class="fw-bold text-dark mb-2">Hasil Uji Laboratorium Tersedia</h3>
+                    <p class="text-muted mb-4">Pengujian telah selesai dilaksanakan oleh <strong>{{ $lab->lab_penguji }}</strong> pada {{ $lab->tanggal_uji->format('d M Y') }}.</p>
                     
-                    {{-- Baris Tambahan: Data Contoh Uji --}}
-                    <div class="row g-0 border-top bg-light pb-2">
-                        <div class="col-12 p-3 px-4">
-                            <div class="small text-muted fw-bold text-uppercase mb-2" style="letter-spacing:.05em;"><i class="ti ti-ruler-measure me-1"></i> Data Contoh Uji</div>
-                            <div class="d-flex flex-wrap gap-4 mt-2">
-                                <div><span class="text-muted small">Panjang:</span> <strong class="text-dark">{{ $lab->panjang ?? '-' }} cm</strong></div>
-                                <div><span class="text-muted small">Berat:</span> <strong class="text-dark">{{ $lab->berat ?? '-' }} gram</strong></div>
-                                <div><span class="text-muted small">Mati:</span> <strong class="text-danger">{{ $lab->jumlah_kematian ?? '-' }}</strong></div>
-                                <div><span class="text-muted small">Padat Tebar:</span> <strong class="text-dark">{{ $lab->padat_tebar ?? '-' }}</strong></div>
-                                <div><span class="text-muted small">Asal:</span> <strong class="text-dark">{{ $lab->asal_benih_induk ?? '-' }}</strong></div>
-                                <div><span class="text-muted small">Gejala:</span> <strong class="text-dark fst-italic">{{ Str::limit($lab->gejala_klinis ?? 'Tidak dicantumkan', 50) }}</strong></div>
-                            </div>
-                        </div>
-                    </div>
+                    <a href="{{ route('laboratorium.show', $lab->id) }}" class="btn btn-lg btn-{{ $labConfig['bg'] }} btn-pill px-5 shadow-sm">
+                        <i class="ti ti-external-link me-2"></i>Lihat Detail Lengkap Lab
+                    </a>
                 </div>
             </div>
 

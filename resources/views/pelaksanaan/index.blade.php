@@ -156,6 +156,9 @@
                     <td data-label="Aksi" class="aksi-sticky-td">
                         <div class="d-flex gap-1 justify-content-end">
                             <a href="{{ route('pelaksanaan.show', $item->id) }}" class="btn btn-sm btn-outline-primary" title="Detail"><i class="ti ti-eye"></i></a>
+                            @if(Auth::user()->isBkhit() && $item->perencanaan->user_id == Auth::id() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
+                                <a href="{{ route('pelaksanaan.edit', $item->id) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="ti ti-pencil"></i></a>
+                            @endif
                             @if(Auth::user()->isPusat())
                                 <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
                                     onclick="confirmAction('{{ route('pelaksanaan.destroy', $item->id) }}', 'Hapus data ini?', 'DELETE', 'btn-danger')">

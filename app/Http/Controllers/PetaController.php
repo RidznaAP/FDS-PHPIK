@@ -49,17 +49,46 @@ class PetaController extends Controller
             ];
         });
 
-        // Statistik ringkasan
+        // Statistik ringkasan (warna)
         $stats = [
             'hijau'   => $markers->where('warna', 'hijau')->count(),
             'kuning'  => $markers->where('warna', 'kuning')->count(),
             'merah'   => $markers->where('warna', 'merah')->count(),
             'abu'     => $markers->where('warna', 'abu-abu')->count(),
+            'total'   => $markers->count(),
         ];
 
+        // Agregasi top jenis penyakit dari data positif & semua lab
+        $penyakitTally = [];
+        foreach ($lokasis as $item) {
+            if ($item->laboratorium) {
+                $hpik = $item->laboratorium->jenis_hpik_diuji
+                    ?: $item->perencanaan->jenis_hpik
+                    ?: null;
+                if ($hpik) {
+                    foreach (array_map('trim', explode(',', $hpik)) as $p) {
+                        if ($p) {
+                            $tag = strtoupper($p);
+                            if (!isset($penyakitTally[$tag])) {
+                                $penyakitTally[$tag] = ['total' => 0, 'positif' => 0];
+                            }
+                            $penyakitTally[$tag]['total']++;
+                            if ($item->laboratorium->hasil_uji === 'Positif') {
+                                $penyakitTally[$tag]['positif']++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Urutkan berdasar jumlah positif terbanyak
+        uasort($penyakitTally, fn($a, $b) => $b['positif'] - $a['positif']);
+        $topPenyakit = array_slice($penyakitTally, 0, 6, true);
+
         return view('peta.index', [
-            'markers' => $markers->values(),
-            'stats'   => $stats,
+            'markers'     => $markers->values(),
+            'stats'       => $stats,
+            'topPenyakit' => $topPenyakit,
         ]);
     }
 }
