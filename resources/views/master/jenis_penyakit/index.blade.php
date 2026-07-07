@@ -6,7 +6,7 @@
 
 @section('page_actions')
 <div class="d-flex gap-2">
-    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modal-import">
+    <button type="button" class="btn btn-outline-success" data-bs-toggle="collapse" data-bs-target="#collapse-import">
         <i class="ti ti-upload me-1"></i>Import Excel
     </button>
     <a href="{{ route('master.jenis-penyakit.export') }}" class="btn btn-outline-info">
@@ -25,13 +25,51 @@
             <span class="input-icon-addon">
                 <i class="ti ti-search"></i>
             </span>
-            <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Cari Jenis Penyakit atau Organisme…">
+            <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Cari Jenis Penyakit atau Organisme Penyebab…">
         </form>
     </div>
     <div class="col-auto">
         <button type="button" id="btn-bulk-delete" class="btn btn-danger d-none" onclick="submitBulkDelete()">
             <i class="ti ti-trash me-1"></i>Hapus Terpilih (<span id="count-selected">0</span>)
         </button>
+    </div>
+</div>
+
+{{-- ═══ INLINE IMPORT SECTION ═══ --}}
+<div class="collapse mb-3" id="collapse-import">
+    <div class="card border-warning border-top-wide">
+        <div class="card-header bg-warning-lt">
+            <h5 class="card-title text-warning"><i class="ti ti-upload me-2"></i>Import Jenis Penyakit HPIK</h5>
+            <div class="card-actions">
+                <button type="button" class="btn-close" data-bs-toggle="collapse" data-bs-target="#collapse-import"></button>
+            </div>
+        </div>
+        <form action="{{ route('master.jenis-penyakit.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">1. Pilih File Excel (.xlsx, .xls, .csv)</label>
+                    <input type="file" name="file" class="form-control" required accept=".xlsx, .xls" autocomplete="off">
+                </div>
+                <div class="bg-blue-lt p-3 rounded-2">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="ti ti-info-circle text-blue fs-3"></i>
+                        <span class="fw-bold text-blue">Petunjuk:</span>
+                    </div>
+                    <ul class="mb-0 small ps-3">
+                        <li>Pastikan kolom Nama Penyakit dan Organisme Penyebab terisi.</li>
+                        <li>Gunakan template untuk format yang akurat.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-footer bg-light d-flex justify-content-end gap-2">
+                <a href="{{ route('master.jenis-penyakit.template') }}" class="btn btn-link link-secondary me-auto">
+                    <i class="ti ti-file-download me-1"></i>Unduh Template
+                </a>
+                <button type="button" class="btn btn-link link-secondary" data-bs-toggle="collapse" data-bs-target="#collapse-import">Batal</button>
+                <button type="submit" class="btn btn-warning px-4 text-dark">Proses Import</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -65,7 +103,7 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'organisme_penyebab', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort') === 'organisme_penyebab' ? 'sort-active' : '' }}">
-                            Penyebab
+                            Organisme Penyebab
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort') === 'organisme_penyebab' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
@@ -73,13 +111,12 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'golongan', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort') === 'golongan' ? 'sort-active' : '' }}">
-                            Golongan
+                            Kelompok Patogen
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort') === 'golongan' ? (request('direction') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
-                    <th class="bg-light fw-bold small text-uppercase py-2 ps-3" style="letter-spacing: 0.1em; color: #64748b;">Keterangan</th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'aktif', 'direction' => request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort', 'aktif') === 'aktif' ? 'sort-active' : '' }}">
                             Status
@@ -99,7 +136,7 @@
                     <td class="fw-semibold">{{ $item->nama }}</td>
                     <td>
                         @if($item->organisme_penyebab)
-                            <span class="text-primary italic">{{ $item->organisme_penyebab }}</span>
+                            <span class="text-primary fst-italic">{{ $item->organisme_penyebab }}</span>
                         @else
                             <span class="text-muted">-</span>
                         @endif
@@ -120,7 +157,7 @@
                             <span class="text-muted">-</span>
                         @endif
                     </td>
-                    <td class="text-muted small">{{ Str::limit($item->keterangan, 60) ?? '-' }}</td>
+
                     <td>
                         @if($item->aktif)
                             <span class="badge bg-success-lt text-success">Aktif</span>
@@ -147,7 +184,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center py-4 text-muted">
+                <td colspan="7" class="text-center py-4 text-muted">
                         <i class="ti ti-virus-off" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
                         Belum ada data jenis penyakit. Klik <strong>Tambah Jenis Penyakit</strong> untuk mulai.
                     </td>
@@ -164,46 +201,6 @@
     @endif
 </div>
 
-{{-- MODAL IMPORT --}}
-<div class="modal modal-blur fade" id="modal-import" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Import Jenis Penyakit</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('master.jenis-penyakit.import') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Pilih File Excel (.xlsx, .xls, .csv)</label>
-                        <input type="file" name="file" class="form-control" required accept=".xlsx, .xls, .csv">
-                    </div>
-                    <div class="bg-blue-lt p-3 rounded-2">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <i class="ti ti-info-circle text-blue fs-3"></i>
-                            <span class="fw-bold text-blue">Petunjuk Import:</span>
-                        </div>
-                        <ul class="mb-0 small ps-3">
-                            <li>Gunakan template agar kolom terdeteksi sistem secara otomatis.</li>
-                            <li>Kolom: **Nama Penyakit**, **Organisme Penyebab**, **Golongan**, **Keterangan**.</li>
-                            <li>Isi kolom **Golongan** dengan: *Virus*, *Bakteri*, *Parasit*, atau *Jamur*.</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="{{ route('master.jenis-penyakit.template') }}" class="btn btn-link link-secondary me-auto">
-                        <i class="ti ti-file-download me-1"></i>Unduh Template
-                    </a>
-                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-upload me-1"></i>Proses Import
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('scripts')
@@ -251,6 +248,30 @@
         document.getElementById('confirmBtn').onclick = function() {
             document.getElementById('form-bulk-delete').submit();
         };
+    }
+
+    // Auto-submit search on typing (debounced)
+    let searchTimer;
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                this.form.submit();
+            }, 700);
+        });
+        
+        // Move cursor to end of text on focus
+        searchInput.addEventListener('focus', function() {
+            const val = this.value;
+            this.value = '';
+            this.value = val;
+        });
+        
+        // Auto-focus if there is a search query
+        if (searchInput.value) {
+            searchInput.focus();
+        }
     }
 </script>
 @endsection

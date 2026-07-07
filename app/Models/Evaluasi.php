@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Evaluasi extends Model
 {
     protected $table = 'evaluasis'; // Paksa nama tabel yang benar
-    protected $guarded = [];
+    protected $fillable = [
+        'perencanaan_id', 'kesimpulan', 'tanggal_evaluasi',
+        'evaluator', 'prevalensi', 'insidensi',
+        'rekomendasi', 'status_warna',
+    ];
 
     protected $casts = [
         'tanggal_evaluasi' => 'date',

@@ -3,37 +3,50 @@
 namespace App\Imports;
 
 use App\Models\JenisPenyakit;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\OnEachRow;
+use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\Importable;
 
-class JenisPenyakitImport implements ToModel, WithHeadingRow
+class JenisPenyakitImport implements OnEachRow, WithHeadingRow
 {
     use Importable;
 
-    public function model(array $row)
+    public function onRow(Row $rowData)
     {
-        if (!isset($row['nama_penyakit_hpik']) || empty($row['nama_penyakit_hpik'])) {
-            return null;
+        $row = $rowData->toArray();
+        if (!isset($row['nama_penyakit_hpik']) || empty(trim($row['nama_penyakit_hpik']))) {
+            return;
         }
 
         $nama = trim($row['nama_penyakit_hpik']);
 
-        // Normalize Golongan
-        $golongan = ucfirst(strtolower($row['golongan_virusbakteriparasitjamur'] ?? ''));
-        if (!in_array($golongan, ['Virus', 'Bakteri', 'Parasit', 'Jamur'])) {
+        // Normalize Kelompok Patogen
+        $golongan = ucfirst(strtolower($row['kelompok_patogen_virusbakteriparasitjamurlainnya'] ?? $row['golongan_virusbakteriparasitjamur'] ?? ''));
+        if (!in_array($golongan, ['Virus', 'Bakteri', 'Parasit', 'Jamur', 'Lainnya'])) {
             $golongan = 'Lainnya';
         }
 
-        // Mencegah Duplikasi: Update jika nama sudah ada, buat baru jika belum
-        return JenisPenyakit::updateOrCreate(
-            ['nama' => $nama],
-            [
-                'organisme_penyebab' => $row['organisme_penyebab'] ?? null,
+        // Gunakan organisme_penyebab sebagai kunci unik (sesuai aturan validasi baru).
+        // Jika organisme_penyebab kosong, selalu buat record baru.
+        $organisme = !empty(trim($row['organisme_penyebab'] ?? '')) ? trim($row['organisme_penyebab']) : null;
+
+        if ($organisme) {
+            JenisPenyakit::updateOrCreate(
+                ['organisme_penyebab' => $organisme],
+                [
+                    'nama'     => $nama,
+                    'golongan' => $golongan,
+                    'aktif'    => true,
+                ]
+            );
+        } else {
+            JenisPenyakit::create([
+                'nama'               => $nama,
+                'organisme_penyebab' => null,
                 'golongan'           => $golongan,
-                'keterangan'         => $row['keterangan'] ?? null,
                 'aktif'              => true,
-            ]
-        );
+            ]);
+        }
     }
 }

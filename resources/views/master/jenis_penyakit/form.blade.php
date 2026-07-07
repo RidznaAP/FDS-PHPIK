@@ -26,7 +26,7 @@
                         <input type="text" name="nama"
                             class="form-control @error('nama') is-invalid @enderror"
                             value="{{ old('nama', $item->nama ?? '') }}"
-                            placeholder="Contoh: Infection with ictalurid herpesvirus-1" required autofocus>
+                            required autofocus>
                         @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
@@ -35,18 +35,17 @@
                         <label class="form-label">Organisme Penyebab</label>
                         <input type="text" name="organisme_penyebab"
                             class="form-control @error('organisme_penyebab') is-invalid @enderror"
-                            value="{{ old('organisme_penyebab', $item->organisme_penyebab ?? '') }}"
-                            placeholder="Contoh: Ictalurid herpesvirus-1">
+                            value="{{ old('organisme_penyebab', $item->organisme_penyebab ?? '') }}">
                         @error('organisme_penyebab')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         <div class="form-hint">Nama patogen atau penyebab spesifik.</div>
                     </div>
 
-                    {{-- Golongan --}}
+                    {{-- Kelompok Patogen (Golongan) --}}
                     <div class="mb-3">
-                        <label class="form-label required">Golongan Patogen</label>
+                        <label class="form-label required">Kelompok Patogen</label>
                         <select name="golongan" class="form-select @error('golongan') is-invalid @enderror" required>
-                            <option value="">— Pilih Golongan —</option>
-                            @foreach(['Virus','Bakteri','Parasit','Jamur'] as $g)
+                            <option value="">— Pilih Kelompok Patogen —</option>
+                            @foreach(['Virus','Bakteri','Parasit','Jamur','Lainnya'] as $g)
                                 <option value="{{ $g }}"
                                     {{ old('golongan', $item->golongan ?? '') === $g ? 'selected' : '' }}>
                                     {{ $g }}
@@ -56,12 +55,7 @@
                         @error('golongan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
-                    {{-- Keterangan --}}
-                    <div class="mb-3">
-                        <label class="form-label">Keterangan</label>
-                        <textarea name="keterangan" class="form-control" rows="3"
-                            placeholder="Deskripsi singkat, inang utama, atau catatan penting (opsional)">{{ old('keterangan', $item->keterangan ?? '') }}</textarea>
-                    </div>
+
 
                     {{-- Aktif --}}
                     <div class="mb-0">

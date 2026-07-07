@@ -35,7 +35,13 @@
                             <i class="ti ti-microscope me-2 text-azure"></i> Rincian Pengujian Spesialis
                         </h3>
                         @php
-                            $stColor = $lab->hasil_uji === 'NIHIL' ? 'success' : 'danger';
+                            $statusUji = trim($lab->hasil_uji);
+                            $stColor = match(true) {
+                                strcasecmp($statusUji, 'Positif') === 0     => 'danger',
+                                strcasecmp($statusUji, 'Negatif') === 0 || strcasecmp($statusUji, 'NIHIL') === 0 => 'success',
+                                strcasecmp($statusUji, 'Inkonklusif') === 0 => 'warning',
+                                default                                     => 'secondary',
+                            };
                         @endphp
                         <span class="badge bg-{{ $stColor }} text-white px-3 py-1 rounded-pill fw-bold animate-pulse">{{ strtoupper($lab->hasil_uji) }}</span>
                     </div>
@@ -82,63 +88,62 @@
                         </div>
                     </div>
                 </div>
-        </div>
-    </div>
-
-    {{-- Data Contoh Uji --}}
-    <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-white">
-        <div class="card-body p-0">
-            <div class="p-4 bg-purple-lt border-bottom d-flex align-items-center border-purple border-top border-4">
-                <h3 class="mb-0 fw-bold text-purple small text-uppercase tracking-widest">
-                    <i class="ti ti-ruler-measure me-2"></i> Data Contoh Uji
-                </h3>
             </div>
-            
-            <div class="p-4">
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">PANJANG (CM)</div>
-                            <div class="fw-bold text-dark">{{ $lab->panjang ?? '—' }}</div>
-                        </div>
+
+            {{-- Data Contoh Uji --}}
+            <div class="card card-premium mb-4 border-0 shadow-sm overflow-hidden bg-white">
+                <div class="card-body p-0">
+                    <div class="p-4 bg-purple-lt border-bottom d-flex align-items-center border-purple border-top border-4">
+                        <h3 class="mb-0 fw-bold text-purple small text-uppercase tracking-widest">
+                            <i class="ti ti-ruler-measure me-2"></i> Data Contoh Uji
+                        </h3>
                     </div>
-                    <div class="col-md-3">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">BERAT (GRAM)</div>
-                            <div class="fw-bold text-dark">{{ $lab->berat ?? '—' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">JUMLAH KEMATIAN</div>
-                            <div class="fw-bold text-dark">{{ $lab->jumlah_kematian ?? '—' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">PADAT TEBAR</div>
-                            <div class="fw-bold text-dark">{{ $lab->padat_tebar ?? '—' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">ASAL BENIH / INDUK</div>
-                            <div class="fw-bold text-dark">{{ $lab->asal_benih_induk ?? '—' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="p-3 bg-light rounded-4 h-100 border transition-all">
-                            <div class="text-muted small fw-bold mb-1">GEJALA KLINIS</div>
-                            <div class="fw-bold text-dark">{{ $lab->gejala_klinis ?? '—' }}</div>
+                    
+                    <div class="p-4">
+                        <div class="row g-4">
+                            <div class="col-md-3">
+                                <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                                    <div class="text-muted small fw-bold mb-1">PANJANG (CM)</div>
+                                    <div class="fw-bold text-dark">{{ $lab->panjang ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                                    <div class="text-muted small fw-bold mb-1">BERAT (GRAM)</div>
+                                    <div class="fw-bold text-dark">{{ $lab->berat ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                                    <div class="text-muted small fw-bold mb-1">JUMLAH KEMATIAN</div>
+                                    <div class="fw-bold text-dark">{{ $lab->jumlah_kematian ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                                    <div class="text-muted small fw-bold mb-1">PADAT TEBAR</div>
+                                    <div class="fw-bold text-dark">{{ $lab->padat_tebar ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                                    <div class="text-muted small fw-bold mb-1">ASAL BENIH / INDUK</div>
+                                    <div class="fw-bold text-dark">{{ $lab->asal_benih_induk ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded-4 h-100 border transition-all">
+                                    <div class="text-muted small fw-bold mb-1">GEJALA KLINIS</div>
+                                    <div class="fw-bold text-dark">{{ $lab->gejala_klinis ?? '—' }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    {{-- Row for Matrix & Stats --}}
-            <div class="row g-4">
+            {{-- Row for Matrix & Stats --}}
+            <div class="row g-4 mb-4">
                 <div class="col-md-5">
                     {{-- Pathogen Matrix --}}
                     <div class="card card-premium h-100 border-0 shadow-sm bg-white overflow-hidden">
@@ -259,9 +264,7 @@
                         <button class="btn btn-white btn-pill fw-bold shadow-lg hvr-icon-forward" onclick="window.print()">
                             <i class="ti ti-printer me-2 text-primary"></i> PRINT LABORATORY REPORT
                         </button>
-                        <a href="{{ route('laboratorium.export') }}" class="btn btn-outline-light btn-pill opacity-75">
-                            <i class="ti ti-file-export me-2"></i>EXPORT DATA (XLS)
-                        </a>
+                        {{-- Export route logic removed as it does not exist yet --}}
                     </div>
                 </div>
             </div>

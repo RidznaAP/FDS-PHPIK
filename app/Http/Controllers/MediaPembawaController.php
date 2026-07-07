@@ -22,7 +22,7 @@ class MediaPembawaController extends Controller
             $query->where('nama', 'like', "%{$search}%");
         }
 
-        $items = $query->orderBy($sort, $direction)->paginate(50)->withQueryString();
+        $items = $query->orderBy($sort, $direction)->paginate(100)->withQueryString();
         
         return view('master.media_pembawa.index', compact('items'));
     }
@@ -35,15 +35,17 @@ class MediaPembawaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama'      => 'required|string|max:200|unique:media_pembawas,nama',
-            'keterangan'=> 'nullable|string|max:500',
-            'aktif'     => 'boolean',
+            'nama'         => 'required|string|max:200|unique:media_pembawas,nama',
+            'nama_inggris' => 'nullable|string|max:200',
+            'keterangan'   => 'nullable|string|max:500',
+            'aktif'        => 'boolean',
         ]);
 
         MediaPembawa::create([
-            'nama'       => $request->nama,
-            'keterangan' => $request->keterangan,
-            'aktif'      => $request->boolean('aktif', true),
+            'nama'         => $request->nama,
+            'nama_inggris' => $request->nama_inggris,
+            'keterangan'   => $request->keterangan,
+            'aktif'        => $request->boolean('aktif', true),
         ]);
 
         cache()->forget('master_media_pembawa');
@@ -60,15 +62,17 @@ class MediaPembawaController extends Controller
     public function update(Request $request, MediaPembawa $mediaPembawa)
     {
         $request->validate([
-            'nama'      => 'required|string|max:200|unique:media_pembawas,nama,' . $mediaPembawa->id,
-            'keterangan'=> 'nullable|string|max:500',
-            'aktif'     => 'boolean',
+            'nama'         => 'required|string|max:200|unique:media_pembawas,nama,' . $mediaPembawa->id,
+            'nama_inggris' => 'nullable|string|max:200',
+            'keterangan'   => 'nullable|string|max:500',
+            'aktif'        => 'boolean',
         ]);
 
         $mediaPembawa->update([
-            'nama'       => $request->nama,
-            'keterangan' => $request->keterangan,
-            'aktif'      => $request->boolean('aktif', true),
+            'nama'         => $request->nama,
+            'nama_inggris' => $request->nama_inggris,
+            'keterangan'   => $request->keterangan,
+            'aktif'        => $request->boolean('aktif', true),
         ]);
 
         cache()->forget('master_media_pembawa');
@@ -103,8 +107,10 @@ class MediaPembawaController extends Controller
         ]);
 
         try {
-            Excel::import(new MediaPembawaImport, $request->file('file'));
+            $import = new MediaPembawaImport;
+            Excel::import($import, $request->file('file'));
             cache()->forget('master_media_pembawa');
+            
             return redirect()->back()->with('success', 'Data Media Pembawa berhasil diimpor!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());

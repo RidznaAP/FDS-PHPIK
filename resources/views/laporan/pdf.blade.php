@@ -116,7 +116,7 @@
         <tr>
             <th style="width:28px">No</th>
             <th>Provinsi / Kab-Kota</th>
-            <th>Komoditas</th>
+            <th>Media Pembawa</th>
             <th>HPIK Target</th>
             <th>BKHIT</th>
             <th>Tahun</th>

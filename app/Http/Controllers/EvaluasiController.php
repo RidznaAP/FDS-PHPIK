@@ -15,30 +15,30 @@ class EvaluasiController extends Controller
     {
         $user = Auth::user();
 
+        // Dokumen Seminar Evaluasi terbaru untuk ditampilkan di atas
+        $dokumenQuery = \App\Models\DokumenSeminar::with(['user'])
+            ->where('jenis_modul', 'evaluasi')
+            ->latest();
+
+        if ($user->isBkhit()) {
+            $dokumenQuery->where(function ($q) use ($user) {
+                $q->whereNull('target_user_id')
+                  ->orWhere('target_user_id', $user->id);
+            });
+        }
+        $dokumenTerbaru = $dokumenQuery->take(5)->get();
+
         $query = Evaluasi::with(['perencanaan.user'])->latest();
 
-        // Scope berdasarkan role
+        // Scope berdasarkan role: BKHIT hanya lihat miliknya. BBKHIT & Pusat lihat semua.
         if ($user->isBkhit()) {
             $query->whereHas('perencanaan', fn($q) => $q->where('user_id', $user->id));
-        } elseif ($user->isBbkhit()) {
-            $query->whereHas('perencanaan', function ($q) use ($user) {
-                $q->whereIn('user_id', function ($rq) use ($user) {
-                    $rq->select('id')->from('users')
-                       ->where('id', $user->id)
-                       ->orWhere('parent_id', $user->id);
-                });
-            });
         }
         // Pusat: lihat semua
 
         // Filter kesimpulan
         if ($request->filled('kesimpulan')) {
             $query->where('kesimpulan', $request->kesimpulan);
-        }
-
-        // Filter status warna
-        if ($request->filled('warna')) {
-            $query->where('status_warna', $request->warna);
         }
 
         // Search wilayah
@@ -52,7 +52,7 @@ class EvaluasiController extends Controller
 
         $evaluasis = $query->paginate(15)->withQueryString();
 
-        return view('evaluasi.index', compact('evaluasis'));
+        return view('evaluasi.index', compact('evaluasis', 'dokumenTerbaru'));
     }
 
     // Form evaluasi untuk perencanaan tertentu
@@ -82,12 +82,15 @@ class EvaluasiController extends Controller
         $request->validate([
             'perencanaan_id'  => 'required|exists:perencanaans,id',
             'kesimpulan'      => 'required',
-            'status_warna'    => 'required',
             'tanggal_evaluasi'=> 'required|date',
             'evaluator'       => 'required',
         ]);
 
         $perencanaan = Perencanaan::with('pelaksanaans.laboratorium')->findOrFail($request->perencanaan_id);
+
+        if (\App\Models\Evaluasi::where('perencanaan_id', $request->perencanaan_id)->exists()) {
+            return back()->with('error', 'Evaluasi untuk perencanaan ini sudah ada.');
+        }
 
         // Defense in depth — validasi ulang sebelum simpan
         if ($perencanaan->pelaksanaans->isEmpty()) {
@@ -99,11 +102,14 @@ class EvaluasiController extends Controller
             return back()->with('warning', "Masih ada {$belumSelesaiLab} pelaksanaan yang belum selesai pengujian laboratorium.");
         }
 
-        // Simpan evaluasi dengan hanya input tervalidasi (Mencegah Mass Assignment)
-        Evaluasi::create($request->only([
-            'perencanaan_id', 'kesimpulan', 'status_warna', 'tanggal_evaluasi',
+        // Simpan evaluasi (status_warna diisi default 'hijau' karena kolom DB ENUM tidak nullable)
+        $data = $request->only([
+            'perencanaan_id', 'kesimpulan', 'tanggal_evaluasi',
             'evaluator', 'prevalensi', 'insidensi', 'rekomendasi'
-        ]));
+        ]);
+        $data['status_warna'] = 'hijau';
+
+        Evaluasi::create($data);
 
         return redirect()->route('perencanaan.show', $request->perencanaan_id)
             ->with('success', 'Evaluasi Akhir berhasil ditetapkan!');

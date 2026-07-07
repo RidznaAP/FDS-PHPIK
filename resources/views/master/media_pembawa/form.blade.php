@@ -20,21 +20,32 @@
                 @csrf
                 @if($editing) @method('PUT') @endif
                 <div class="card-body">
-                    {{-- Nama --}}
+                    {{-- Nama Umum --}}
                     <div class="mb-3">
-                        <label class="form-label required">Nama Media Pembawa (Inang Rentan)</label>
+                        <label class="form-label required">Nama Umum</label>
                         <input type="text" name="nama"
                             class="form-control @error('nama') is-invalid @enderror"
                             value="{{ old('nama', $item->nama ?? '') }}"
-                            placeholder="Contoh: Blue catfish, Channel catfish, Tilapia" required autofocus>
+                            required autofocus>
                         @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
-                    {{-- Keterangan --}}
+                    {{-- Nama Inggris --}}
                     <div class="mb-3">
-                        <label class="form-label">Keterangan</label>
-                        <textarea name="keterangan" class="form-control" rows="3"
-                            placeholder="Deskripsi singkat (opsional)">{{ old('keterangan', $item->keterangan ?? '') }}</textarea>
+                        <label class="form-label">Nama Inggris</label>
+                        <input type="text" name="nama_inggris"
+                            class="form-control @error('nama_inggris') is-invalid @enderror"
+                            value="{{ old('nama_inggris', $item->nama_inggris ?? '') }}">
+                        @error('nama_inggris')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    {{-- Nama Ilmiah --}}
+                    <div class="mb-3">
+                        <label class="form-label">Nama Ilmiah</label>
+                        <input type="text" name="keterangan" 
+                            class="form-control @error('keterangan') is-invalid @enderror"
+                            value="{{ old('keterangan', $item->keterangan ?? '') }}">
+                        @error('keterangan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     {{-- Aktif --}}

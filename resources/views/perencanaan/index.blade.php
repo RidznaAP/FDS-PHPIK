@@ -13,7 +13,7 @@
         <a href="{{ route('perencanaan.template') }}" class="btn btn-outline-info">
             <i class="ti ti-file-download me-1"></i> Unduh Template
         </a>
-        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-import">
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapse-import" aria-expanded="false" aria-controls="collapse-import">
             <i class="ti ti-upload me-1"></i> Impor Excel
         </button>
         @endif
@@ -31,7 +31,7 @@
     {{-- Search --}}
     <form method="GET" action="{{ route('perencanaan.index') }}" class="input-icon flex-grow-1" style="max-width:380px;">
         <span class="input-icon-addon"><i class="ti ti-search text-muted"></i></span>
-        <input type="text" name="search" class="form-control" placeholder="Cari provinsi, komoditas, HPIK…" value="{{ request('search') }}">
+        <input type="text" name="search" class="form-control" placeholder="Cari provinsi, Media Pembawa, HPIK…" value="{{ request('search') }}">
         @if(request('tahun'))<input type="hidden" name="tahun" value="{{ request('tahun') }}">@endif
         @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
     </form>
@@ -50,6 +50,7 @@
             <option value="draft"    {{ request('status') == 'draft'    ? 'selected' : '' }}>Dalam Penyusunan</option>
             <option value="waiting"  {{ request('status') == 'waiting'  ? 'selected' : '' }}>Menunggu Persetujuan</option>
             <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui &amp; Aktif</option>
+            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak / Dikembalikan</option>
         </select>
         @if(request('search') || request('tahun') || request('status'))
             <a href="{{ route('perencanaan.index') }}" class="btn btn-sm btn-outline-secondary">
@@ -66,6 +67,43 @@
         <button type="button" id="btn-bulk-delete" class="btn btn-sm btn-danger d-none" onclick="submitBulkDelete()">
             <i class="ti ti-trash me-1"></i>Hapus (<span id="count-selected">0</span>)
         </button>
+    </div>
+</div>
+
+{{-- ═══ INLINE IMPORT SECTION (Replacements for Modal) ═══ --}}
+<div class="collapse mb-4" id="collapse-import">
+    <div class="card border-primary border-top-wide overflow-hidden shadow-sm">
+        <div class="card-header bg-primary-lt">
+            <h3 class="card-title text-primary"><i class="ti ti-upload me-2"></i>Impor Data Perencanaan Baru</h3>
+            <div class="card-actions">
+                <button type="button" class="btn-close" data-bs-toggle="collapse" data-bs-target="#collapse-import"></button>
+            </div>
+        </div>
+        <form action="{{ route('perencanaan.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <label class="form-label fw-bold text-required">Langkah 1: Pilih File Excel (.xlsx, .xls)</label>
+                        <input type="file" name="file" class="form-control form-control-lg" accept=".xlsx, .xls" required autocomplete="off">
+                        <p class="text-muted small mt-2">Pastikan file yang diunggah sesuai dengan format template SIP-HPIK.</p>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="bg-blue-lt p-3 rounded-2 border border-blue-subtle">
+                            <h4 class="h5 text-blue mb-2"><i class="ti ti-info-circle me-1"></i>Belum punya template?</h4>
+                            <p class="small text-blue mb-3">Unduh template standar kami untuk menghindari kesalahan input data.</p>
+                            <a href="{{ route('perencanaan.template') }}" class="btn btn-blue btn-sm w-100">
+                                <i class="ti ti-download me-1"></i>Unduh Template Sekarang
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-link link-secondary" data-bs-toggle="collapse" data-bs-target="#collapse-import">Batal</button>
+                <button type="submit" class="btn btn-primary px-4"><i class="ti ti-cloud-upload me-1"></i>Mulai Impor Data</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -168,12 +206,13 @@
                     </th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'jenis_mp', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'jenis_mp' ? 'sort-active' : '' }}">
-                            Jenis Komoditas & HPIK
+                            Jenis Media Pembawa & HPIK
                             <span class="sort-icon">
                                 <i class="ti {{ request('sort_by') === 'jenis_mp' ? (request('sort_order') === 'asc' ? 'ti-chevron-up' : 'ti-chevron-down') : 'ti-selector' }}"></i>
                             </span>
                         </a>
                     </th>
+                    <th class="bg-light fw-bold small text-uppercase py-2" style="letter-spacing: 0.1em; color: #64748b;">Instansi Asal</th>
                     <th class="sort-th">
                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'target_uji', 'sort_order' => request('sort_order') === 'asc' ? 'desc' : 'asc']) }}" class="sort-btn {{ request('sort_by') === 'target_uji' ? 'sort-active' : '' }}">
                             Total Target
@@ -202,9 +241,15 @@
                         <div class="fw-semibold">{{ $p->kab_kota }}</div>
                         <div class="text-muted small">{{ $p->provinsi }}</div>
                     </td>
-                    <td data-label="Komoditas">
-                        <div>{{ $p->jenis_mp }}</div>
-                        <div class="text-muted small">{{ $p->jenis_hpik }}</div>
+                    <td data-label="Media Pembawa">
+                        <div class="fw-bold text-indigo">{{ $p->jenis_mp }}</div>
+                        <div class="text-muted small">
+                            <i class="ti ti-virus me-1"></i>{{ $p->jenis_hpik }}
+                        </div>
+                    </td>
+                    <td data-label="Instansi">
+                        <div class="fw-semibold">{{ $p->user->upt_asal ?? $p->user->name }}</div>
+                        <div class="text-muted small">Oleh: {{ $p->user->name }}</div>
                     </td>
                     <td data-label="Target">
                         <div class="fw-semibold">{{ $p->target_uji }}</div>
@@ -224,46 +269,88 @@
                     </td>
                     <td data-label="Aksi" class="aksi-sticky-td">
                         <div class="d-flex gap-1 justify-content-end">
-                            <a href="{{ route('perencanaan.show', $p->id) }}" class="btn btn-sm btn-outline-primary" title="Detail">
+                            {{-- Detail --}}
+                            <a href="{{ route('perencanaan.show', $p->id) }}"
+                               class="btn btn-sm btn-outline-primary"
+                               data-bs-toggle="tooltip" title="Lihat Detail">
                                 <i class="ti ti-eye"></i>
                             </a>
-                            @if(Auth::user()->isPusat())
-                                <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+
+                            {{-- Edit (Pusat atau pemilik saat Draft/Rejected) --}}
+                            @if(Auth::user()->isPusat() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
+                                <a href="{{ route('perencanaan.edit', $p->id) }}"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Edit Perencanaan">
                                     <i class="ti ti-pencil"></i>
                                 </a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                    onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus data ini?', 'DELETE', 'btn-danger')">
+                            @endif
+
+                            {{-- Hapus (Pusat atau pemilik saat Draft/Rejected) --}}
+                            @if(Auth::user()->isPusat() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="tooltip" title="Hapus Data"
+                                        onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus perencanaan ini secara permanen?', 'DELETE', 'btn-danger')">
                                     <i class="ti ti-trash"></i>
                                 </button>
                             @endif
-                            @if((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id())
-                                @if($p->status === 'draft' || $p->status === 'rejected')
-                                    <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus" onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus data?', 'DELETE', 'btn-danger')"><i class="ti ti-trash"></i></button>
-                                    <button type="button" class="btn btn-sm btn-warning" onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan validasi?', 'POST', 'btn-warning')"><i class="ti ti-send me-1"></i>Ajukan</button>
-                                @endif
-                                @if($p->status === 'approved')
-                                    <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-sm btn-primary"><i class="ti ti-plus me-1"></i>Input Lapangan</a>
-                                @endif
+
+                            {{-- Ajukan Validasi (pemilik atau Pusat, status draft/rejected) --}}
+                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat()) && in_array($p->status, ['draft', 'rejected']))
+                                <button type="button"
+                                        class="btn btn-sm btn-warning"
+                                        data-bs-toggle="tooltip" title="Ajukan Validasi ke BBKHIT"
+                                        onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan perencanaan ini untuk validasi?', 'POST', 'btn-warning', '📤', 'Ajukan Validasi?')">
+                                    <i class="ti ti-send"></i>
+                                </button>
                             @endif
-                            @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
-                                @if($p->status === 'waiting')
-                                    <button type="button" class="btn btn-sm btn-success" onclick="confirmAction('{{ route('perencanaan.approve', $p->id) }}', 'Setujui perencanaan ini?', 'POST', 'btn-success')"><i class="ti ti-check me-1"></i>Setujui</button>
-                                @elseif($p->evaluasi)
-                                    <span class="badge bg-green-lt text-green fw-bold"><i class="ti ti-circle-check me-1"></i>Selesai</span>
-                                @endif
+
+                            {{-- Input Lapangan (pemilik atau Pusat, status approved) --}}
+                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat()) && $p->status === 'approved')
+                                <a href="{{ route('pelaksanaan.create', $p->id) }}"
+                                   class="btn btn-sm btn-primary"
+                                   data-bs-toggle="tooltip" title="Input Data Lapangan">
+                                    <i class="ti ti-plus"></i>
+                                </a>
+                            @endif
+
+                            {{-- Setujui (BBKHIT/Pusat, status waiting) --}}
+                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'waiting')
+                                <button type="button"
+                                        class="btn btn-sm btn-success"
+                                        data-bs-toggle="tooltip" title="Setujui Perencanaan Ini"
+                                        onclick="confirmAction('{{ route('perencanaan.approve', $p->id) }}', 'Setujui perencanaan ini?', 'POST', 'btn-success', '✅', 'Setujui?')">
+                                    <i class="ti ti-check"></i>
+                                </button>
+                            @endif
+
+                            {{-- Setujui Langsung (Pusat, status draft) --}}
+                            @if(Auth::user()->isPusat() && $p->status === 'draft')
+                                <button type="button"
+                                        class="btn btn-sm btn-success"
+                                        data-bs-toggle="tooltip" title="Setujui Langsung (Pusat)"
+                                        onclick="confirmAction('{{ route('perencanaan.approve', $p->id) }}', 'Setujui perencanaan ini langsung dari Draft?', 'POST', 'btn-success', '🛡️', 'Setujui Langsung?')">
+                                    <i class="ti ti-shield-check"></i>
+                                </button>
+                            @endif
+
+                            {{-- Badge Selesai --}}
+                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->evaluasi && $p->status !== 'waiting')
+                                <span class="badge bg-green-lt text-green fw-bold" data-bs-toggle="tooltip" title="Evaluasi Selesai">
+                                    <i class="ti ti-circle-check"></i>
+                                </span>
                             @endif
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="p-0">
+                    <td colspan="8" class="p-0">
                         <div class="empty-state">
                             <div class="empty-state-icon">📋</div>
                             <h4>Belum Ada Data Perencanaan</h4>
                             <p>Belum ada rencana pemantauan HPIK yang tersimpan sesuai filter yang dipilih.</p>
-                            @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit())
+                            @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
                                 <a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-pill px-4">
                                     <i class="ti ti-plus me-2"></i>Buat Perencanaan Baru
                                 </a>
@@ -284,52 +371,25 @@
     @endif
 </div>
 
-@if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
-<div class="modal modal-blur fade" id="modal-import" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Impor Data Perencanaan dari Excel</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('perencanaan.import') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label text-required">File Excel (.xlsx, .xls)</label>
-                        <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
-                        <div class="form-hint small mt-2">Gunakan tombol <strong>"Unduh Template"</strong> untuk mendapatkan format yang benar.</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary"><i class="ti ti-upload me-1"></i> Mulai Impor</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endif
-
 @push('styles')
 <style>
 /* Sticky Aksi column */
 .aksi-sticky-th,
 .aksi-sticky-td {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    background: #ffffff;
-    box-shadow: -3px 0 8px -2px rgba(0,0,0,0.08);
-    white-space: nowrap;
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 10 !important;
+    background-color: #ffffff !important;
+    box-shadow: -3px 0 8px -2px rgba(0,0,0,0.08) !important;
+    white-space: nowrap !important;
     padding-right: 1.5rem !important;
 }
 .aksi-sticky-th {
-    background: #f6f8fb !important;
-    z-index: 3;
+    background-color: #f6f8fb !important;
+    z-index: 11 !important;
 }
 tbody tr:hover .aksi-sticky-td {
-    background: #f8fafc;
+    background-color: #f8fafc !important;
 }
 </style>
 @endpush

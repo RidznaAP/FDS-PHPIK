@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Perencanaan;
 use App\Models\Pelaksanaan;
+use App\Models\Notifikasi;
 
 class PelaksanaanController extends Controller
 {
@@ -85,11 +86,10 @@ class PelaksanaanController extends Controller
         return view('pelaksanaan.index', compact('pelaksanaans', 'years'));
     }
 
-    // Form untuk mengisi pelaksanaan berdasarkan ID Perencanaan
-    public function create($id)
+    public function create(Perencanaan $perencanaan)
     {
         $user = Auth::user();
-        $rencana = Perencanaan::with('user')->findOrFail($id);
+        $rencana = $perencanaan->load('user');
 
         // ── Auth-scoped Check ──────────────────────────────────────
         if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat()) {
@@ -97,38 +97,48 @@ class PelaksanaanController extends Controller
         }
 
         if ($rencana->pelaksanaans()->count() >= $rencana->target_uji) {
-            return redirect()->route('perencanaan.show', $id)->with('error', 'Target uji sudah terpenuhi. Tidak dapat menambahkan pelaksanaan baru.');
+            return redirect()->route('perencanaan.show', $rencana->id)->with('error', 'Target uji sudah terpenuhi. Tidak dapat menambahkan pelaksanaan baru.');
         }
 
         return view('pelaksanaan.create', compact('rencana'));
     }
 
-    // ── Show Detail Pelaksanaan ───────────────────────────────────────────
-    public function show($id)
+    // ── Show Detail Pelaksanaan ───────────────────────────────────────────    // Menampilkan detail pelaksanaan
+    public function show(Pelaksanaan $pelaksanaan)
     {
         $user = Auth::user();
-        $item = Pelaksanaan::with(['perencanaan.user', 'perencanaan.evaluasi', 'laboratorium'])->findOrFail($id);
+        $item = $pelaksanaan->load(['perencanaan.user', 'laboratorium']);
 
-        // ── Auth-scoped Detail Check ──────────────────────────────────
+        // ── Auth-scoped Check ──────────────────────────────────────
         if ($user->isBkhit() && $item->perencanaan->user_id !== $user->id) {
-            abort(403, 'Anda tidak memiliki akses ke data ini.');
+            abort(403, 'Akses ditolak.');
         }
 
-        if ($user->isBbkhit()) {
-            $owner = $item->perencanaan->user;
-            if ($item->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
-                abort(403, 'Data ini berada di luar wilayah koordinasi Anda.');
-            }
+        $jenis_penyakits = \App\Models\JenisPenyakit::all();
+        $metode_ujis = \App\Models\MetodeUji::all();
+
+        return view('pelaksanaan.show', compact('item', 'jenis_penyakits', 'metode_ujis'));
+    }
+
+    // #Cetak PDF Pelaksanaan Tunggal
+    public function print(Pelaksanaan $pelaksanaan)
+    {
+        $user = Auth::user();
+        $item = $pelaksanaan->load(['perencanaan.user', 'laboratorium']);
+
+        // ── Auth-scoped Check ──────────────────────────────────────
+        if ($user->isBkhit() && $item->perencanaan->user_id !== $user->id) {
+            abort(403, 'Akses ditolak.');
         }
 
-        return view('pelaksanaan.show', compact('item'));
+        return view('pelaksanaan.print', compact('item'));
     }
 
     // Edit form for pelaksanaan
-    public function edit($id)
+    public function edit(Pelaksanaan $pelaksanaan)
     {
         $user = Auth::user();
-        $item = Pelaksanaan::with(['perencanaan.user'])->findOrFail($id);
+        $item = $pelaksanaan->load(['perencanaan.user']);
 
         // Auth check: only owner or Pusat can edit
         if (!$user->isPusat()) {
@@ -141,9 +151,9 @@ class PelaksanaanController extends Controller
     }
 
     // Update pelaksanaan data
-    public function update(Request $request, $id)
+    public function update(Request $request, Pelaksanaan $pelaksanaan)
     {
-        $item = Pelaksanaan::with('perencanaan.user')->findOrFail($id);
+        $item = $pelaksanaan->load('perencanaan.user');
         $user = Auth::user();
 
         // Auth check
@@ -182,7 +192,7 @@ class PelaksanaanController extends Controller
 
         $item->update($data);
 
-        return redirect()->route('pelaksanaan.show', $id)
+        return redirect()->route('pelaksanaan.show', $pelaksanaan->id)
             ->with('success', 'Data Pelaksanaan berhasil diperbarui.');
     }
 
@@ -235,21 +245,34 @@ class PelaksanaanController extends Controller
 
         Pelaksanaan::create($data);
 
-        return redirect()->route('perencanaan.index')->with('success', 'Data Lapangan Berhasil Disimpan!');
+        return redirect()->route('perencanaan.show', $rencana->id)->with('success', 'Data Lapangan Berhasil Disimpan! Silakan input hasil lab di bawah.');
     }
 
-    public function destroy($id)
+    public function destroy(Pelaksanaan $pelaksanaan)
     {
-        $item = Pelaksanaan::findOrFail($id);
+        $item = $pelaksanaan;
         
-        // Jika bukan Pusat, pastikan pemilik data (lewat perencanaan)
-        if (!Auth::user()->isPusat()) {
-            if (!$item->perencanaan || $item->perencanaan->user_id !== Auth::id()) {
-                abort(403);
+        // Jika bukan Pusat, pastikan pemilik data atau wilayah
+        $user = Auth::user();
+        if (!$user->isPusat()) {
+            $owner = $item->perencanaan->user ?? null;
+            if ($user->isBbkhit()) {
+                if ($item->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
+                    abort(403, 'Akses ditolak: Data ini berada di luar koordinasi Anda.');
+                }
+            } else {
+                if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
+                    abort(403, 'Akses ditolak: Anda hanya dapat menghapus data milik Anda sendiri.');
+                }
             }
         }
         
+        $id = $item->id;
         $item->delete();
+
+        // Bersihkan notifikasi terkait
+        Notifikasi::hapusTerkaitUrl("/pelaksanaan/{$id}");
+
         return back()->with('success', 'Data Pelaksanaan berhasil dihapus.');
     }
 
@@ -262,12 +285,24 @@ class PelaksanaanController extends Controller
 
         $query = Pelaksanaan::whereIn('id', $ids);
 
+        $user = Auth::user();
         // Jika bukan Pusat, hanya boleh hapus milik sendiri (Berangkat dari Perencanaan)
-        if (!Auth::user()->isPusat()) {
-            $query->whereHas('perencanaan', fn($q) => $q->where('user_id', Auth::id()));
+        if (!$user->isPusat()) {
+            if ($user->isBbkhit()) {
+                $childIds = \App\Models\User::where('parent_id', $user->id)->pluck('id')->push($user->id);
+                $query->whereHas('perencanaan', fn($q) => $q->whereIn('user_id', $childIds));
+            } else {
+                $query->whereHas('perencanaan', fn($q) => $q->where('user_id', $user->id));
+            }
         }
 
         $count = $query->delete();
+
+        if ($count > 0) {
+            foreach ($ids as $id) {
+                Notifikasi::hapusTerkaitUrl("/pelaksanaan/{$id}");
+            }
+        }
         
         if ($count == 0) {
             return back()->with('error', 'Tidak ada data yang diizinkan untuk dihapus.');

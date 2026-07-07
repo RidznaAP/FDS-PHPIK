@@ -58,15 +58,13 @@ class GlobalSearchController extends Controller
                 $query->where('user_id', $user->id);
             });
         } elseif ($user->isBbkhit()) {
-            $perencanaanQuery->where(function($qBuilder) use ($user) {
-                $qBuilder->where('user_id', $user->id)
-                         ->orWhere('status', '!=', 'draft');
+            $childIds = User::where('parent_id', $user->id)->pluck('id')->push($user->id);
+            $perencanaanQuery->whereIn('user_id', $childIds);
+            $pelaksanaanQuery->whereHas('perencanaan', function($query) use ($childIds) {
+                $query->whereIn('user_id', $childIds);
             });
-            $pelaksanaanQuery->whereHas('perencanaan', function($query) use ($user) {
-                $query->where('user_id', $user->id)->orWhere('status', '!=', 'draft');
-            });
-            $laboratoriumQuery->whereHas('pelaksanaan.perencanaan', function($query) use ($user) {
-                $query->where('user_id', $user->id)->orWhere('status', '!=', 'draft');
+            $laboratoriumQuery->whereHas('pelaksanaan.perencanaan', function($query) use ($childIds) {
+                $query->whereIn('user_id', $childIds);
             });
         }
 

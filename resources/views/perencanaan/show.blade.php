@@ -19,7 +19,7 @@
     <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-secondary">
         <i class="ti ti-arrow-left me-2"></i>Kembali
     </a>
-    @if(($p->status === 'draft' || $p->status === 'rejected') && (Auth::user()->isBkhit() || Auth::user()->isBbkhit()))
+    @if(($p->status === 'draft' || $p->status === 'rejected') && (Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat()))
     <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary">
         <i class="ti ti-edit me-2"></i>Edit
     </a>
@@ -72,45 +72,73 @@
                     </div>
                     
                     <div class="row g-0">
-                        <div class="col-md-6 border-end border-bottom-md-0 p-4">
-                            <div class="info-group">
-                                <div class="mb-4">
-                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Jenis HPIK</label>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-red-lt text-red p-2 rounded-3 me-3"><i class="ti ti-virus fs-3"></i></div>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach(array_map('trim', explode(',', $p->jenis_hpik)) as $hpik)
-                                                <span class="badge bg-red-lt text-red border border-red-subtle px-2 py-1">{{ $hpik }}</span>
-                                            @endforeach
-                                        </div>
-                                    </div>
+                        <div class="col-12 border-bottom p-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-2">Media Pembawa (Komoditas)</label>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-indigo text-white p-3 rounded-4 me-3 shadow-sm">
+                                    <i class="ti ti-fish fs-2"></i>
                                 </div>
-                                <div class="mb-0">
-                                    <label class="text-muted small fw-bold text-uppercase d-block mb-1">Kemampuan Uji UPT</label>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-indigo-lt text-indigo p-2 rounded-3 me-3"><i class="ti ti-building-community fs-3"></i></div>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach(array_map('trim', explode(',', $p->kemampuan_uji_upt)) as $uji)
-                                                <span class="badge bg-indigo-lt text-indigo border border-indigo-subtle px-2 py-1">{{ $uji }}</span>
-                                            @endforeach
-                                        </div>
+                                <div>
+                                    <div class="h2 fw-bold mb-0 text-dark">{{ $p->jenis_mp }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 border-end border-bottom p-4">
+                            <div class="mb-4">
+                                <label class="text-muted small fw-bold text-uppercase d-block mb-2">Jenis HPIK / Organisme Target</label>
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-red-lt text-red p-2 rounded-3 me-3"><i class="ti ti-virus fs-3"></i></div>
+                                    <div class="d-flex flex-column gap-2 flex-grow-1">
+                                        @foreach(array_map('trim', explode(',', $p->jenis_hpik)) as $hpik)
+                                            <div class="d-flex align-items-center bg-red-lt text-red px-3 py-2 rounded-3 border border-red-subtle shadow-sm" style="font-size: 0.85rem;">
+                                                <i class="ti ti-bug me-2 opacity-50"></i>
+                                                <span class="fw-semibold">{{ $hpik }}</span>
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 p-4">
+                        <div class="col-md-6 border-bottom p-4">
                             <div class="mb-4">
-                                <label class="text-muted small fw-bold text-uppercase d-block mb-1">Metode & Lab Penguji</label>
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="bg-purple-lt text-purple p-2 rounded-3 me-3"><i class="ti ti-flask fs-3"></i></div>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        @foreach(array_map('trim', explode(',', $p->metode_pengujian)) as $metode)
-                                            <span class="badge bg-purple-lt text-purple border border-purple-subtle px-2 py-1">{{ $metode }}</span>
+                                <label class="text-muted small fw-bold text-uppercase d-block mb-2">Kemampuan Uji UPT</label>
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-indigo-lt text-indigo p-2 rounded-3 me-3"><i class="ti ti-building-community fs-3"></i></div>
+                                    <div class="d-flex flex-column gap-2 flex-grow-1">
+                                        @foreach(array_map('trim', explode(',', $p->kemampuan_uji_upt)) as $uji)
+                                            <div class="d-flex align-items-center bg-indigo-lt text-indigo px-3 py-2 rounded-3 border border-indigo-subtle shadow-sm" style="font-size: 0.85rem;">
+                                                <i class="ti ti-check-double me-2 opacity-50"></i>
+                                                <span class="fw-semibold">{{ $uji }}</span>
+                                            </div>
                                         @endforeach
                                     </div>
                                 </div>
-                                <div class="badge bg-light text-dark px-3 py-2 rounded-3 border w-100 text-center">
-                                    <i class="ti ti-flask me-2"></i> {{ $p->lab_uji }}
+                            </div>
+                        </div>
+
+                        <div class="col-12 p-4 border-bottom bg-light-soft">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-2">Metode Pengujian</label>
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-purple-lt text-purple p-2 rounded-3 me-3"><i class="ti ti-flask fs-3"></i></div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach(array_map('trim', explode(',', $p->metode_pengujian)) as $metode)
+                                                <span class="badge bg-purple-lt text-purple border border-purple-subtle px-3 py-2 fs-6 rounded-3">
+                                                    {{ $metode }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small fw-bold text-uppercase d-block mb-2">Laboratorium Penguji</label>
+                                    <div class="d-flex align-items-start">
+                                        <div class="bg-teal-lt text-teal p-2 rounded-3 me-3"><i class="ti ti-building-lab fs-3"></i></div>
+                                        <div class="bg-white text-dark px-3 py-2 rounded-3 border w-100 fw-bold shadow-sm">
+                                            {{ $p->lab_uji }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -141,11 +169,11 @@
                         <div class="col-12 border-top p-3 px-4 bg-white d-flex justify-content-end">
                             <div class="d-inline-flex align-items-center p-2 bg-light rounded-3 border shadow-sm">
                                 <div class="avatar avatar-sm rounded-circle me-3 bg-primary text-white shadow-sm">
-                                    {{ strtoupper(substr(optional($p->user)->name ?? 'A', 0, 1)) }}
+                                    {{ strtoupper(substr(optional($p->user)->upt_asal ?? optional($p->user)->name ?? 'A', 0, 1)) }}
                                 </div>
                                 <div class="text-start">
                                     <div class="small text-muted fw-bold" style="font-size: 0.65rem;">Petugas Input:</div>
-                                    <div class="fw-bold small">{{ optional($p->user)->name ?? '-' }}</div>
+                                    <div class="fw-bold small">{{ optional($p->user)->upt_asal ?? optional($p->user)->name ?? '-' }}</div>
                                 </div>
                             </div>
                         </div>
@@ -278,7 +306,7 @@
                         </div>
                         <h4 class="fw-bold text-muted">Belum ada realisasi</h4>
                         <p class="text-muted small px-5">Data pengambilan sampel belum tercatat. Hubungi tim lapangan untuk pembaruan data.</p>
-                        @if(Auth::user()->isUpt() && $p->status === 'approved')
+                        @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat()))
                         <div class="mt-4">
                             @if($p->pelaksanaans->count() < $p->target_uji)
                                 <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-outline-primary btn-pill">
@@ -300,8 +328,8 @@
             {{-- Action Palette --}}
             <div class="d-grid gap-2 mb-4">
 
-                {{-- BKHIT: Submit jika masih draft atau ditolak --}}
-                @if(Auth::user()->isUpt() && ($p->status === 'draft' || $p->status === 'rejected') && $p->user_id === Auth::id())
+                {{-- BKHIT/BBKHIT/Pusat: Submit jika masih draft atau ditolak --}}
+                @if(($p->status === 'draft' || $p->status === 'rejected') && ($p->user_id === Auth::id() || Auth::user()->isPusat()))
                     <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-warning btn-pill w-100 fw-bold border-0 shadow-sm"
@@ -327,7 +355,7 @@
                     </div>
 
                     {{-- Modal Reject --}}
-                    <div class="modal modal-blur fade" id="modal-reject-{{ $p->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="color: #1e293b;">
+                    <div class="modal fade" id="modal-reject-{{ $p->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="color: #1e293b;">
                         <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content border-danger border-4 border-top">
                                 <div class="modal-header">
@@ -355,8 +383,26 @@
                     </div>
                 @endif
 
-                {{-- BKHIT: Tambah Pelaksanaan jika approved --}}
-                @if(Auth::user()->isUpt() && $p->status === 'approved')
+                {{-- Pusat: Setujui Langsung jika masih draft (tanpa perlu submit) --}}
+                @if(Auth::user()->isPusat() && $p->status === 'draft')
+                    <div class="alert alert-info border-0 p-3 rounded-3 shadow-sm mb-0" style="background: linear-gradient(135deg, #e0f0ff, #f0f8ff);">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="ti ti-shield-check text-primary me-2 fs-5"></i>
+                            <span class="fw-bold text-primary small text-uppercase">Akses Validator Pusat</span>
+                        </div>
+                        <p class="text-muted small mb-2">Sebagai Admin Pusat, Anda dapat langsung menyetujui tanpa melalui proses pengajuan.</p>
+                        <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-pill w-100 fw-bold border-0 shadow-sm"
+                                onclick="return confirm('Setujui &amp; aktifkan perencanaan ini langsung tanpa submit terlebih dahulu?')">
+                                <i class="ti ti-circle-check me-2"></i>SETUJUI LANGSUNG
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+                {{-- BKHIT/BBKHIT/Pusat: Tambah Pelaksanaan jika approved --}}
+                @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat()))
                     @if($p->pelaksanaans->count() < $p->target_uji)
                         <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-primary btn-pill w-100 fw-bold border-0 shadow-sm">
                             <i class="ti ti-plus me-2"></i>PELAKSANAAN BARU
@@ -398,7 +444,7 @@
                             </div>
                             <div class="timeline-content ps-4">
                                 <div class="fw-bold text-dark fs-5 text-uppercase">1. Rencana Digagas</div>
-                                <div class="text-muted small mt-1"><i class="ti ti-calendar-event me-1"></i>{{ $p->created_at->format('d/m/Y H:i') }} | {{ optional($p->user)->name ?? 'Admin' }}</div>
+                                <div class="text-muted small mt-1"><i class="ti ti-calendar-event me-1"></i>{{ $p->created_at->format('d/m/Y H:i') }} | {{ optional($p->user)->upt_asal ?? optional($p->user)->name ?? 'Admin' }}</div>
                                 @if($p->status == 'approved')
                                     <div class="text-success small fw-bold mt-1"><i class="ti ti-rosette-discount-check me-1"></i>Telah Disetujui</div>
                                 @elseif($p->status == 'rejected')

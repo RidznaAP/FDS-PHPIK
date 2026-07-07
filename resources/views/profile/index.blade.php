@@ -9,53 +9,84 @@
 
     {{-- Kartu Info Profil --}}
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-body text-center py-4">
-                <span class="avatar avatar-xl mb-3" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); font-size:2rem;">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </span>
-                <h3 class="mb-1">{{ Auth::user()->name }}</h3>
-                <p class="text-muted mb-2">{{ Auth::user()->email }}</p>
-                @if(Auth::user()->isUpt())
-                    <span class="badge bg-success-lt fs-6">BKHIT</span>
-                @elseif(Auth::user()->isBbkhit())
-                    <span class="badge bg-warning-lt fs-6">BBKHIT</span>
-                @else
-                    <span class="badge bg-purple-lt fs-6">PUSAT</span>
-                @endif
-                @if(Auth::user()->upt_asal)
-                    <div class="text-muted small mt-2"><i class="ti ti-building me-1"></i>{{ Auth::user()->upt_asal }}</div>
-                @endif
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px !important;">
+            <div class="card-header border-0 pb-0 pt-4 text-center d-block">
+                <div class="position-relative d-inline-block">
+                    <span class="avatar avatar-xl shadow-lg" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); font-size:2.2rem; width: 100px; height: 100px; border: 4px solid #fff;">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </span>
+                    <span class="badge bg-green position-absolute bottom-0 end-0 border-white border-2" style="width:18px;height:18px;padding:0;border-radius:50%;" title="Online"></span>
+                </div>
+                <h3 class="mt-3 mb-0 fw-bold fs-3">{{ Auth::user()->name }}</h3>
+                <p class="text-muted small">{{ Auth::user()->email }}</p>
+                
+                <div class="mt-2">
+                    @if(Auth::user()->isUpt())
+                        <span class="badge bg-green-lt px-3 py-2 btn-pill fw-bold" style="font-size:0.65rem;">BKHIT</span>
+                    @elseif(Auth::user()->isBbkhit())
+                        <span class="badge bg-warning-lt px-3 py-2 btn-pill fw-bold" style="font-size:0.65rem;">BBKHIT</span>
+                    @else
+                        <span class="badge bg-purple-lt px-3 py-2 btn-pill fw-bold" style="font-size:0.65rem;">ADMIN PUSAT</span>
+                    @endif
+                </div>
             </div>
-            <div class="card-body border-top">
+
+            <div class="card-body pt-3">
+                @if(Auth::user()->upt_asal)
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light-lt mb-3">
+                        <div class="bg-white p-2 rounded-2 shadow-sm">
+                            <i class="ti ti-building text-primary fs-3"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small fw-bold text-uppercase" style="font-size:0.6rem; letter-spacing:0.05em;">Unit Kerja / Instansi</div>
+                            <div class="fw-bold text-dark">{{ Auth::user()->upt_asal }}</div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="row g-2">
                     <div class="col-6">
-                        <div class="text-muted small">Bergabung</div>
-                        <div class="fw-semibold">{{ Auth::user()->created_at->format('d M Y') }}</div>
+                        <div class="p-3 border border-light rounded-3 text-center">
+                            <div class="text-muted small mb-1">Terdaftar Sejak</div>
+                            <div class="fw-bold">{{ Auth::user()->created_at->format('d M Y') }}</div>
+                        </div>
                     </div>
                     <div class="col-6">
-                        <div class="text-muted small">Role</div>
-                        <div class="fw-semibold text-capitalize">{{ Auth::user()->role }}</div>
+                        <div class="p-3 border border-light rounded-3 text-center">
+                            <div class="text-muted small mb-1">Status Akun</div>
+                            <div class="fw-bold text-success"><i class="ti ti-circle-check me-1"></i>Aktif</div>
+                        </div>
                     </div>
                 </div>
             </div>
+
             {{-- Info Koordinasi --}}
             @if(Auth::user()->isBkhit() && Auth::user()->coordinator)
-                <div class="card-body border-top bg-blue-lt">
-                    <div class="text-muted small"><i class="ti ti-link me-1"></i>Koordinator Wilayah</div>
-                    <div class="fw-bold text-primary">{{ Auth::user()->coordinator->name }}</div>
+                <div class="card-footer bg-blue-lt border-0 p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-blue text-white p-2 rounded-2">
+                            <i class="ti ti-link fs-3"></i>
+                        </div>
+                        <div>
+                            <div class="text-blue small fw-bold text-uppercase" style="font-size:0.6rem;">Koordinator Wilayah</div>
+                            <div class="fw-bold">{{ Auth::user()->coordinator->name }}</div>
+                        </div>
+                    </div>
                 </div>
             @elseif(Auth::user()->isBbkhit())
-                <div class="card-body border-top">
-                    <div class="text-muted small mb-2"><i class="ti ti-users me-1"></i>Unit di Bawah Koordinasi</div>
-                    @forelse(Auth::user()->units as $u)
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="badge bg-success-lt badge-sm">BKHIT</span>
-                            <span class="small">{{ $u->name }}</span>
-                        </div>
-                    @empty
-                        <div class="text-muted italic small">Belum ada unit terhubung.</div>
-                    @endforelse
+                <div class="card-footer bg-light border-0 p-4">
+                    <div class="text-muted small mb-3 fw-bold text-uppercase" style="font-size:0.6rem; letter-spacing:0.05em;">
+                        <i class="ti ti-users me-1"></i> Unit di Bawah Koordinasi
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @forelse(Auth::user()->units as $u)
+                            <span class="badge bg-white border border-light text-dark px-2 py-1 shadow-xs fw-normal">
+                                <i class="ti ti-building-hospital me-1 text-success"></i>{{ $u->name }}
+                            </span>
+                        @empty
+                            <div class="text-muted italic small">Belum ada unit terhubung.</div>
+                        @endforelse
+                    </div>
                 </div>
             @endif
         </div>

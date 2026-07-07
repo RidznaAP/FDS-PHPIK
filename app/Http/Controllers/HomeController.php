@@ -9,6 +9,7 @@ use App\Models\Perencanaan;
 use App\Models\Pelaksanaan;
 use App\Models\User;
 use App\Models\Notifikasi;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -17,7 +18,7 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -28,50 +29,81 @@ class HomeController extends Controller
             if ($user->isBkhit()) {
                 return [$user->id];
             } elseif ($user->isBbkhit()) {
-                return User::where('id', $user->id)
-                    ->orWhere('parent_id', $user->id)
-                    ->pluck('id')
-                    ->toArray();
+                $childIds = User::where('parent_id', $user->id)->pluck('id')->push($user->id)->toArray();
+                return $childIds;
             }
             return null; // null = tidak difilter (Pusat = semua)
         };
 
         $userIds = $scopeUserIds();
 
-        // ═══════════════════════════════════════════════════════════════
-        // ZONE 1 — KPI Stats
-        // ═══════════════════════════════════════════════════════════════
-        $totalPerencanaan = Perencanaan::when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
-        $totalPelaksanaan = Pelaksanaan::when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))->count();
-        $totalApproved    = Perencanaan::where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
+        // ── Filter Tahun & Daftar Tahun Tersedia ────────────────────────────
+        $availableYears = Pelaksanaan::selectRaw('YEAR(created_at) as year')
+            ->union(Perencanaan::selectRaw('YEAR(created_at) as year'))
+            ->distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
+            
+        if (empty($availableYears)) $availableYears = [date('Y')];
+        
+        $selectedYear = $request->get('year', date('Y'));
 
-        // UPT Aktif: Total institusi UPT (BKHIT) yang terdaftar di bawah BBKHIT / Nasional
+        // ═══════════════════════════════════════════════════════════════
+        // ZONE 1 — KPI Stats (Filtered by Year)
+        // ═══════════════════════════════════════════════════════════════
+        $totalPerencanaan = Perencanaan::whereYear('created_at', $selectedYear)
+            ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
+        
+        $totalPelaksanaan = Pelaksanaan::whereYear('created_at', $selectedYear)
+            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))->count();
+        
+        $totalApproved    = Perencanaan::whereYear('created_at', $selectedYear)
+            ->where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
+
+        // UPT Aktif: Total institusi UPT (BKHIT) yang telah memiliki hasil uji lab di tahun terpilih
         if ($user->isBkhit()) {
-            $totalUptAktif = 1;
+            $totalUptAktif = Pelaksanaan::whereYear('created_at', $selectedYear)
+                ->whereHas('perencanaan', fn($q) => $q->where('user_id', $user->id))
+                ->whereHas('laboratorium')
+                ->exists() ? 1 : 0;
         } else {
             $totalUptAktif = User::where('role', 'bkhit')
+                ->whereHas('perencanaan.pelaksanaans.laboratorium')
                 ->when($user->isBbkhit(), fn($q) => $q->where('parent_id', $user->id))
                 ->count();
         }
 
+        // ── Filter Tahun & Daftar Tahun Tersedia ────────────────────────────
+        $availableYears = Pelaksanaan::selectRaw('YEAR(created_at) as year')
+            ->union(Perencanaan::selectRaw('YEAR(created_at) as year'))
+            ->distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
+            
+        if (empty($availableYears)) $availableYears = [date('Y')];
+        
+        $selectedYear = $request->get('year', date('Y'));
+
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 2A — Grafik Pelaksanaan per Bulan (12 bulan terakhir)
+        // ZONE 2A — Grafik Pelaksanaan per Bulan (Jan - Des tahun terpilih)
         // ═══════════════════════════════════════════════════════════════
         $chartBulanLabels = [];
         $chartBulanData   = [];
-        for ($i = 11; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $chartBulanLabels[] = $month->translatedFormat('M Y');
-            $chartBulanData[]   = Pelaksanaan::whereMonth('created_at', $month->month)
-                ->whereYear('created_at', $month->year)
-                ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
-                ->count();
+        
+        $monthlyCounts = Pelaksanaan::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
+            ->whereYear('created_at', $selectedYear)
+            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
+            ->groupBy('bulan')
+            ->pluck('total', 'bulan')
+            ->toArray();
+            
+        for ($m = 1; $m <= 12; $m++) {
+            $date = Carbon::createFromDate($selectedYear, $m, 1);
+            $chartBulanLabels[] = $date->translatedFormat('M');
+            $chartBulanData[]   = $monthlyCounts[$m] ?? 0;
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 2B — Top 5 Media Pembawa Dominan
+        // ZONE 2B — Top 5 Media Pembawa Dominan (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
-        $mediaPembawaRaw = Perencanaan::whereNotNull('jenis_mp')
+        $mediaPembawaRaw = Perencanaan::whereYear('created_at', $selectedYear)
+            ->whereNotNull('jenis_mp')
             ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))
             ->pluck('jenis_mp');
 
@@ -87,48 +119,96 @@ class HomeController extends Controller
         $chartMediaData   = array_values($top5Media);
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 3A — Top Jenis Penyakit (HPIK) Dominan
+        // ZONE 3A — Top Jenis Penyakit (HPIK) Terdeteksi (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
-        $hpikRaw = Perencanaan::whereNotNull('jenis_hpik')
-            ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))
-            ->pluck('jenis_hpik');
+        $hpikTerdeteksiQuery = \App\Models\Laboratorium::whereYear('created_at', $selectedYear);
+        if ($userIds !== null) {
+            $hpikTerdeteksiQuery->whereIn('pelaksanaan_id', function($q) use ($userIds, $selectedYear) {
+                $q->select('id')->from('pelaksanaans')
+                  ->whereYear('created_at', $selectedYear)
+                  ->whereIn('perencanaan_id', function($sq) use ($userIds, $selectedYear) {
+                      $sq->select('id')->from('perencanaans')
+                        ->whereYear('created_at', $selectedYear)
+                        ->whereIn('user_id', $userIds);
+                  });
+            });
+        }
 
-        $hpikTally = [];
-        foreach ($hpikRaw as $raw) {
-            foreach (array_map('trim', explode(',', $raw)) as $item) {
-                if ($item) $hpikTally[$item] = ($hpikTally[$item] ?? 0) + 1;
+        $labPositif = $hpikTerdeteksiQuery->get();
+        $hpikTerdeteksiTally = [];
+
+        foreach ($labPositif as $lab) {
+            $rawHasil = trim($lab->hasil_uji);
+            $isPositif = !empty($rawHasil) && 
+                         strcasecmp($rawHasil, 'Negatif') !== 0 && 
+                         strcasecmp($rawHasil, 'NIHIL') !== 0 && 
+                         strcasecmp($rawHasil, 'Inkonklusif') !== 0 &&
+                         $rawHasil !== '—';
+
+            if ($isPositif) {
+                // Gunakan diagnosis_akhir jika ada, jika tidak jenis_hpik_diuji
+                // Gunakan hasil_uji (jika spesifik) > jenis_hpik_diuji > diagnosis_akhir
+                $namaPenyakit = 'HPIK';
+                if (!empty($rawHasil) && !in_array(strtoupper($rawHasil), ['POSITIF', 'NEGATIF', 'NIHIL', 'INKONKLUSIF', '—'])) {
+                    $namaPenyakit = $rawHasil;
+                } else {
+                    $namaPenyakit = $lab->jenis_hpik_diuji ?: ($lab->diagnosis_akhir ?: 'HPIK');
+                }
+                if ($namaPenyakit && $namaPenyakit !== 'Positif') {
+                    foreach (array_map('trim', explode(',', $namaPenyakit)) as $p) {
+                        if ($p) {
+                            $hpikTerdeteksiTally[$p] = ($hpikTerdeteksiTally[$p] ?? 0) + 1;
+                        }
+                    }
+                }
             }
         }
-        arsort($hpikTally);
-        $top8Hpik          = array_slice($hpikTally, 0, 8, true);
-        $chartHpikLabels   = array_keys($top8Hpik);
-        $chartHpikData     = array_values($top8Hpik);
+        arsort($hpikTerdeteksiTally);
+        $top8HpikTerdeteksi = array_slice($hpikTerdeteksiTally, 0, 8, true);
+        $chartHpikLabels    = array_keys($top8HpikTerdeteksi);
+        $chartHpikData      = array_values($top8HpikTerdeteksi);
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 3B — Status Perencanaan (Donut)
+        // ZONE 3B — Status Perencanaan (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
         $statusCounts = [
-            'Draft'     => Perencanaan::where('status', 'draft')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
-            'Menunggu'  => Perencanaan::where('status', 'waiting')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
-            'Disetujui' => Perencanaan::where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Draft'     => Perencanaan::whereYear('created_at', $selectedYear)->where('status', 'draft')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Menunggu'  => Perencanaan::whereYear('created_at', $selectedYear)->where('status', 'waiting')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Disetujui' => Perencanaan::whereYear('created_at', $selectedYear)->where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
         ];
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 3C — Top 5 UPT Paling Aktif (by perencanaan approved)
+        // ZONE 3C — Top 5 UPT Paling Aktif (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
         $topUpt = User::where('role', 'bkhit')
             ->when($user->isBbkhit(), fn($q) => $q->where('parent_id', $user->id))
-            ->withCount(['perencanaan as pelaksanaan_count' => function ($q) {
-                $q->where('status', 'approved');
+            ->withCount(['perencanaan as pelaksanaan_count' => function ($q) use ($selectedYear) {
+                $q->whereYear('created_at', $selectedYear)->whereHas('pelaksanaans.laboratorium');
             }])
             ->orderByDesc('pelaksanaan_count')
             ->limit(5)
             ->get();
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 4 — Peta (titik dari pelaksanaan yang punya lat/lng + Status Warna)
+        // ZONE 4 — Peta (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
+
+        // Dominan penyakit per provinsi: difilter PER TAHUN yang dipilih
+        // agar warna provinsi mencerminkan dominasi penyakit di tahun tersebut.
+        $domQuery = Pelaksanaan::whereYear('created_at', $selectedYear);
+        if ($userIds !== null) {
+            $domQuery->whereHas('perencanaan', fn($q) => $q->whereIn('user_id', $userIds));
+        }
+        $dominantProvinsi = Pelaksanaan::getDominanPenyakitPerProvinsi($domQuery);
+
+        // Query peta (marker titik) juga difilter per tahun
+        $baseQuery = Pelaksanaan::whereYear('created_at', $selectedYear);
+        if ($userIds !== null) {
+            $baseQuery->whereHas('perencanaan', fn($q) => $q->whereIn('user_id', $userIds));
+        }
+        
         $petaData = Pelaksanaan::with(['perencanaan.user', 'perencanaan.evaluasi', 'laboratorium'])
+            ->whereYear('created_at', $selectedYear)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
@@ -142,82 +222,95 @@ class HomeController extends Controller
                     $warna = $p->laboratorium->hasil_uji === 'Positif' ? 'merah' : 'hijau';
                 }
                 
+                $hasilLab = 'Belum Diuji';
+                $rawHasil = '';
+                if ($p->laboratorium) {
+                    $rawHasil = trim($p->laboratorium->hasil_uji);
+                    if (strcasecmp($rawHasil, 'Negatif') === 0 || strcasecmp($rawHasil, 'NIHIL') === 0) {
+                        $hasilLab = 'Negatif';
+                    } elseif (strcasecmp($rawHasil, 'Inkonklusif') === 0) {
+                        $hasilLab = 'Inkonklusif';
+                    } elseif (!empty($rawHasil) && $rawHasil !== '—') {
+                        $hasilLab = 'Positif';
+                    }
+                }
+
                 return [
+                    'id'         => $p->id,
                     'lat'        => (float) $p->latitude,
                     'lng'        => (float) $p->longitude,
                     'lokasi'     => $p->lokasi_pengambilan_sampel ?? ($p->perencanaan?->kab_kota ?? '—'),
                     'provinsi'   => $p->perencanaan?->provinsi ?? '—',
+                    'kab_kota'   => $p->perencanaan?->kab_kota ?? '—',
                     'komoditas'  => $p->jenis_ikan ?? ($p->perencanaan?->jenis_mp ?? '—'),
                     'upt'        => $p->perencanaan?->user?->name ?? '—',
                     'tanggal'    => $p->tanggal_pemantauan ? \Carbon\Carbon::parse($p->tanggal_pemantauan)->format('d M Y') : $p->created_at?->format('d M Y'),
                     'warna'      => $warna,
-                    'hasil_lab'  => $p->laboratorium ? $p->laboratorium->hasil_uji : 'Belum Uji Lab'
+                    'hasil_lab'  => $hasilLab,
+                    'hasil_raw'  => (strcasecmp($rawHasil, 'Negatif') === 0) ? 'Nihil' : ($rawHasil ?: 'Belum Diuji'),
+                    'jenis_hpik' => ($hasilLab === 'Positif' && !empty($rawHasil) && !in_array(strtoupper($rawHasil), ['POSITIF'])) 
+                                        ? $rawHasil 
+                                        : ($p->laboratorium->jenis_hpik_diuji ?? ($p->perencanaan?->jenis_hpik ?? '—')),
                 ];
             });
 
-        // ═══════════════════════════════════════════════════════════════
-        // ZONE 4B — Agregasi Dominan Penyakit per Provinsi (Untuk Polygon)
-        // ═══════════════════════════════════════════════════════════════
-        $provinsiSakit = Pelaksanaan::whereHas('laboratorium', function($q) {
-                $q->where('hasil_uji', 'Positif');
-            })
-            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
-            ->with(['perencanaan', 'laboratorium'])->get();
 
-        $agg = [];
-        foreach($provinsiSakit as $p) {
-             $prov = strtoupper(Trim($p->perencanaan?->provinsi));
-             if (empty($prov) || $prov === '—') continue;
-             $penyakit = strtoupper($p->laboratorium->diagnosis_akhir ?: $p->laboratorium->jenis_hpik_diuji ?: 'HPIK');
-             if(!isset($agg[$prov])) $agg[$prov] = [];
-             if(!isset($agg[$prov][$penyakit])) $agg[$prov][$penyakit] = 0;
-             $agg[$prov][$penyakit]++;
-        }
-
-        $dominantProvinsi = [];
-        // Palette warna untuk membedakan jenis penyakit di provinsi
-        $colorPalette = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#6366f1', '#a855f7', '#ec4899'];
-        $diseaseToColor = [];
-        $ci = 0;
-
-        foreach($agg as $prov => $penyakits) {
-            arsort($penyakits); // Sort desc by count
-            $dominant = array_key_first($penyakits);
-            if(!isset($diseaseToColor[$dominant])) {
-                 $diseaseToColor[$dominant] = $colorPalette[$ci % count($colorPalette)];
-                 $ci++;
-            }
-            $dominantProvinsi[$prov] = [
-                'dominant' => $dominant,
-                'count' => $penyakits[$dominant],
-                'color' => $diseaseToColor[$dominant]
-            ];
-        }
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 5 — Aktivitas Terbaru (5 pelaksanaan terakhir)
+        // ZONE 5 — Aktivitas Terbaru (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
         $aktivitasTerbaru = Pelaksanaan::with(['perencanaan.user', 'laboratorium'])
+            ->whereYear('created_at', $selectedYear)
             ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
         // ═══════════════════════════════════════════════════════════════
-        // ZONE 6 — Menunggu Tindakan (Action Required)
+        // ZONE 6 — Rekap Hasil Uji (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
-        $menungguApproval = 0;
-        $menungguLab = 0;
-
-        if ($user->isBbkhit() || $user->isPusat()) {
-            $menungguApproval = Perencanaan::where('status', 'waiting')
-                ->when($user->isBbkhit(), fn($q) => $q->whereHas('user', fn($uq) => $uq->where('parent_id', $user->id)))
-                ->count();
+        $labQuery = \App\Models\Laboratorium::whereYear('created_at', $selectedYear);
+        if ($userIds !== null) {
+            $labQuery->whereIn('pelaksanaan_id', function($q) use ($userIds, $selectedYear) {
+                $q->select('id')->from('pelaksanaans')
+                  ->whereYear('created_at', $selectedYear)
+                  ->whereIn('perencanaan_id', function($sq) use ($userIds, $selectedYear) {
+                      $sq->select('id')->from('perencanaans')
+                        ->whereYear('created_at', $selectedYear)
+                        ->whereIn('user_id', $userIds);
+                  });
+            });
         }
 
-        $menungguLab = Pelaksanaan::whereDoesntHave('laboratorium')
-            ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))
-            ->count();
+        $labResults = $labQuery->select('hasil_uji', DB::raw('count(*) as total'))
+            ->groupBy('hasil_uji')
+            ->pluck('total', 'hasil_uji')
+            ->toArray();
+
+        $rekapHasil = [
+            'positif'     => 0,
+            'negatif'     => 0,
+            'inkonklusif' => 0,
+            'total'       => array_sum($labResults)
+        ];
+
+        foreach ($labResults as $status => $count) {
+            $statusClean = trim($status);
+            if (strcasecmp($statusClean, 'Negatif') === 0 || strcasecmp($statusClean, 'NIHIL') === 0) {
+                $rekapHasil['negatif'] += $count;
+            } elseif (strcasecmp($statusClean, 'Inkonklusif') === 0) {
+                $rekapHasil['inkonklusif'] += $count;
+            } elseif (!empty($statusClean) && $statusClean !== '—') {
+                $rekapHasil['positif'] += $count;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // ZONE 8 — Heatmap Data (Titik Positif)
+        // ═══════════════════════════════════════════════════════════════
+        $heatmapData = $petaData->filter(fn($p) => $p['hasil_lab'] === 'Positif')
+            ->map(fn($p) => [$p['lat'], $p['lng'], 1]) // intensity 1
+            ->values();
 
         // Notifikasi unread count untuk badge
         $unreadNotif = Notifikasi::where('user_id', Auth::id())->where('dibaca', false)->count();
@@ -230,7 +323,9 @@ class HomeController extends Controller
             'statusCounts', 'topUpt',
             'dominantProvinsi',
             'petaData', 'unreadNotif',
-            'aktivitasTerbaru', 'menungguApproval', 'menungguLab'
+            'availableYears', 'selectedYear',
+            'aktivitasTerbaru', 'rekapHasil',
+            'heatmapData'
         ));
     }
 }

@@ -23,7 +23,7 @@ class JenisPenyakitController extends Controller
                   ->orWhere('organisme_penyebab', 'like', "%{$search}%");
         }
 
-        $items = $query->orderBy($sort, $direction)->paginate(50)->withQueryString();
+        $items = $query->orderBy($sort, $direction)->paginate(100)->withQueryString();
 
         return view('master.jenis_penyakit.index', compact('items'));
     }
@@ -36,18 +36,16 @@ class JenisPenyakitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama'               => 'required|string|max:200|unique:jenis_penyakits,nama',
-            'organisme_penyebab' => 'nullable|string|max:200',
+            'nama'               => 'required|string|max:200',
+            'organisme_penyebab' => 'nullable|string|max:200|unique:jenis_penyakits,organisme_penyebab',
             'golongan'           => 'required|string|in:Virus,Bakteri,Parasit,Jamur,Lainnya',
-            'keterangan'         => 'nullable|string|max:500',
             'aktif'              => 'boolean',
         ]);
 
         JenisPenyakit::create([
             'nama'               => $request->nama,
-            'organisme_penyebab' => $request->organisme_penyebab,
+            'organisme_penyebab' => $request->organisme_penyebab ?: null,
             'golongan'           => $request->golongan,
-            'keterangan'         => $request->keterangan,
             'aktif'              => $request->boolean('aktif', true),
         ]);
 
@@ -65,18 +63,16 @@ class JenisPenyakitController extends Controller
     public function update(Request $request, JenisPenyakit $jenisPenyakit)
     {
         $request->validate([
-            'nama'               => 'required|string|max:200|unique:jenis_penyakits,nama,' . $jenisPenyakit->id,
-            'organisme_penyebab' => 'nullable|string|max:200',
+            'nama'               => 'required|string|max:200',
+            'organisme_penyebab' => 'nullable|string|max:200|unique:jenis_penyakits,organisme_penyebab,' . $jenisPenyakit->id,
             'golongan'           => 'required|string|in:Virus,Bakteri,Parasit,Jamur,Lainnya',
-            'keterangan'         => 'nullable|string|max:500',
             'aktif'              => 'boolean',
         ]);
 
         $jenisPenyakit->update([
             'nama'               => $request->nama,
-            'organisme_penyebab' => $request->organisme_penyebab,
+            'organisme_penyebab' => $request->organisme_penyebab ?: null,
             'golongan'           => $request->golongan,
-            'keterangan'         => $request->keterangan,
             'aktif'              => $request->boolean('aktif', true),
         ]);
 
@@ -112,8 +108,10 @@ class JenisPenyakitController extends Controller
         ]);
 
         try {
-            Excel::import(new JenisPenyakitImport, $request->file('file'));
+            $import = new JenisPenyakitImport;
+            Excel::import($import, $request->file('file'));
             cache()->forget('master_jenis_penyakit');
+            
             return redirect()->back()->with('success', 'Data Jenis Penyakit berhasil diimpor!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());

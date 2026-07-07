@@ -96,7 +96,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-4">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label required fw-bold mb-2">Kesimpulan Akhir</label>
                             <select name="kesimpulan" class="form-select form-select-lg @error('kesimpulan') is-invalid @enderror" required>
                                 <option value="">— Pilih Kesimpulan —</option>
@@ -107,17 +107,7 @@
                             @error('kesimpulan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         
-                        <div class="col-md-6">
-                            <label class="form-label required fw-bold mb-2">Status Warna (Dashboard Peta)</label>
-                            <select name="status_warna" class="form-select form-select-lg @error('status_warna') is-invalid @enderror" required>
-                                <option value="">— Pilih Warna Peta —</option>
-                                <option value="hijau" {{ old('status_warna') === 'hijau' ? 'selected' : '' }}>🟢 HIJAU (Aman / Bebas)</option>
-                                <option value="kuning" {{ old('status_warna') === 'kuning' ? 'selected' : '' }}>🟡 KUNING (Waspada)</option>
-                                <option value="merah" {{ old('status_warna') === 'merah' ? 'selected' : '' }}>🔴 MERAH (Wabah / Positif)</option>
-                            </select>
-                            <div class="form-hint mt-2">Warna ini akan tampil secara otomatis pada peta sebaran penyakit.</div>
-                            @error('status_warna')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
+
 
                         <div class="col-12">
                             <label class="form-label fw-bold mb-2">Rekomendasi Tindak Lanjut</label>

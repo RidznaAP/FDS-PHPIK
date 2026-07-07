@@ -28,8 +28,9 @@ class MediaPembawaExport implements FromCollection, WithHeadings, WithMapping, S
     public function headings(): array
     {
         return [
-            'Nama Media Pembawa (Inang Rentan)',
-            'Keterangan',
+            'Nama Umum',
+            'Nama Inggris',
+            'Nama Ilmiah',
         ];
     }
 
@@ -37,6 +38,7 @@ class MediaPembawaExport implements FromCollection, WithHeadings, WithMapping, S
     {
         return [
             $item->nama,
+            $item->nama_inggris,
             $item->keterangan,
         ];
     }

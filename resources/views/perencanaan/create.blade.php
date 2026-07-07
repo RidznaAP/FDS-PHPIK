@@ -33,7 +33,7 @@
             @csrf
             
             <div class="row g-4 mb-4">
-                {{-- Lokasi & Komoditas --}}
+                {{-- Lokasi & Media Pembawa --}}
                 <div class="col-12">
                     <div class="card card-premium h-100 border-0 shadow-sm bg-white">
                         <div class="card-header bg-transparent border-bottom-0 pt-4 px-4 pb-1">
@@ -65,23 +65,24 @@
                                 
                                 <div class="col-12 mt-3">
                                     <label class="form-label required fw-bold mb-2">
-                                        <i class="ti ti-fish me-1 text-indigo"></i> Media Pembawa (Inang Rentan)
+                                        <i class="ti ti-fish me-1 text-indigo"></i> Media Pembawa
                                     </label>
-                                    <select name="jenis_mp" id="jenis_mp_select" class="form-select rounded-3 border-light-dark" required>
-                                        <option value="" disabled {{ old('jenis_mp') ? '' : 'selected' }}>Pilih Komoditas...</option>
-                                        @foreach($mediaPembawas ?? [] as $mp)
-                                            <option value="{{ $mp->nama }}">{{ $mp->nama }}</option>
-                                        @endforeach
-                                    </select>
+                                        <select name="jenis_mp" id="jenis_mp_select" class="form-select rounded-3 border-light-dark" required>
+                                            <option value="" disabled {{ old('jenis_mp') ? '' : 'selected' }}>Cari dan Pilih Media Pembawa...</option>
+                                            @foreach($mediaPembawas ?? [] as $mp)
+                                                <option value="{{ $mp->nama }}">{{ $mp->nama }} / {{ $mp->nama_inggris ?: '-' }} / {{ $mp->keterangan ?: '-' }}</option>
+                                            @endforeach
+                                        </select>
                                 </div>
                                 
                                 <div class="col-12 mt-3">
                                     <label class="form-label required fw-bold mb-2">
                                         <i class="ti ti-virus me-1 text-indigo"></i> Jenis HPIK
                                     </label>
-                                    <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required>
+                                    <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required placeholder="Cari dan Pilih Jenis HPIK...">
                                         @foreach($jenisPenyakits ?? [] as $jp)
-                                            <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}">{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}</option>
+                                            @php $val = $jp->organisme_penyebab ?: $jp->nama; @endphp
+                                            <option value="{{ $val }}">{{ $jp->nama }} / {{ $jp->organisme_penyebab ?: '-' }} / {{ $jp->golongan ?: '-' }}</option>
                                         @endforeach
                                     </select>
                                     <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 HPIK.</div>
@@ -105,10 +106,11 @@
                                     <label class="form-label required fw-bold mb-2">
                                         <i class="ti ti-settings me-1 text-azure"></i> Kemampuan Uji UPT
                                     </label>
-                                    <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
+                                    <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required placeholder="Cari dan Pilih Kemampuan Uji...">
                                         @foreach($jenisPenyakits ?? [] as $jp)
-                                            <option value="{{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}" {{ in_array($jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : ''), old('kemampuan_uji_upt', [])) ? 'selected' : '' }}>
-                                                {{ $jp->nama }}{{ $jp->singkatan ? ' (' . $jp->singkatan . ')' : '' }}
+                                            @php $val = $jp->organisme_penyebab ?: $jp->nama; @endphp
+                                            <option value="{{ $val }}" {{ in_array($val, old('kemampuan_uji_upt', [])) ? 'selected' : '' }}>
+                                                {{ $jp->nama }} / {{ $jp->organisme_penyebab ?: '-' }} / {{ $jp->golongan ?: '-' }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -117,21 +119,11 @@
                                 <div class="col-md-6">
                                     <label class="form-label required fw-bold mb-2">Metode Pengujian</label>
                                     <select name="metode_pengujian[]" id="metode_pengujian_select" class="form-control" multiple required>
-                                        <option value="PCR">PCR</option>
-                                        <option value="RT-PCR">RT-PCR</option>
-                                        <option value="Real-Time PCR (qPCR)">Real-Time PCR (qPCR)</option>
-                                        <option value="Sekuensing DNA">Sekuensing DNA</option>
-                                        <option value="Isolasi Bakteri">Isolasi Bakteri</option>
-                                        <option value="Uji Biokimia">Uji Biokimia</option>
-                                        <option value="Uji Sensitivitas/Antibiogram">Uji Sensitivitas/Antibiogram</option>
-                                        <option value="Natif/Scrapping">Natif/Scrapping</option>
-                                        <option value="Sediaan Ulas (Smear)">Sediaan Ulas (Smear)</option>
-                                        <option value="Kultur Jamur">Kultur Jamur</option>
-                                        <option value="Pemeriksaan Mikroskopis Struktur Jamur">Pemeriksaan Mikroskopis Struktur Jamur</option>
-                                        <option value="Pemeriksaan Jaringan (Slide)">Pemeriksaan Jaringan (Slide)</option>
-                                        <option value="Isolasi Virus">Isolasi Virus</option>
-                                        <option value="ELISA">ELISA</option>
-                                        <option value="IFAT">IFAT</option>
+                                        @foreach($metodeUjis ?? [] as $metode)
+                                            <option value="{{ $metode->nama }}" {{ in_array($metode->nama, (array)old('metode_pengujian', [])) ? 'selected' : '' }}>
+                                                {{ $metode->nama }}
+                                            </option>
+                                        @endforeach
                                     </select>
                                     <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1.</div>
                                 </div>
@@ -349,16 +341,23 @@
         // Initialization for Tom Select
         new TomSelect('#jenis_mp_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             create: true,
             persist: false,
             sortField: {
                 field: "text",
                 direction: "asc"
+            },
+            render: {
+                item: function(data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
             }
         });
 
         new TomSelect('#metode_pengujian_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             plugins: ['remove_button'],
             create: true,
             persist: false,
@@ -366,19 +365,31 @@
 
         new TomSelect('#jenis_hpik_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             plugins: ['remove_button'],
             sortField: {
                 field: "text",
                 direction: "asc"
+            },
+            render: {
+                item: function(data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
             }
         });
 
         new TomSelect('#kemampuan_uji_upt_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             plugins: ['remove_button'],
             sortField: {
                 field: "text",
                 direction: "asc"
+            },
+            render: {
+                item: function(data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
             }
         });
 

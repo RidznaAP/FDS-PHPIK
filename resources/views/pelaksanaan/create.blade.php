@@ -44,7 +44,7 @@
                             </div>
                         </div>
                         <div class="col-sm-3 border-end p-3">
-                            <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Komoditas</div>
+                            <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Media Pembawa</div>
                             <div class="d-flex flex-wrap gap-1">
                                 @foreach(explode(',', $rencana->jenis_mp) as $mp)
                                     <span class="badge bg-blue-lt text-blue px-2 py-0 fs-5">{{ trim($mp) }}</span>

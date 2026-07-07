@@ -33,7 +33,7 @@ class LaporanController extends Controller
             ->pluck('upt_asal')
             ->unique();
 
-        return view('laporan.index', compact('bkhitList'));
+        return view('laporan.index', compact('bkhitList', 'user'));
     }
 
     // Export Excel: Data Perencanaan

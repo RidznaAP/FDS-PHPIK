@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pelaksanaan;
 use App\Models\Laboratorium;
+use Illuminate\Support\Facades\Auth;
 
 class LaboratoriumController extends Controller
 {
     // Tampilkan daftar sampel yang perlu diuji (ambil dari Pelaksanaan)
     public function index(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $query = Pelaksanaan::with(['perencanaan.user', 'laboratorium']);
 
         // ── Sorting ──────────────────────────────────────────────────────
@@ -68,10 +69,10 @@ class LaboratoriumController extends Controller
     }
 
     // Form input hasil laboratorium
-    public function create($id)
+    public function create(Pelaksanaan $pelaksanaan)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        $pelaksanaan = Pelaksanaan::with(['perencanaan.user'])->findOrFail($id);
+        $user = Auth::user();
+        $pelaksanaan = $pelaksanaan->load(['perencanaan.user']);
 
         // ── Auth-scoped Check ──────────────────────────────────────
         if ($user->isBkhit() && $pelaksanaan->perencanaan->user_id !== $user->id) {
@@ -88,8 +89,12 @@ class LaboratoriumController extends Controller
         $jenis_penyakits = cache()->remember('master_jenis_penyakit', 86400, function() {
             return \App\Models\JenisPenyakit::aktif()->orderBy('nama')->get();
         });
+
+        $metode_ujis = cache()->remember('master_metode_uji', 86400, function() {
+            return \App\Models\MetodeUji::aktif()->orderBy('nama')->get();
+        });
         
-        return view('laboratorium.create', compact('pelaksanaan', 'jenis_penyakits'));
+        return view('laboratorium.create', compact('pelaksanaan', 'jenis_penyakits', 'metode_ujis'));
     }
 
     // Simpan hasil laboratorium
@@ -98,8 +103,9 @@ class LaboratoriumController extends Controller
         $request->validate([
             'pelaksanaan_id'    => 'required|exists:pelaksanaans,id',
             'kode_sampel'       => 'required|unique:laboratoriums,kode_sampel',
-            'metode_uji'        => 'required|string',
-            'jenis_hpik_diuji'  => 'required|string',
+            'metode_uji'        => 'required|array',
+            'metode_uji.*'      => 'string',
+            'jenis_hpik_diuji'  => 'required',
             'hasil_uji'         => 'required|string|max:255',
             'lab_penguji'       => 'required|string',
             'nama_petugas_uji'  => 'required|string|max:255',
@@ -111,7 +117,7 @@ class LaboratoriumController extends Controller
         ]);
 
         $data = $request->only([
-            'pelaksanaan_id', 'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
+            'pelaksanaan_id', 'kode_sampel', 'jenis_hpik_diuji',
             'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
             'tanggal_uji', 'tanggal_hasil',
             'prevalensi', 'insidensi',
@@ -120,6 +126,9 @@ class LaboratoriumController extends Controller
             'panjang', 'berat', 'asal_benih_induk',
             'padat_tebar', 'gejala_klinis', 'jumlah_kematian'
         ]);
+
+        $data['metode_uji'] = implode(', ', $request->metode_uji);
+        $data['jenis_hpik_diuji'] = is_array($request->jenis_hpik_diuji) ? implode(', ', $request->jenis_hpik_diuji) : $request->jenis_hpik_diuji;
 
         $data['hasil_parasit'] = 'Negatif (-)';
         $data['hasil_bakteri'] = 'Negatif (-)';
@@ -131,15 +140,33 @@ class LaboratoriumController extends Controller
         elseif ($request->kelompok_patogen === 'Virus') $data['hasil_virus'] = 'Positif (+)';
         elseif ($request->kelompok_patogen === 'Jamur') $data['hasil_jamur'] = 'Positif (+)';
 
+        // Backend recalculation
+        $jml_terinfeksi = (float) ($data['jumlah_ikan_terinfeksi'] ?? 0);
+        $jml_diperiksa  = (float) ($data['jumlah_sampel_diperiksa'] ?? 0);
+        $jml_kolam      = (float) ($data['jumlah_kolam_uji'] ?? 0);
+        $periode        = (float) ($data['periode_pengamatan'] ?? 0);
+
+        if ($jml_diperiksa > 0) {
+            $data['prevalensi'] = round(($jml_terinfeksi / $jml_diperiksa) * 100, 2);
+        } else {
+            $data['prevalensi'] = 0;
+        }
+
+        if ($jml_kolam > 0 && $periode > 0) {
+            $data['insidensi'] = round($jml_terinfeksi / ($jml_kolam * $periode), 6);
+        } else {
+            $data['insidensi'] = 0;
+        }
+
         $lab = Laboratorium::create($data);
 
         return redirect()->route('pelaksanaan.show', $request->pelaksanaan_id)->with('success', 'Hasil Uji Laboratorium Berhasil Disimpan!');
     }
 
-    public function edit($id)
+    public function edit(Laboratorium $laboratorium)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        $lab = Laboratorium::with(['pelaksanaan.perencanaan.user'])->findOrFail($id);
+        $user = Auth::user();
+        $lab = $laboratorium->load(['pelaksanaan.perencanaan.user']);
         $pelaksanaan = $lab->pelaksanaan;
 
         // ── Auth-scoped Check ──────────────────────────────────────
@@ -157,18 +184,23 @@ class LaboratoriumController extends Controller
         $jenis_penyakits = cache()->remember('master_jenis_penyakit', 86400, function() {
             return \App\Models\JenisPenyakit::aktif()->orderBy('nama')->get();
         });
+
+        $metode_ujis = cache()->remember('master_metode_uji', 86400, function() {
+            return \App\Models\MetodeUji::aktif()->orderBy('nama')->get();
+        });
         
-        return view('laboratorium.edit', compact('lab', 'pelaksanaan', 'jenis_penyakits'));
+        return view('laboratorium.edit', compact('lab', 'pelaksanaan', 'jenis_penyakits', 'metode_ujis'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Laboratorium $laboratorium)
     {
-        $lab = Laboratorium::findOrFail($id);
+        $lab = $laboratorium;
         
         $request->validate([
             'kode_sampel'       => 'required|unique:laboratoriums,kode_sampel,' . $lab->id,
-            'metode_uji'        => 'required|string',
-            'jenis_hpik_diuji'  => 'required|string',
+            'metode_uji'        => 'required|array',
+            'metode_uji.*'      => 'string',
+            'jenis_hpik_diuji'  => 'required',
             'hasil_uji'         => 'required|string|max:255',
             'lab_penguji'       => 'required|string',
             'nama_petugas_uji'  => 'required|string|max:255',
@@ -195,7 +227,7 @@ class LaboratoriumController extends Controller
         }
 
         $data = $request->only([
-            'kode_sampel', 'metode_uji', 'jenis_hpik_diuji',
+            'kode_sampel', 'jenis_hpik_diuji',
             'hasil_uji', 'diagnosis_akhir', 'lab_penguji', 'nama_petugas_uji',
             'tanggal_uji', 'tanggal_hasil',
             'prevalensi', 'insidensi',
@@ -204,6 +236,9 @@ class LaboratoriumController extends Controller
             'panjang', 'berat', 'asal_benih_induk',
             'padat_tebar', 'gejala_klinis', 'jumlah_kematian'
         ]);
+
+        $data['metode_uji'] = implode(', ', $request->metode_uji);
+        $data['jenis_hpik_diuji'] = is_array($request->jenis_hpik_diuji) ? implode(', ', $request->jenis_hpik_diuji) : $request->jenis_hpik_diuji;
 
         $data['hasil_parasit'] = 'Negatif (-)';
         $data['hasil_bakteri'] = 'Negatif (-)';
@@ -215,25 +250,51 @@ class LaboratoriumController extends Controller
         elseif ($request->kelompok_patogen === 'Virus') $data['hasil_virus'] = 'Positif (+)';
         elseif ($request->kelompok_patogen === 'Jamur') $data['hasil_jamur'] = 'Positif (+)';
 
+        // Backend recalculation
+        $jml_terinfeksi = (float) ($data['jumlah_ikan_terinfeksi'] ?? 0);
+        $jml_diperiksa  = (float) ($data['jumlah_sampel_diperiksa'] ?? 0);
+        $jml_kolam      = (float) ($data['jumlah_kolam_uji'] ?? 0);
+        $periode        = (float) ($data['periode_pengamatan'] ?? 0);
+
+        if ($jml_diperiksa > 0) {
+            $data['prevalensi'] = round(($jml_terinfeksi / $jml_diperiksa) * 100, 2);
+        } else {
+            $data['prevalensi'] = 0;
+        }
+
+        if ($jml_kolam > 0 && $periode > 0) {
+            $data['insidensi'] = round($jml_terinfeksi / ($jml_kolam * $periode), 6);
+        } else {
+            $data['insidensi'] = 0;
+        }
+
         $lab->update($data);
 
         return redirect()->route('pelaksanaan.show', $pelaksanaan->id)->with('success', 'Hasil Uji Laboratorium Berhasil Diperbarui!');
     }
 
-    public function show($id)
+    public function show(Laboratorium $laboratorium)
     {
-        $lab = Laboratorium::with('pelaksanaan.perencanaan')->findOrFail($id);
+        $lab = $laboratorium->load('pelaksanaan.perencanaan');
         return view('laboratorium.show', compact('lab'));
     }
 
-    public function destroy($id)
+    public function destroy(Laboratorium $laboratorium)
     {
-        $item = Laboratorium::findOrFail($id);
+        $item = $laboratorium;
+        $user = \Illuminate\Support\Facades\Auth::user();
         
-        // Jika bukan Pusat, pastikan pemilik data (lewat pelaksanaan -> perencanaan)
-        if (!\Illuminate\Support\Facades\Auth::user()->isPusat()) {
-            if (!$item->pelaksanaan || !$item->pelaksanaan->perencanaan || $item->pelaksanaan->perencanaan->user_id !== \Illuminate\Support\Facades\Auth::id()) {
-                abort(403);
+        // Jika bukan Pusat, pastikan pemilik data atau wilayah
+        if (!$user->isPusat()) {
+            $owner = $item->pelaksanaan->perencanaan->user ?? null;
+            if ($user->isBbkhit()) {
+                if ($item->pelaksanaan->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
+                    abort(403, 'Akses ditolak: Data ini berada di luar koordinasi Anda.');
+                }
+            } else {
+                if ($item->pelaksanaan->perencanaan->user_id !== $user->id) {
+                    abort(403, 'Akses ditolak: Anda hanya dapat menghapus data milik Anda sendiri.');
+                }
             }
         }
 
@@ -250,9 +311,15 @@ class LaboratoriumController extends Controller
 
         $query = Laboratorium::whereIn('id', $ids);
 
-        // Jika bukan Pusat, hanya boleh hapus milik sendiri
-        if (!\Illuminate\Support\Facades\Auth::user()->isPusat()) {
-            $query->whereHas('pelaksanaan.perencanaan', fn($q) => $q->where('user_id', \Illuminate\Support\Facades\Auth::id()));
+        $user = \Illuminate\Support\Facades\Auth::user();
+        // Jika bukan Pusat, hanya boleh hapus milik sendiri atau wilayahnya
+        if (!$user->isPusat()) {
+            if ($user->isBbkhit()) {
+                $childIds = \App\Models\User::where('parent_id', $user->id)->pluck('id')->push($user->id);
+                $query->whereHas('pelaksanaan.perencanaan', fn($q) => $q->whereIn('user_id', $childIds));
+            } else {
+                $query->whereHas('pelaksanaan.perencanaan', fn($q) => $q->where('user_id', $user->id));
+            }
         }
 
         $count = $query->delete();

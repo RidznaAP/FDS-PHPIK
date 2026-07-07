@@ -143,12 +143,12 @@
                             <span class="avatar avatar-sm"
                                 style="background: linear-gradient(135deg,
                                     {{ $u->role === 'bkhit' ? '#16a34a,#22c55e' : ($u->role === 'bbkhit' ? '#ca8a04,#eab308' : '#7c3aed,#a78bfa') }});">
-                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                                {{ strtoupper(substr($u->upt_asal ?? $u->name, 0, 1)) }}
                             </span>
                             <div>
-                                <div class="fw-semibold">{{ $u->name }}</div>
-                                @if($u->upt_asal)
-                                    <div class="text-muted small">{{ $u->upt_asal }}</div>
+                                <div class="fw-semibold">{{ $u->upt_asal ?? $u->name }}</div>
+                                @if($u->name)
+                                    <div class="text-muted small">{{ $u->name }}</div>
                                 @endif
                             </div>
                         </div>
@@ -167,7 +167,7 @@
                         @if($u->role === 'bkhit')
                             @if($u->coordinator)
                                 <div class="small fw-semibold text-primary">
-                                    <i class="ti ti-link me-1"></i>{{ $u->coordinator->name }}
+                                    <i class="ti ti-link me-1"></i>{{ $u->coordinator->upt_asal ?? $u->coordinator->name }}
                                 </div>
                             @else
                                 <span class="text-muted small fst-italic">Tanpa koordinator</span>
@@ -192,7 +192,7 @@
                             <button type="button" class="btn btn-sm btn-outline-danger btn-icon" title="Hapus akun"
                                 onclick="confirmAction(
                                     '{{ route('users.destroy', $u->id) }}',
-                                    'Akun &quot;{{ $u->name }}&quot; akan dihapus permanen.',
+                                    'Akun &quot;{{ $u->upt_asal ?? $u->name }}&quot; akan dihapus permanen.',
                                     'DELETE', 'btn-danger'
                                 )">
                                 <i class="ti ti-trash"></i>
@@ -238,7 +238,7 @@
                     @csrf @method('PUT')
                     <div class="modal-body pt-3 pb-4">
                         <p class="text-muted small mb-4 text-center">
-                            Atur ulang kata sandi untuk <b>{{ $u->name }}</b>
+                            Atur ulang kata sandi untuk <b>{{ $u->upt_asal ?? $u->name }}</b>
                         </p>
                         <div class="mb-3">
                             <label class="form-label required fw-bold small">Ketik Password Baru</label>

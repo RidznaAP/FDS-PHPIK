@@ -54,7 +54,7 @@
                                     <div class="d-flex w-100 justify-content-between align-items-center">
                                         <div>
                                             <h4 class="mb-1 text-dark fw-bold">{{ $p->lokasi_pengambilan_sampel }}</h4>
-                                            <p class="mb-0 text-muted small">Komoditas: {{ $p->jenis_ikan }} | Sampel: {{ $p->jumlah_sampel }}</p>
+                                            <p class="mb-0 text-muted small">Media Pembawa: {{ $p->jenis_ikan }} | Sampel: {{ $p->jumlah_sampel }}</p>
                                         </div>
                                         <div class="text-muted small">{{ \Carbon\Carbon::parse($p->tanggal_pemantauan)->format('d M Y') }}</div>
                                     </div>

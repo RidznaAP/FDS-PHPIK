@@ -30,8 +30,7 @@ class JenisPenyakitExport implements FromCollection, WithHeadings, WithMapping, 
         return [
             'Nama Penyakit / HPIK',
             'Organisme Penyebab',
-            'Golongan (Virus/Bakteri/Parasit/Jamur)',
-            'Keterangan',
+            'Kelompok Patogen (Virus/Bakteri/Parasit/Jamur/Lainnya)',
         ];
     }
 
@@ -41,7 +40,6 @@ class JenisPenyakitExport implements FromCollection, WithHeadings, WithMapping, 
             $item->nama,
             $item->organisme_penyebab,
             $item->golongan,
-            $item->keterangan,
         ];
     }
 }

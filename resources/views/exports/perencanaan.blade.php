@@ -1,7 +1,8 @@
 <table>
     <thead>
         <tr>
-            <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">PROVINSI/<br>BBKHIT/BKHIT</th>
+            <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">NAMA INSTANSI</th>
+            <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">PROVINSI</th>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">NO.</th>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">KABUPATEN/<br>KOTA</th>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">JENIS MP</th>
@@ -31,6 +32,7 @@
     <tbody>
         @foreach($data as $index => $row)
         <tr>
+            <td valign="center">{{ $row->user->upt_asal ?? $row->user->name ?? '-' }}</td>
             <td valign="center">{{ $row->provinsi }}</td>
             <td align="center" valign="center">{{ $index + 1 }}</td>
             <td valign="center">{{ $row->kab_kota }}</td>
@@ -40,7 +42,7 @@
             <td valign="center">{{ $row->metode_pengujian }}</td>
             <td valign="center">{{ $row->lab_uji }}</td>
             <td align="center" valign="center">{{ $row->target_uji }}</td>
-            <td align="center" valign="center"></td>
+            <td align="center" valign="center">{{ $row->pelaksanaans_count ?? $row->pelaksanaans->count() }}</td>
             <td align="center" valign="center">{{ $row->tw1 }}</td>
             <td align="center" valign="center">{{ $row->tw2 }}</td>
             <td align="center" valign="center">{{ $row->tw3 }}</td>

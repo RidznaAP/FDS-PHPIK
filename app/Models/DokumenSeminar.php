@@ -10,17 +10,24 @@ class DokumenSeminar extends Model
 
     protected $fillable = [
         'user_id',
+        'target_user_id',
         'jenis_modul',
         'judul',
         'nama_file',
         'path_file',
         'ukuran_file',
+        'link_drive',
         'keterangan',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function targetUser()
+    {
+        return $this->belongsTo(User::class, 'target_user_id');
     }
 
     /**

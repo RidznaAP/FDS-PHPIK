@@ -39,17 +39,17 @@
         .navbar-vertical { background: var(--sidebar-bg) !important; border-right: 1px solid rgba(255,255,255,0.05) !important; }
         .navbar-vertical .navbar-brand-text { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.3px; }
         .navbar-vertical .nav-link {
-            border-radius: 8px; margin: 1px 6px; padding: 8px 12px !important;
-            font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6) !important;
+            border-radius: 8px; margin: 0px 8px; padding: 6px 10px !important;
+            font-size: 0.84rem; font-weight: 500; color: rgba(255,255,255,0.6) !important;
             transition: all 0.18s ease !important;
         }
         .navbar-vertical .nav-link:hover { color: #fff !important; background: var(--sidebar-hover) !important; }
         .navbar-vertical .nav-link.active { color: #fff !important; background: var(--sidebar-active) !important; font-weight: 600; }
         .navbar-vertical .nav-item-header {
-            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
-            color: rgba(255,255,255,0.28) !important; padding: 14px 18px 4px !important;
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.25) !important; padding: 10px 14px 2px !important;
         }
-        .navbar-vertical hr { border-color: rgba(255,255,255,0.07) !important; margin: 8px 12px !important; }
+        .navbar-vertical hr { border-color: rgba(255,255,255,0.07) !important; margin: 4px 12px !important; }
 
         /* ── Cards ── */
         .card {
@@ -293,11 +293,18 @@
 
     {{-- Tabler JS --}}
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
-    @yield('scripts')
-    @stack('scripts')
+    <script src="{{ asset('js/app-global.js') }}"></script>
+    <script>
+    // Inisialisasi Tooltip & Polling menggunakan fungsi dari app-global.js
+    document.addEventListener('DOMContentLoaded', function() {
+        @auth
+            initNotifPolling('{{ route("notifikasi.jumlah") }}');
+        @endauth
+    });
+    </script>
 
-    {{-- ── #12: Global Modal Konfirmasi ──────────────────────────────────────── --}}
-    <div class="modal modal-blur fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+    {{-- Global Confirmation Modal (No Blur) --}}
+    <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body py-4">
@@ -314,97 +321,14 @@
             </div>
         </div>
     </div>
-    {{-- Hidden form untuk submit --}}
+    {{-- Hidden form for confirmAction --}}
     <form id="confirmForm" method="POST" style="display:none;">
         @csrf
         <input type="hidden" name="_method" id="confirmMethod" value="DELETE">
     </form>
 
-    <script>
-    // Ganti semua onclick="confirm()" dengan confirmAction(url, msg, method, btnClass, emoji, title)
-    function confirmAction(url, message, method, btnClass, emoji, title) {
-        method   = (method || 'DELETE').toUpperCase();
-        btnClass = btnClass || (method === 'DELETE' ? 'btn-danger' : 'btn-primary');
-        
-        // Default emoji & title based on method if not provided
-        if (!emoji) {
-            emoji = (method === 'DELETE') ? '🗑️' : '🚀';
-        }
-        if (!title) {
-            title = (method === 'DELETE') ? 'Hapus Data?' : 'Konfirmasi Tindakan';
-        }
-
-        document.getElementById('confirmMessage').textContent = message || 'Apakah Anda yakin?';
-        document.getElementById('confirmTitle').textContent   = title;
-        document.getElementById('confirmEmoji').textContent   = emoji;
-        
-        // Handle Laravel Method Spoofing correctly
-        var methodInput = document.getElementById('confirmMethod');
-        if (method === 'POST') {
-            methodInput.disabled = true; // Disable _method input for real POST request
-        } else {
-            methodInput.disabled = false;
-            methodInput.value = method;
-        }
-
-        document.getElementById('confirmForm').action = url || '#';
-
-        var btn = document.getElementById('confirmBtn');
-        btn.className = 'btn flex-fill ' + btnClass;
-        btn.textContent = (method === 'DELETE') ? 'Ya, Hapus' : 'Ya, Lanjutkan';
-        
-        // RESET onclick to default behavior (in case it was overridden by page-specific logic)
-        btn.onclick = function() { submitConfirmForm(); };
-
-        var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-        modal.show();
-    }
-
-    function submitConfirmForm() {
-        document.getElementById('confirmForm').submit();
-    }
-
-    // Auto-dismiss flash messages after 5 seconds
-    setTimeout(function() {
-        ['flash-msg','flash-msg-err','flash-msg-warn','flash-msg-info'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) {
-                var instance = bootstrap.Alert.getOrCreateInstance(el);
-                if (instance) instance.close();
-            }
-        });
-    }, 5000);
-    </script>
-    {{-- ──────────────────────────────────────────────────────────────────────── --}}
-<script>
-// ── Notification Polling ──────────────────────────────────────
-(function() {
-    @auth
-    function updateNotifBadge() {
-        fetch('{{ route("notifikasi.jumlah") }}', {
-            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            const count = data.count || 0;
-            const badge     = document.getElementById('sidebar-notif-badge');
-            const badgeText = document.getElementById('sidebar-notif-count');
-            if (badge) {
-                badge.textContent = count > 9 ? '9+' : count;
-                badge.classList.toggle('d-none', count === 0);
-            }
-            if (badgeText) {
-                badgeText.textContent = count > 9 ? '9+' : count;
-                badgeText.classList.toggle('d-none', count === 0);
-            }
-        })
-        .catch(() => {});
-    }
-    updateNotifBadge();
-    setInterval(updateNotifBadge, 30000); // tiap 30 detik
-    @endauth
-})();
-</script>
+    @yield('scripts')
+    @stack('scripts')
 
 </body>
 </html>

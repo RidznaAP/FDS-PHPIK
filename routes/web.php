@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
     Route::get('/notifikasi/jumlah', [NotifikasiController::class, 'jumlah'])->name('notifikasi.jumlah');
     Route::delete('/notifikasi/{id}/hapus', [NotifikasiController::class, 'hapus'])->name('notifikasi.hapus');
+    Route::delete('/notifikasi/hapus-semua', [NotifikasiController::class, 'hapusSemua'])->name('notifikasi.hapus-semua');
 
     // --- Profil User ---
     Route::get('/profil', [ProfileController::class, 'index'])->name('profile.index');
@@ -65,11 +66,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/perencanaan/import', [PerencanaanController::class, 'import'])->name('perencanaan.import');
         Route::get('/perencanaan/tambah', [PerencanaanController::class, 'create'])->name('perencanaan.create');
         Route::post('/perencanaan/simpan', [PerencanaanController::class, 'store'])->name('perencanaan.store');
-        Route::post('/perencanaan/submit/{id}', [PerencanaanController::class, 'submit'])->name('perencanaan.submit');
+        Route::post('/perencanaan/submit/{perencanaan}', [PerencanaanController::class, 'submit'])->name('perencanaan.submit');
         // #3 Edit & #4 Hapus (Draft only)
-        Route::get('/perencanaan/edit/{id}', [PerencanaanController::class, 'edit'])->name('perencanaan.edit');
-        Route::put('/perencanaan/update/{id}', [PerencanaanController::class, 'update'])->name('perencanaan.update');
-        Route::delete('/perencanaan/hapus/{id}', [PerencanaanController::class, 'destroy'])->name('perencanaan.destroy');
+        Route::get('/perencanaan/edit/{perencanaan}', [PerencanaanController::class, 'edit'])->name('perencanaan.edit');
+        Route::put('/perencanaan/update/{perencanaan}', [PerencanaanController::class, 'update'])->name('perencanaan.update');
+        Route::delete('/perencanaan/hapus/{perencanaan}', [PerencanaanController::class, 'destroy'])->name('perencanaan.destroy');
     });
 
     // Validasi (approve) oleh BBKHIT/Pusat
@@ -86,34 +87,34 @@ Route::middleware('auth')->group(function () {
     Route::get('/evaluasi-data', [EvaluasiController::class, 'index'])->name('evaluasi.data.index');
 
     // Detail Perencanaan (semua role bisa lihat)
-    Route::get('/perencanaan/{id}', [PerencanaanController::class, 'show'])->name('perencanaan.show');
+    Route::get('/perencanaan/{perencanaan}', [PerencanaanController::class, 'show'])->name('perencanaan.show');
 
     // --- Modul Pelaksanaan ---
     Route::get('/pelaksanaan', [PelaksanaanController::class, 'index'])->name('pelaksanaan.index');
     Route::post('/pelaksanaan/bulk-delete', [PelaksanaanController::class, 'bulkDelete'])->name('pelaksanaan.bulk-delete');
-    Route::delete('/pelaksanaan/hapus/{id}', [PelaksanaanController::class, 'destroy'])->name('pelaksanaan.destroy');
+    Route::delete('/pelaksanaan/hapus/{pelaksanaan}', [PelaksanaanController::class, 'destroy'])->name('pelaksanaan.destroy');
     // Detail Pelaksanaan (semua role bisa lihat)
-    Route::get('/pelaksanaan/{id}/detail', [PelaksanaanController::class, 'show'])->name('pelaksanaan.show');
+    Route::get('/pelaksanaan/{pelaksanaan}/detail', [PelaksanaanController::class, 'show'])->name('pelaksanaan.show');
+    Route::get('/pelaksanaan/{pelaksanaan}/print', [PelaksanaanController::class, 'print'])->name('pelaksanaan.print');
+    // --- Modul Laboratorium ---
+    Route::get('/laboratorium', [LaboratoriumController::class, 'index'])->name('laboratorium.index');
+    Route::get('/laboratorium/{laboratorium}/detail', [LaboratoriumController::class, 'show'])->name('laboratorium.show');
+    Route::post('/laboratorium/bulk-delete', [LaboratoriumController::class, 'bulkDelete'])->name('laboratorium.bulk-delete');
+    Route::delete('/laboratorium/hapus/{laboratorium}', [LaboratoriumController::class, 'destroy'])->name('laboratorium.destroy');
+
     Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
-        Route::get('/pelaksanaan/tambah/{id}', [PelaksanaanController::class, 'create'])->name('pelaksanaan.create');
+        Route::get('/pelaksanaan/tambah/{perencanaan}', [PelaksanaanController::class, 'create'])->name('pelaksanaan.create');
         Route::post('/pelaksanaan/simpan', [PelaksanaanController::class, 'store'])->name('pelaksanaan.store');
         // Edit Pelaksanaan
-        Route::get('/pelaksanaan/{id}/edit', [PelaksanaanController::class, 'edit'])->name('pelaksanaan.edit');
-        Route::put('/pelaksanaan/{id}/update', [PelaksanaanController::class, 'update'])->name('pelaksanaan.update');
+        Route::get('/pelaksanaan/{pelaksanaan}/edit', [PelaksanaanController::class, 'edit'])->name('pelaksanaan.edit');
+        Route::put('/pelaksanaan/{pelaksanaan}/update', [PelaksanaanController::class, 'update'])->name('pelaksanaan.update');
     });
 
-    // --- Modul Laboratorium ---
-    // Semua bisa lihat, tapi input dibatasi
-    Route::get('/laboratorium', [LaboratoriumController::class, 'index'])->name('laboratorium.index');
-    Route::get('/laboratorium/{id}/detail', [LaboratoriumController::class, 'show'])->name('laboratorium.show');
-    Route::post('/laboratorium/bulk-delete', [LaboratoriumController::class, 'bulkDelete'])->name('laboratorium.bulk-delete');
-    Route::delete('/laboratorium/hapus/{id}', [LaboratoriumController::class, 'destroy'])->name('laboratorium.destroy');
-
     Route::middleware('role:bkhit,bbkhit,pusat')->group(function () {
-        Route::get('/laboratorium/input/{id}', [LaboratoriumController::class, 'create'])->name('laboratorium.create');
+        Route::get('/laboratorium/input/{pelaksanaan}', [LaboratoriumController::class, 'create'])->name('laboratorium.create');
         Route::post('/laboratorium/simpan', [LaboratoriumController::class, 'store'])->name('laboratorium.store');
-        Route::get('/laboratorium/{id}/edit', [LaboratoriumController::class, 'edit'])->name('laboratorium.edit');
-        Route::put('/laboratorium/{id}/update', [LaboratoriumController::class, 'update'])->name('laboratorium.update');
+        Route::get('/laboratorium/{laboratorium}/edit', [LaboratoriumController::class, 'edit'])->name('laboratorium.edit');
+        Route::put('/laboratorium/{laboratorium}/update', [LaboratoriumController::class, 'update'])->name('laboratorium.update');
     });
 
     // --- Modul Pelaporan (Upload Seminar) ---
@@ -136,9 +137,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/seminar/{modul}', [DokumenSeminarController::class, 'index'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.index');
     Route::post('/seminar/{modul}/upload', [DokumenSeminarController::class, 'store'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.store');
     // --- Modul Peta Pemantauan ---
-    Route::middleware('role:pusat')->group(function () {
-        Route::get('/peta', [\App\Http\Controllers\PetaController::class, 'index'])->name('peta.index');
-    });
+    Route::get('/peta', [\App\Http\Controllers\PetaController::class, 'index'])->name('peta.index');
 
     // --- Modul Laporan & Ekspor ---
     Route::get('/laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
@@ -186,5 +185,15 @@ Route::middleware('auth')->group(function () {
         Route::resource('master/jenis-penyakit', \App\Http\Controllers\JenisPenyakitController::class)
             ->names('master.jenis-penyakit')
             ->parameters(['jenis-penyakit' => 'jenisPenyakit']);
+
+        // Metode Uji Actions
+        Route::get('master/metode-uji/export', [\App\Http\Controllers\MetodeUjiController::class, 'export'])->name('master.metode-uji.export');
+        Route::get('master/metode-uji/template', [\App\Http\Controllers\MetodeUjiController::class, 'downloadTemplate'])->name('master.metode-uji.template');
+        Route::post('master/metode-uji/import', [\App\Http\Controllers\MetodeUjiController::class, 'import'])->name('master.metode-uji.import');
+        Route::post('master/metode-uji/bulk-delete', [\App\Http\Controllers\MetodeUjiController::class, 'bulkDelete'])->name('master.metode-uji.bulk-delete');
+
+        Route::resource('master/metode-uji', \App\Http\Controllers\MetodeUjiController::class)
+            ->names('master.metode-uji')
+            ->parameters(['metode-uji' => 'metodeUji']);
     });
 });

@@ -51,4 +51,13 @@ class Notifikasi extends Model
             ]);
         }
     }
+
+    /** 
+     * Hapus notifikasi yang mengandung pola URL tertentu 
+     * Contoh: Notifikasi::hapusTerkaitUrl('/perencanaan/5')
+     */
+    public static function hapusTerkaitUrl(string $urlPattern): void
+    {
+        self::where('url', 'like', "%{$urlPattern}%")->delete();
+    }
 }

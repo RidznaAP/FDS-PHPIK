@@ -15,46 +15,42 @@
 
 @section('content')
 
-{{-- Filter Bar --}}
-<div class="card shadow-sm mb-4 border-0">
-    <div class="card-body p-3">
-        <form method="GET" action="{{ route('evaluasi.index') }}" class="row g-2 align-items-end">
-            <div class="col-sm-4">
-                <div class="input-icon">
-                    <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Cari provinsi / kab-kota..."
-                        value="{{ request('search') }}">
+
+{{-- Dokumen Seminar Evaluasi Terbaru --}}
+@if($dokumenTerbaru->isNotEmpty())
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light d-flex align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="ti ti-file-text text-primary me-2"></i> Dokumen Seminar Terbaru
+        </h5>
+        <div class="ms-auto">
+            <a href="{{ route('seminar.index', 'evaluasi') }}" class="btn btn-sm btn-outline-primary">
+                Lihat Semua Dokumen
+            </a>
+        </div>
+    </div>
+    <div class="list-group list-group-flush">
+        @foreach($dokumenTerbaru as $dok)
+        <div class="list-group-item d-flex align-items-center">
+            <div class="me-3 text-muted">
+                <i class="ti ti-file-description fs-2"></i>
+            </div>
+            <div class="flex-fill">
+                <div class="fw-semibold text-dark">{{ $dok->judul }}</div>
+                <div class="small text-muted">
+                    Diunggah oleh: {{ $dok->user->name }} &bull; {{ $dok->created_at->diffForHumans() }}
                 </div>
             </div>
-            <div class="col-sm-3">
-                <select name="kesimpulan" class="form-select">
-                    <option value="">— Semua Kesimpulan —</option>
-                    <option value="Bebas HPIK"   {{ request('kesimpulan') === 'Bebas HPIK'   ? 'selected' : '' }}>🟢 Bebas HPIK</option>
-                    <option value="Waspada"      {{ request('kesimpulan') === 'Waspada'      ? 'selected' : '' }}>🟡 Waspada</option>
-                    <option value="Positif HPIK" {{ request('kesimpulan') === 'Positif HPIK' ? 'selected' : '' }}>🔴 Positif HPIK</option>
-                </select>
-            </div>
-            <div class="col-sm-3">
-                <select name="warna" class="form-select">
-                    <option value="">— Semua Warna —</option>
-                    <option value="hijau"  {{ request('warna') === 'hijau'  ? 'selected' : '' }}>🟢 Hijau (Aman)</option>
-                    <option value="kuning" {{ request('warna') === 'kuning' ? 'selected' : '' }}>🟡 Kuning (Waspada)</option>
-                    <option value="merah"  {{ request('warna') === 'merah'  ? 'selected' : '' }}>🔴 Merah (Positif)</option>
-                </select>
-            </div>
-            <div class="col-sm-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-fill">
-                    <i class="ti ti-filter me-1"></i> Filter
-                </button>
-                @if(request()->hasAny(['search','kesimpulan','warna']))
-                <a href="{{ route('evaluasi.index') }}" class="btn btn-ghost-secondary">
-                    <i class="ti ti-x"></i>
+            <div>
+                <a href="{{ route('seminar.download', $dok->id) }}" class="btn btn-sm btn-ghost-primary" title="Download" target="_blank">
+                    <i class="ti ti-download"></i> Unduh
                 </a>
-                @endif
             </div>
-        </form>
+        </div>
+        @endforeach
     </div>
 </div>
+@endif
 
 {{-- Tabel Data --}}
 <div class="card shadow-sm border-0">
@@ -66,13 +62,11 @@
             <div class="fw-bold text-dark">Daftar Evaluasi Penetapan</div>
             <div class="text-muted small">Total: {{ $evaluasis->total() }} data</div>
         </div>
-        @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
         <div class="ms-auto">
             <a href="{{ route('seminar.index', 'evaluasi') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="ti ti-upload me-1"></i> Dokumen Seminar Evaluasi
             </a>
         </div>
-        @endif
     </div>
 
     <div class="card-body p-0">
@@ -90,7 +84,7 @@
                         <th style="width:40px;" class="ps-4">#</th>
                         <th>Wilayah</th>
                         <th>UPT (BKHIT)</th>
-                        <th class="text-center">Status Warna</th>
+
                         <th>Kesimpulan</th>
                         <th>Evaluator</th>
                         <th>Tgl Penetapan</th>
@@ -100,12 +94,7 @@
                 <tbody>
                     @foreach($evaluasis as $i => $ev)
                     @php
-                        $warnaClass = match($ev->status_warna) {
-                            'hijau'  => ['badge' => 'bg-success-lt text-success', 'dot' => 'warna-hijau',  'label' => 'Hijau / Aman'],
-                            'kuning' => ['badge' => 'bg-warning-lt text-warning', 'dot' => 'warna-kuning', 'label' => 'Kuning / Waspada'],
-                            'merah'  => ['badge' => 'bg-danger-lt text-danger',   'dot' => 'warna-merah',  'label' => 'Merah / Positif'],
-                            default  => ['badge' => 'bg-secondary-lt text-secondary', 'dot' => '', 'label' => $ev->status_warna],
-                        };
+
                         $kesimpulanClass = match($ev->kesimpulan) {
                             'Bebas HPIK'   => 'bg-success text-white',
                             'Waspada'      => 'bg-warning text-white',
@@ -123,12 +112,7 @@
                             <div class="small fw-semibold">{{ $ev->perencanaan?->user?->name ?? '—' }}</div>
                             <div class="text-muted" style="font-size:.75rem;">{{ $ev->perencanaan?->user?->upt_asal ?? '' }}</div>
                         </td>
-                        <td class="text-center">
-                            <span class="badge {{ $warnaClass['badge'] }} d-inline-flex align-items-center gap-1 px-3">
-                                <span class="warna-badge {{ $warnaClass['dot'] }}"></span>
-                                {{ $warnaClass['label'] }}
-                            </span>
-                        </td>
+
                         <td>
                             <span class="badge {{ $kesimpulanClass }} px-3 py-2 btn-pill">
                                 {{ $ev->kesimpulan }}

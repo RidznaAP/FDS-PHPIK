@@ -9,7 +9,7 @@
     <div class="col">
         <form method="GET" action="{{ route('laboratorium.index') }}" class="input-icon" style="max-width:400px;">
             <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-            <input type="text" name="search" class="form-control" placeholder="Cari lokasi sampling, komoditas…" value="{{ request('search') }}">
+            <input type="text" name="search" class="form-control" placeholder="Cari lokasi sampling, Media Pembawa…" value="{{ request('search') }}">
         </form>
     </div>
     <div class="col-auto d-flex gap-2">
@@ -138,7 +138,24 @@
                     </td>
                     <td data-label="Status/Hasil">
                         @if($item->laboratorium)
-                            <span class="badge {{ $item->laboratorium->hasil_uji === 'NIHIL' ? 'bg-success-lt text-success' : 'bg-danger-lt text-danger fw-bold' }}"><i class="ti {{ $item->laboratorium->hasil_uji === 'NIHIL' ? 'ti-check' : 'ti-alert-circle' }} me-1"></i>{{ $item->laboratorium->hasil_uji }}</span>
+                            @php
+                                $statusUji = trim($item->laboratorium->hasil_uji);
+                                $badgeClass = match(true) {
+                                    strcasecmp($statusUji, 'Negatif') === 0 || strcasecmp($statusUji, 'NIHIL') === 0 => 'bg-success-lt text-success',
+                                    strcasecmp($statusUji, 'Positif') === 0 => 'bg-danger-lt text-danger fw-bold',
+                                    strcasecmp($statusUji, 'Inkonklusif') === 0 => 'bg-warning-lt text-warning',
+                                    default => 'bg-secondary-lt text-secondary'
+                                };
+                                $iconClass = match(true) {
+                                    strcasecmp($statusUji, 'Negatif') === 0 || strcasecmp($statusUji, 'NIHIL') === 0 => 'ti-check',
+                                    strcasecmp($statusUji, 'Positif') === 0 => 'ti-alert-circle',
+                                    strcasecmp($statusUji, 'Inkonklusif') === 0 => 'ti-help',
+                                    default => 'ti-clock'
+                                };
+                            @endphp
+                            <span class="badge {{ $badgeClass }}">
+                                <i class="ti {{ $iconClass }} me-1"></i>{{ $item->laboratorium->hasil_uji }}
+                            </span>
                         @else
                             <span class="badge bg-warning-lt text-warning"><i class="ti ti-clock me-1"></i>Menunggu</span>
                         @endif

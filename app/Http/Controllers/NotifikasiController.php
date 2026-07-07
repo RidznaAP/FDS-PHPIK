@@ -19,8 +19,8 @@ class NotifikasiController extends Controller
         $query = Notifikasi::where('user_id', Auth::id())->with('dariUser')->latest();
 
         // Filter: sudah/belum dibaca
-        if ($request->filled('dibaca') && in_array($request->dibaca, ['0', '1'])) {
-            $query->where('dibaca', (bool) $request->dibaca);
+        if ($request->has('dibaca') && $request->dibaca !== null && $request->dibaca !== '') {
+            $query->where('dibaca', (int)$request->dibaca);
         }
 
         // Search: judul atau pesan
@@ -34,8 +34,8 @@ class NotifikasiController extends Controller
 
         $notifikasis = $query->paginate(20)->withQueryString();
 
-        // Tandai semua sebagai dibaca hanya jika tidak ada filter aktif
-        if (!$request->filled('dibaca') && !$request->filled('search')) {
+        // Tandai semua sebagai dibaca hanya jika masuk ke halaman utama tanpa filter apapun
+        if (!$request->has('dibaca') && !$request->filled('search')) {
             Notifikasi::where('user_id', Auth::id())
                 ->where('dibaca', false)
                 ->update(['dibaca' => true]);
@@ -94,10 +94,10 @@ class NotifikasiController extends Controller
         return response()->json(['count' => $count, 'latest' => $latest]);
     }
 
-    /** Hapus satu notifikasi */
-    public function hapus($id)
+    /** Hapus semua notifikasi milik user */
+    public function hapusSemua()
     {
-        Notifikasi::where('id', $id)->where('user_id', Auth::id())->delete();
-        return back()->with('success', 'Notifikasi dihapus.');
+        Notifikasi::where('user_id', Auth::id())->delete();
+        return back()->with('success', 'Semua notifikasi telah dibersihkan.');
     }
 }

@@ -9,22 +9,83 @@
 {{-- ══════════════════════════════════════════════════════════════════ --}}
 {{-- Ringkasan Statistik                                               --}}
 {{-- ══════════════════════════════════════════════════════════════════ --}}
+<div class="row g-3 mb-4">
+    <div class="col-lg-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form action="{{ route('laporan.index') }}" method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold small">Filter Wilayah / UPT</label>
+                        <select name="wilayah" class="form-select" onchange="this.form.submit()">
+                            <option value="">Semua Wilayah</option>
+                            @foreach($bkhitList as $w)
+                                <option value="{{ $w }}" {{ request('wilayah') == $w ? 'selected' : '' }}>{{ $w }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Filter Tahun</label>
+                        <input type="number" name="tahun" class="form-control" value="{{ request('tahun', date('Y')) }}" placeholder="Tahun" onchange="this.form.submit()">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="ti ti-filter me-1"></i> Filter</button>
+                    </div>
+                    @if(request('wilayah') || request('tahun'))
+                    <div class="col-md-2">
+                        <a href="{{ route('laporan.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
+                    </div>
+                    @endif
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @php
-    $user = Auth::user();
+    $selectedWilayah = request('wilayah');
+    $selectedTahun = request('tahun', date('Y'));
+    
     $totalP = \App\Models\Perencanaan::query()
         ->when($user->isBkhit(), fn($q) => $q->where('user_id', $user->id))
         ->when($user->isBbkhit(), fn($q) => $q->whereIn('user_id', function($sq) use ($user) {
             $sq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
-        }))->count();
+        }))
+        ->when($selectedWilayah, fn($q) => $q->whereHas('user', fn($uq) => $uq->where('upt_asal', $selectedWilayah)))
+        ->when($selectedTahun, fn($q) => $q->whereYear('perencanaans.created_at', $selectedTahun))
+        ->count();
+
     $totalPl = \App\Models\Pelaksanaan::query()
         ->when($user->isBkhit(), fn($q) => $q->whereHas('perencanaan', fn($r) => $r->where('user_id', $user->id)))
         ->when($user->isBbkhit(), fn($q) => $q->whereHas('perencanaan', function($r) use ($user) {
             $r->whereIn('user_id', function($sq) use ($user) {
                 $sq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
             });
-        }))->count();
-    $totalLab  = \App\Models\Laboratorium::count();
-    $totalPeta = \App\Models\Pelaksanaan::whereNotNull('latitude')->whereNotNull('longitude')->count();
+        }))
+        ->when($selectedWilayah, fn($q) => $q->whereHas('perencanaan.user', fn($uq) => $uq->where('upt_asal', $selectedWilayah)))
+        ->when($selectedTahun, fn($q) => $q->whereYear('pelaksanaans.tanggal_pemantauan', $selectedTahun))
+        ->count();
+
+    $totalLab = \App\Models\Laboratorium::query()
+        ->whereHas('perencanaan', function($q) use ($user, $selectedWilayah, $selectedTahun) {
+            $q->when($user->isBkhit(), fn($sq) => $sq->where('user_id', $user->id))
+              ->when($user->isBbkhit(), fn($sq) => $sq->whereIn('user_id', function($ssq) use ($user) {
+                  $ssq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+              }))
+              ->when($selectedWilayah, fn($sq) => $sq->whereHas('user', fn($uq) => $uq->where('upt_asal', $selectedWilayah)))
+              ->when($selectedTahun, fn($sq) => $sq->whereYear('perencanaans.created_at', $selectedTahun));
+        })->count();
+
+    $totalPeta = \App\Models\Pelaksanaan::query()
+        ->whereNotNull('latitude')->whereNotNull('longitude')
+        ->when($user->isBkhit(), fn($q) => $q->whereHas('perencanaan', fn($r) => $r->where('user_id', $user->id)))
+        ->when($user->isBbkhit(), fn($q) => $q->whereHas('perencanaan', function($r) use ($user) {
+            $r->whereIn('user_id', function($sq) use ($user) {
+                $sq->select('id')->from('users')->where('id', $user->id)->orWhere('parent_id', $user->id);
+            });
+        }))
+        ->when($selectedWilayah, fn($q) => $q->whereHas('perencanaan.user', fn($uq) => $uq->where('upt_asal', $selectedWilayah)))
+        ->when($selectedTahun, fn($q) => $q->whereYear('pelaksanaans.tanggal_pemantauan', $selectedTahun))
+        ->count();
 @endphp
 
 <div class="row row-deck row-cards mb-4">
@@ -91,7 +152,7 @@
         <div class="row g-3">
 
             {{-- Export Perencanaan --}}
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="card h-100 border shadow-sm position-relative overflow-hidden">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
@@ -104,11 +165,11 @@
                             </div>
                         </div>
                         <ul class="list-unstyled small text-muted mb-4">
-                            <li><i class="ti ti-check text-success me-1"></i>Data wilayah & komoditas</li>
+                            <li><i class="ti ti-check text-success me-1"></i>Data wilayah & Media Pembawa</li>
                             <li><i class="ti ti-check text-success me-1"></i>Target operasional per kuartal</li>
                             <li><i class="ti ti-check text-success me-1"></i>Status validasi BBKHIT/Pusat</li>
                         </ul>
-                        <a href="{{ route('laporan.export.perencanaan') }}" class="btn btn-primary w-100 btn-pill fw-bold shadow-sm">
+                        <a href="{{ route('laporan.export.perencanaan', ['wilayah' => request('wilayah'), 'tahun' => $selectedTahun]) }}" class="btn btn-primary w-100 btn-pill fw-bold shadow-sm">
                             <i class="ti ti-download me-2"></i>Download Excel Perencanaan
                         </a>
                     </div>
@@ -116,7 +177,7 @@
             </div>
 
             {{-- Export Pelaksanaan + Lab --}}
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="card h-100 border shadow-sm position-relative overflow-hidden">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
@@ -130,47 +191,12 @@
                         </div>
                         <ul class="list-unstyled small text-muted mb-4">
                             <li><i class="ti ti-check text-success me-1"></i>Data realisasi lapangan</li>
-                            <li><i class="ti ti-check text-success me-1"></i>Hasil lab (Positif/Negatif/Inkonklusif)</li>
+                            <li><i class="ti ti-check text-success me-1"></i>Hasil lab (Positif/Negatif)</li>
                             <li><i class="ti ti-check text-success me-1"></i>Prevalensi & insidensi HPIK</li>
                         </ul>
-                        <a href="{{ route('laporan.export.pelaksanaan') }}" class="btn btn-success w-100 btn-pill fw-bold shadow-sm">
+                        <a href="{{ route('laporan.export.pelaksanaan', ['wilayah' => request('wilayah'), 'tahun' => $selectedTahun]) }}" class="btn btn-success w-100 btn-pill fw-bold shadow-sm">
                             <i class="ti ti-download me-2"></i>Download Excel Pelaksanaan
                         </a>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Formulir Resmi HPIK --}}
-            <div class="col-md-4">
-                <div class="card h-100 border shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-purple-lt p-3 rounded-3 me-3">
-                                <i class="ti ti-file-text text-purple" style="font-size:1.75rem;"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold">Formulir Resmi HPIK</div>
-                                <div class="text-muted small">Format standar 18 kolom per UPT</div>
-                            </div>
-                        </div>
-                        <form action="{{ route('laporan.formulir') }}" method="GET" target="_blank">
-                            <div class="mb-2">
-                                <label class="form-label fw-bold small">Nama UPT / Wilayah</label>
-                                <select name="wilayah" class="form-select form-select-sm" required>
-                                    <option value="">— Pilih UPT —</option>
-                                    @foreach($bkhitList as $w)
-                                        <option value="{{ $w }}">{{ $w }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small">Tahun</label>
-                                <input type="number" name="tahun" class="form-control form-control-sm" value="{{ date('Y') }}">
-                            </div>
-                            <button type="submit" class="btn btn-purple w-100 btn-pill fw-bold shadow-sm text-white">
-                                <i class="ti ti-printer me-2"></i>Cetak Formulir Resmi
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -202,7 +228,7 @@
         <div class="row g-3">
 
             {{-- Buka Peta Interaktif --}}
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="card h-100 border shadow-sm">
                     <div class="card-body p-4 text-center">
                         <div class="bg-teal-lt p-3 rounded-circle d-inline-block mb-3">
@@ -210,7 +236,7 @@
                         </div>
                         <h5 class="fw-bold">Peta Interaktif</h5>
                         <p class="text-muted small mb-4">Lihat sebaran titik pemantauan seluruh Indonesia secara interaktif dengan zoom & filter warna status.</p>
-                        <a href="{{ route('peta.index') }}" class="btn btn-teal text-white w-100 btn-pill fw-bold shadow-sm">
+                        <a href="{{ route('peta.index', ['tahun' => $selectedTahun, 'wilayah' => request('wilayah')]) }}" class="btn btn-teal text-white w-100 btn-pill fw-bold shadow-sm">
                             <i class="ti ti-map me-2"></i>Buka Peta Pemantauan
                         </a>
                     </div>
@@ -218,7 +244,7 @@
             </div>
 
             {{-- Cetak Peta ke PDF --}}
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="card h-100 border shadow-sm">
                     <div class="card-body p-4 text-center">
                         <div class="bg-orange-lt p-3 rounded-circle d-inline-block mb-3">
@@ -226,47 +252,12 @@
                         </div>
                         <h5 class="fw-bold">Cetak Peta (PDF)</h5>
                         <p class="text-muted small mb-4">Buka peta lalu gunakan Print → Save as PDF untuk menyimpan seluruh peta sebaran sebagai file PDF.</p>
-                        <a href="{{ route('peta.index') }}" target="_blank" class="btn btn-orange text-white w-100 btn-pill fw-bold shadow-sm">
+                        <a href="{{ route('peta.index', ['tahun' => $selectedTahun, 'wilayah' => request('wilayah')]) }}" target="_blank" class="btn btn-orange text-white w-100 btn-pill fw-bold shadow-sm">
                             <i class="ti ti-external-link me-2"></i>Buka & Cetak Peta
                         </a>
                         <div class="text-muted mt-2" style="font-size:.75rem;">
                             <i class="ti ti-info-circle me-1"></i>Di halaman peta klik tombol "Download Peta (PDF)"
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Export Laporan Ringkasan PDF --}}
-            <div class="col-md-4">
-                <div class="card h-100 border shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-red-lt p-3 rounded-3 me-3">
-                                <i class="ti ti-file-analytics text-red" style="font-size:1.75rem;"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold">Ringkasan PDF</div>
-                                <div class="text-muted small">Laporan ringkasan per wilayah & tahun</div>
-                            </div>
-                        </div>
-                        <form action="{{ route('laporan.pdf') }}" method="GET" target="_blank">
-                            <div class="mb-2">
-                                <label class="form-label fw-bold small">Filter Wilayah</label>
-                                <select name="wilayah" class="form-select form-select-sm">
-                                    <option value="">Semua Wilayah</option>
-                                    @foreach($bkhitList as $w)
-                                        <option value="{{ $w }}">{{ $w }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small">Tahun</label>
-                                <input type="number" name="tahun" class="form-control form-control-sm" value="{{ date('Y') }}">
-                            </div>
-                            <button type="submit" class="btn btn-danger w-100 btn-pill fw-bold shadow-sm">
-                                <i class="ti ti-printer me-2"></i>Cetak Ringkasan PDF
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>
@@ -293,7 +284,7 @@
                             <li class="mb-1"><strong class="text-white">Perencanaan BKHIT</strong> → Input rencana pemantauan (media pembawa, target, lokasi).</li>
                             <li class="mb-1"><strong class="text-white">Validasi BBKHIT</strong> → Verifikasi dan setujui perencanaan yang diajukan.</li>
                             <li class="mb-1"><strong class="text-white">Pelaksanaan BKHIT</strong> → Input realisasi lapangan beserta hasil uji laboratorium.</li>
-                            <li class="mb-1"><strong class="text-white">Evaluasi BBKHIT/Pusat</strong> → Tetapkan kesimpulan akhir & status warna peta (🟢🟡🔴).</li>
+                            <li class="mb-1"><strong class="text-white">Evaluasi BBKHIT/Pusat</strong> → Tetapkan kesimpulan akhir & status warna peta (🟢🔴).</li>
                             <li><strong class="text-white">Pelaporan</strong> → Export data Excel, cetak formulir resmi, atau unduh peta sebaran.</li>
                         </ol>
                     </div>

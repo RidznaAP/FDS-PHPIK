@@ -6,12 +6,20 @@
 
 @section('page_actions')
     @if($notifikasis->total() > 0)
-    <form action="{{ route('notifikasi.baca-semua') }}" method="POST">
-        @csrf
-        <button type="submit" class="btn btn-outline-secondary btn-sm">
-            <i class="ti ti-checks me-1"></i>Tandai Semua Dibaca
-        </button>
-    </form>
+    <div class="d-flex gap-2">
+        <form action="{{ route('notifikasi.baca-semua') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-ghost-secondary btn-sm">
+                <i class="ti ti-checks me-1"></i>Tandai Semua Dibaca
+            </button>
+        </form>
+        <form action="{{ route('notifikasi.hapus-semua') }}" method="POST" onsubmit="return confirm('Hapus semua riwayat notifikasi Anda?')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn-ghost-danger btn-sm">
+                <i class="ti ti-trash me-1"></i>Bersihkan Semua
+            </button>
+        </form>
+    </div>
     @endif
 @endsection
 

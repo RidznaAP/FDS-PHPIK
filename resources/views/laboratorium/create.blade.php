@@ -45,7 +45,7 @@
                         <div class="fw-bold">{{ $pelaksanaan->perencanaan->kab_kota ?? '-' }}, {{ $pelaksanaan->perencanaan->provinsi ?? '-' }}</div>
                     </div>
                     <div class="col-6 col-md-3 border-end p-3">
-                        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Komoditas</div>
+                        <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">Media Pembawa</div>
                         <div class="fw-bold">{{ $pelaksanaan->jenis_ikan ?? $pelaksanaan->perencanaan->jenis_mp ?? '-' }}</div>
                     </div>
                     <div class="col-6 col-md-3 border-end p-3">
@@ -116,30 +116,36 @@
                                 </div>
                                 <div class="col-12 mt-3">
                                     <label class="form-label required fw-bold mb-2">Jenis Target di Uji</label>
-                                    <textarea name="jenis_hpik_diuji"
-                                        class="form-control" rows="2"
-                                        required>{{ old('jenis_hpik_diuji', $pelaksanaan->perencanaan->jenis_hpik ?? '') }}</textarea>
+                                    @php 
+                                        $targetValues = old('jenis_hpik_diuji') 
+                                            ? (is_array(old('jenis_hpik_diuji')) ? old('jenis_hpik_diuji') : explode(',', old('jenis_hpik_diuji')))
+                                            : array_map('trim', explode(',', $pelaksanaan->perencanaan->jenis_hpik ?? ''));
+                                    @endphp
+                                    <select name="jenis_hpik_diuji[]" id="jenis_hpik_diuji_select" class="form-control" multiple required placeholder="Cari dan Pilih Jenis Target HPIK...">
+                                        @foreach($jenis_penyakits ?? [] as $jp)
+                                            @php $val = $jp->organisme_penyebab ?: $jp->nama; @endphp
+                                            <option value="{{ $val }}" {{ in_array($val, $targetValues) ? 'selected' : '' }}>
+                                                {{ $jp->nama }} / {{ $jp->organisme_penyebab ?: '-' }} / {{ $jp->golongan ?: '-' }}
+                                            </option>
+                                        @endforeach
+                                        {{-- Handle values that might not be in master data --}}
+                                        @foreach($targetValues as $s)
+                                            @if(!collect($jenis_penyakits)->contains(fn($jp) => ($jp->organisme_penyebab ?: $jp->nama) === $s) && !empty($s))
+                                                 <option value="{{ $s }}" selected>{{ $s }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label required fw-bold mb-2">Metode Uji Utama</label>
-                                    <select name="metode_uji" class="form-select select-pill" required>
-                                        <option value="">— Pilih Metode Utama —</option>
-                                        <option value="PCR" {{ old('metode_uji') === 'PCR' ? 'selected' : '' }}>PCR</option>
-                                        <option value="RT-PCR" {{ old('metode_uji') === 'RT-PCR' ? 'selected' : '' }}>RT-PCR</option>
-                                        <option value="Real-Time PCR (qPCR)" {{ old('metode_uji') === 'Real-Time PCR (qPCR)' ? 'selected' : '' }}>Real-Time PCR (qPCR)</option>
-                                        <option value="Sekuensing DNA" {{ old('metode_uji') === 'Sekuensing DNA' ? 'selected' : '' }}>Sekuensing DNA</option>
-                                        <option value="Isolasi Bakteri" {{ old('metode_uji') === 'Isolasi Bakteri' ? 'selected' : '' }}>Isolasi Bakteri</option>
-                                        <option value="Uji Biokimia" {{ old('metode_uji') === 'Uji Biokimia' ? 'selected' : '' }}>Uji Biokimia</option>
-                                        <option value="Uji Sensitivitas/Antibiogram" {{ old('metode_uji') === 'Uji Sensitivitas/Antibiogram' ? 'selected' : '' }}>Uji Sensitivitas/Antibiogram</option>
-                                        <option value="Natif/Scrapping" {{ old('metode_uji') === 'Natif/Scrapping' ? 'selected' : '' }}>Natif/Scrapping</option>
-                                        <option value="Sediaan Ulas (Smear)" {{ old('metode_uji') === 'Sediaan Ulas (Smear)' ? 'selected' : '' }}>Sediaan Ulas (Smear)</option>
-                                        <option value="Kultur Jamur" {{ old('metode_uji') === 'Kultur Jamur' ? 'selected' : '' }}>Kultur Jamur</option>
-                                        <option value="Pemeriksaan Mikroskopis Struktur Jamur" {{ old('metode_uji') === 'Pemeriksaan Mikroskopis Struktur Jamur' ? 'selected' : '' }}>Pemeriksaan Mikroskopis Struktur Jamur</option>
-                                        <option value="Pemeriksaan Jaringan (Slide)" {{ old('metode_uji') === 'Pemeriksaan Jaringan (Slide)' ? 'selected' : '' }}>Pemeriksaan Jaringan (Slide)</option>
-                                        <option value="Isolasi Virus" {{ old('metode_uji') === 'Isolasi Virus' ? 'selected' : '' }}>Isolasi Virus</option>
-                                        <option value="ELISA" {{ old('metode_uji') === 'ELISA' ? 'selected' : '' }}>ELISA</option>
-                                        <option value="IFAT" {{ old('metode_uji') === 'IFAT' ? 'selected' : '' }}>IFAT</option>
+                                    <select name="metode_uji[]" id="metode_uji_select" class="form-control" multiple required>
+                                        @foreach($metode_ujis ?? [] as $metode)
+                                            <option value="{{ $metode->nama }}" {{ in_array($metode->nama, (array)old('metode_uji', [])) ? 'selected' : '' }}>
+                                                {{ $metode->nama }}
+                                            </option>
+                                        @endforeach
                                     </select>
+                                    <div class="form-hint mt-2 text-muted small"><i class="ti ti-info-circle me-1"></i>Dapat memilih lebih dari 1 metode uji.</div>
                                 </div>
                             </div>
                         </div>
@@ -151,7 +157,7 @@
                     <div class="card card-premium mb-0 border-0 shadow-sm border-top border-purple border-4">
                         <div class="card-header bg-transparent border-0 pt-4 pb-0">
                             <h3 class="card-title fw-bold text-purple">
-                                <i class="ti ti-ruler-measure me-2"></i> DATA CONTOH UJI
+                                <i class="ti ti-ruler-measure me-2"></i> DATA UJI
                             </h3>
                         </div>
                         <div class="card-body">
@@ -214,11 +220,12 @@
                                 <label class="form-label required fw-bold mb-2 text-dark">NAMA PENYAKIT / HASIL AKHIR</label>
                                 <select name="hasil_uji" class="form-select form-select-lg fw-bold shadow-sm" style="border-radius: 0.5rem;" required>
                                     <option value="">— Pilih Hasil Akhir —</option>
-                                    <option value="NIHIL" {{ old('hasil_uji') === 'NIHIL' ? 'selected' : '' }} class="text-success fw-bold">✅ NIHIL</option>
+                                    <option value="Negatif" {{ old('hasil_uji') === 'Negatif' || old('hasil_uji') === 'NIHIL' ? 'selected' : '' }} class="text-success fw-bold">✅ NEGATIF / NIHIL</option>
                                     <optgroup label="Daftar Penyakit (HPIK)">
                                         @foreach($jenis_penyakits ?? [] as $penyakit)
-                                            <option value="{{ collect(explode(' - ', $penyakit->nama))->first() }}" {{ old('hasil_uji') === collect(explode(' - ', $penyakit->nama))->first() ? 'selected' : '' }}>
-                                                {{ $penyakit->nama }}
+                                            @php $valVal = $penyakit->organisme_penyebab ?: $penyakit->nama; @endphp
+                                            <option value="{{ $valVal }}" {{ old('hasil_uji') === $valVal ? 'selected' : '' }}>
+                                                {{ $penyakit->nama }} @if($penyakit->organisme_penyebab) ({{ $penyakit->organisme_penyebab }}) @endif
                                             </option>
                                         @endforeach
                                     </optgroup>
@@ -338,8 +345,115 @@
 </div>
 @endsection
 
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+    /* Ultra-Modern Premium Select Styling */
+    .ts-wrapper .ts-control { 
+        border: 1.5px solid #e2e8f0 !important; 
+        padding: 0.75rem 1rem !important; 
+        border-radius: 0.75rem !important;
+        background-color: #f8fafc !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 52px;
+        box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02) !important;
+    }
+    .ts-wrapper.focus .ts-control {
+        border-color: #6366f1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .ts-wrapper .ts-control > input {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 100% !important;
+    }
+    .ts-dropdown { 
+        border-radius: 1rem !important; 
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; 
+        border: 1px solid rgba(226, 232, 240, 0.8) !important; 
+        margin-top: 10px !important;
+        padding: 8px !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(12px);
+        z-index: 2000 !important;
+    }
+    .ts-dropdown .option {
+        border-radius: 0.6rem !important;
+        padding: 10px 15px !important;
+        margin-bottom: 2px;
+        transition: all 0.2s ease;
+    }
+    .ts-dropdown .active { background-color: #6366f1 !important; color: white !important; }
+    .ts-dropdown .option:hover:not(.active) { background-color: #f1f5f9 !important; }
+    
+    .ts-wrapper .items { display: flex; flex-wrap: wrap; gap: 6px !important; padding: 6px 12px !important; }
+    
+    /* Premium Tag (Item) Styles */
+    .ts-wrapper .item { 
+        border-radius: 100px !important;
+        padding: 5px 14px !important;
+        font-weight: 700 !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        background: #e0e7ff !important; 
+        color: #4338ca !important; 
+        border: 1px solid #c7d2fe !important;
+    }
+    .ts-wrapper .item:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.08) !important; }
+    
+    .ts-wrapper .item .remove { 
+        margin-left: 8px; 
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.06);
+        transition: all 0.2s;
+        text-decoration: none !important;
+        font-size: 10px;
+    }
+    .ts-wrapper .item .remove:hover { background: rgba(0,0,0,0.15); color: inherit !important; }
+    select.tomselected { display: none !important; }
+</style>
+@endpush
+
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    new TomSelect('#metode_uji_select', {
+        dropdownParent: 'body',
+        maxOptions: 100,
+        plugins: ['remove_button'],
+        create: true,
+        persist: false,
+    });
+    
+    new TomSelect('#jenis_hpik_diuji_select', {
+        dropdownParent: 'body',
+        maxOptions: 100,
+        plugins: ['remove_button'],
+        create: true,
+        persist: false,
+        render: {
+            item: function(data, escape) {
+                return '<div>' + escape(data.value) + '</div>';
+            }
+        }
+    });
+    
+    hitungOtomatis();
+});
+
 function hitungOtomatis() {
     var terinfeksi = parseFloat(document.getElementById('jml_terinfeksi').value);
     var diperiksa  = parseFloat(document.getElementById('jml_diperiksa').value);
@@ -383,7 +497,5 @@ function hitungOtomatis() {
          statusEl.innerHTML = '<div class="badge bg-blue-lt text-blue p-2 w-100 text-start small"><i class="ti ti-info-circle me-1"></i> Masukkan data untuk hitung otomatis</div>';
     }
 }
-
-document.addEventListener('DOMContentLoaded', hitungOtomatis);
 </script>
 @endsection

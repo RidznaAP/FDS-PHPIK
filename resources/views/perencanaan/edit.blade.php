@@ -37,7 +37,7 @@
             <div class="card card-premium mb-4 border-0 shadow-sm bg-white">
                 <div class="card-header bg-transparent border-0 pt-4 pb-0">
                     <h3 class="card-title fw-bold text-primary">
-                        <i class="ti ti-map-2 me-2"></i> DATA LOKASI & KOMODITAS
+                        <i class="ti ti-map-2 me-2"></i> DATA LOKASI & MEDIA PEMBAWA
                     </h3>
                 </div>
                 <div class="card-body">
@@ -65,14 +65,14 @@
                         
                         <div class="col-md-6">
                             <label class="form-label required fw-bold mb-2">
-                                <i class="ti ti-fish me-1 text-primary"></i> Media Pembawa (Inang Rentan)
+                                <i class="ti ti-fish me-1 text-primary"></i> Media Pembawa
                             </label>
                             @php $selectedMp = array_map('trim', explode(',', $perencanaan->jenis_mp)); @endphp
                             <select name="jenis_mp" id="jenis_mp_select" class="form-select rounded-3 border-light-dark" required>
-                                <option value="" disabled>Pilih Komoditas...</option>
+                                <option value="" disabled>Cari dan Pilih Media Pembawa...</option>
                                 @foreach($mediaPembawas ?? [] as $mp)
                                     <option value="{{ $mp->nama }}" {{ $perencanaan->jenis_mp == $mp->nama ? 'selected' : '' }}>
-                                        {{ $mp->nama }}
+                                        {{ $mp->nama }} / {{ $mp->nama_inggris ?: '-' }} / {{ $mp->keterangan ?: '-' }}
                                     </option>
                                 @endforeach
                                 {{-- Handle items not in master data --}}
@@ -87,14 +87,16 @@
                                 <i class="ti ti-virus me-1 text-primary"></i> Jenis HPIK
                             </label>
                             @php $selectedHpik = array_map('trim', explode(',', $perencanaan->jenis_hpik)); @endphp
-                            <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required>
+                            <select name="jenis_hpik[]" id="jenis_hpik_select" class="form-control" multiple required placeholder="Cari dan Pilih Jenis HPIK...">
                                 @foreach($jenisPenyakits ?? [] as $jp)
-                                    @php $val = $jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : ''); @endphp
-                                    <option value="{{ $val }}" {{ in_array($val, $selectedHpik) ? 'selected' : '' }}>{{ $val }}</option>
+                                    @php $val = $jp->organisme_penyebab ?: $jp->nama; @endphp
+                                    <option value="{{ $val }}" {{ in_array($val, $selectedHpik) ? 'selected' : '' }}>
+                                        {{ $jp->nama }} / {{ $jp->organisme_penyebab ?: '-' }} / {{ $jp->golongan ?: '-' }}
+                                    </option>
                                 @endforeach
-                                {{-- Handle virtues that might not be in master data --}}
+                                {{-- Handle values that might not be in master data (legacy or custom) --}}
                                 @foreach($selectedHpik as $s)
-                                    @if(!collect($jenisPenyakits)->contains(fn($jp) => ($jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : '')) === $s) && !empty($s))
+                                    @if(!collect($jenisPenyakits)->contains(fn($jp) => ($jp->organisme_penyebab ?: $jp->nama) === $s) && !empty($s))
                                          <option value="{{ $s }}" selected>{{ $s }}</option>
                                     @endif
                                 @endforeach
@@ -119,14 +121,16 @@
                                 <i class="ti ti-settings me-1 text-azure"></i> Kemampuan Uji UPT
                             </label>
                             @php $selectedUji = array_map('trim', explode(',', $perencanaan->kemampuan_uji_upt)); @endphp
-                            <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required>
+                            <select name="kemampuan_uji_upt[]" id="kemampuan_uji_upt_select" class="form-control" multiple required placeholder="Cari dan Pilih Kemampuan Uji...">
                                 @foreach($jenisPenyakits ?? [] as $jp)
-                                    @php $val = $jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : ''); @endphp
-                                    <option value="{{ $val }}" {{ in_array($val, $selectedUji) ? 'selected' : '' }}>{{ $val }}</option>
+                                    @php $val = $jp->organisme_penyebab ?: $jp->nama; @endphp
+                                    <option value="{{ $val }}" {{ in_array($val, $selectedUji) ? 'selected' : '' }}>
+                                        {{ $jp->nama }} / {{ $jp->organisme_penyebab ?: '-' }} / {{ $jp->golongan ?: '-' }}
+                                    </option>
                                 @endforeach
-                                {{-- Handle virtues that might not be in master data --}}
+                                {{-- Handle values that might not be in master data --}}
                                 @foreach($selectedUji as $s)
-                                    @if(!collect($jenisPenyakits)->contains(fn($jp) => ($jp->nama . ($jp->singkatan ? ' (' . $jp->singkatan . ')' : '')) === $s) && !empty($s))
+                                    @if(!collect($jenisPenyakits)->contains(fn($jp) => ($jp->organisme_penyebab ?: $jp->nama) === $s) && !empty($s))
                                          <option value="{{ $s }}" selected>{{ $s }}</option>
                                     @endif
                                 @endforeach
@@ -137,12 +141,12 @@
                             <label class="form-label required fw-bold mb-2">Metode Pengujian</label>
                             @php $selectedMetode = array_map('trim', explode(',', $perencanaan->metode_pengujian)); @endphp
                             <select name="metode_pengujian[]" id="metode_pengujian_select" class="form-control" multiple required>
-                                @php $metodeOpts = ['PCR', 'RT-PCR', 'Real-Time PCR (qPCR)', 'Sekuensing DNA', 'Isolasi Bakteri', 'Uji Biokimia', 'Uji Sensitivitas/Antibiogram', 'Natif/Scrapping', 'Sediaan Ulas (Smear)', 'Kultur Jamur', 'Pemeriksaan Mikroskopis Struktur Jamur', 'Pemeriksaan Jaringan (Slide)', 'Isolasi Virus', 'ELISA', 'IFAT']; @endphp
-                                @foreach($metodeOpts as $opt)
-                                    <option value="{{ $opt }}" {{ in_array($opt, $selectedMetode) ? 'selected' : '' }}>{{ $opt }}</option>
+                                @foreach($metodeUjis ?? [] as $metode)
+                                    <option value="{{ $metode->nama }}" {{ in_array($metode->nama, $selectedMetode) ? 'selected' : '' }}>{{ $metode->nama }}</option>
                                 @endforeach
+                                {{-- Handle custom values --}}
                                 @foreach($selectedMetode as $s)
-                                    @if(!in_array($s, $metodeOpts) && !empty($s))
+                                    @if(!empty($s) && !collect($metodeUjis)->contains('nama', $s))
                                         <option value="{{ $s }}" selected>{{ $s }}</option>
                                     @endif
                                 @endforeach
@@ -357,16 +361,23 @@
         // Initialization for Tom Select
         new TomSelect('#jenis_mp_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             create: true,
             persist: false,
             sortField: {
                 field: "text",
                 direction: "asc"
+            },
+            render: {
+                item: function(data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
             }
         });
 
         new TomSelect('#metode_pengujian_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             plugins: ['remove_button'],
             create: true,
             persist: false,
@@ -374,19 +385,31 @@
 
         new TomSelect('#jenis_hpik_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             plugins: ['remove_button'],
             sortField: {
                 field: "text",
                 direction: "asc"
+            },
+            render: {
+                item: function(data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
             }
         });
 
         new TomSelect('#kemampuan_uji_upt_select', {
             dropdownParent: 'body',
+            maxOptions: 100,
             plugins: ['remove_button'],
             sortField: {
                 field: "text",
                 direction: "asc"
+            },
+            render: {
+                item: function(data, escape) {
+                    return '<div>' + escape(data.value) + '</div>';
+                }
             }
         });
 

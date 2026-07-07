@@ -25,6 +25,26 @@
 
 <div class="row g-4">
 
+    @if($modul === 'evaluasi')
+    <div class="col-12 mb-2">
+        <div class="alert alert-info border-info border-start border-4 bg-white shadow-sm d-flex align-items-center gap-3 py-3">
+            <i class="ti ti-info-circle text-info fs-2"></i>
+            <div>
+                <h4 class="alert-title mb-1">Mengenai Evaluasi Pemantauan HPIK</h4>
+                <p class="text-muted mb-0 small">
+                    Pemantauan HPIK hasil kegiatan Pemantauan HPIK dituangkan dalam bentuk rekomendasi pengambilan kebijakan terkait penetapan status bebas HPIK, penetapan atau pencabutan HPIK, penyusunan peta sebaran HPIK dan perbaikan pelaksanaan Pemantauan HPIK. Dokumen di bawah ini merupakan distribusi dokumen rekomendasi tersebut ke UPT terkait.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @php
+        // Semua role admin diizinkan untuk mengunggah dokumen
+        $canUpload = true;
+    @endphp
+
+    @if($canUpload)
     {{-- ═══════════════════════════════════════ --}}
     {{-- Kolom Kiri: Form Upload                 --}}
     {{-- ═══════════════════════════════════════ --}}
@@ -56,6 +76,21 @@
                     </div>
                     @endif
 
+                    @if($modul === 'evaluasi')
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tujuan Dokumen (Ditujukan Kepada)</label>
+                        <select name="target_user_id" class="form-select shadow-sm">
+                            <option value="">Semua Admin (Umum)</option>
+                            @foreach($uptUsers as $u)
+                                <option value="{{ $u->id }}" {{ old('target_user_id') == $u->id ? 'selected' : '' }}>
+                                    {{ $u->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-hint small mt-1">Biarkan "Semua Admin" jika dokumen ini berlaku secara umum.</div>
+                    </div>
+                    @endif
+
                     <div class="mb-3">
                         <label class="form-label required fw-bold">Judul Dokumen</label>
                         <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror"
@@ -65,19 +100,19 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label required fw-bold">File Dokumen</label>
+                        <label class="form-label fw-bold">File Dokumen <span class="text-muted fw-normal">(maks 2MB)</span></label>
                         <div class="upload-zone border border-dashed rounded-3 p-4 text-center"
                              id="upload-zone"
                              onclick="document.getElementById('file-input').click()"
                              style="cursor:pointer; transition: all .2s;">
                             <input type="file" name="file_upload" id="file-input" class="d-none @error('file_upload') is-invalid @enderror"
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar" required
+                                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar"
                                 onchange="previewFile(this)">
                             <div id="upload-placeholder">
                                 <i class="ti ti-file-upload text-muted" style="font-size:2.5rem;"></i>
                                 <div class="fw-bold text-muted mt-2">Klik untuk pilih file</div>
                                 <div class="text-muted small mt-1">PDF, Word, Excel, PPT, ZIP, RAR</div>
-                                <div class="text-muted small">Maks. 20 MB</div>
+                                <div class="text-muted small text-danger fw-bold">Maks. 2 MB</div>
                             </div>
                             <div id="upload-preview" class="d-none">
                                 <i class="ti ti-file-check text-success" style="font-size:2rem;"></i>
@@ -87,6 +122,20 @@
                             </div>
                         </div>
                         @error('file_upload')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Atau Link Google Drive <span class="text-muted fw-normal">(opsional)</span></label>
+                        <div class="input-group input-group-flat shadow-sm">
+                            <span class="input-group-text">
+                                <i class="ti ti-brand-google-drive text-success"></i>
+                            </span>
+                            <input type="url" name="link_drive" class="form-control @error('link_drive') is-invalid @enderror"
+                                value="{{ old('link_drive') }}"
+                                placeholder="https://drive.google.com/...">
+                        </div>
+                        <div class="form-hint small mt-1">Gunakan link ini jika ukuran file melebihi 2MB. Pastikan akses link sudah diatur.</div>
+                        @error('link_drive')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-4">
@@ -103,16 +152,21 @@
             <div class="card-footer bg-light border-0 py-3">
                 <div class="text-muted small text-center">
                     <i class="ti ti-info-circle me-1"></i>
-                    Dokumen yg diunggah dapat diunduh dan ditinjau oleh BBKHIT & Pusat.
+                    @if($modul === 'pelaporan')
+                        Dokumen yg diunggah dapat diunduh dan ditinjau oleh BBKHIT & Pusat.
+                    @else
+                        Dokumen akan dikirim dan diberikan notifikasi kepada UPT yang dipilih.
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+    @endif
 
     {{-- ═══════════════════════════════════════ --}}
     {{-- Kolom Kanan: Daftar Dokumen             --}}
     {{-- ═══════════════════════════════════════ --}}
-    <div class="col-lg-8">
+    <div class="{{ $canUpload ? 'col-lg-8' : 'col-lg-12' }}">
         <div class="card border-0 shadow-sm overflow-hidden">
             <div class="card-header py-3 px-4 d-flex align-items-center justify-content-between">
                 <div class="fw-bold fs-5">
@@ -137,7 +191,7 @@
             <div class="list-group list-group-flush">
                 @foreach($dokumens as $dok)
                 @php
-                    $ext = strtolower(pathinfo($dok->nama_file, PATHINFO_EXTENSION));
+                    $ext = $dok->nama_file ? strtolower(pathinfo($dok->nama_file, PATHINFO_EXTENSION)) : null;
                     $iconMap = [
                         'pdf'  => ['ti-file-type-pdf', 'text-danger'],
                         'doc'  => ['ti-file-type-doc', 'text-blue'],
@@ -149,7 +203,7 @@
                         'zip'  => ['ti-file-zip', 'text-yellow'],
                         'rar'  => ['ti-file-zip', 'text-yellow'],
                     ];
-                    [$icon, $color] = $iconMap[$ext] ?? ['ti-file', 'text-muted'];
+                    [$icon, $color] = $iconMap[$ext] ?? ($dok->link_drive ? ['ti-brand-google-drive', 'text-success'] : ['ti-file', 'text-muted']);
                 @endphp
                 <div class="list-group-item px-4 py-3 hover-shadow">
                     <div class="d-flex align-items-start gap-3">
@@ -162,22 +216,38 @@
                             <div class="fw-bold text-truncate">{{ $dok->judul }}</div>
                             <div class="text-muted small mt-1">
                                 <span class="me-3"><i class="ti ti-user me-1"></i>{{ $dok->user->name ?? 'Unknown' }}</span>
+                                @if($dok->nama_file)
                                 <span class="me-3"><i class="ti ti-file me-1"></i>{{ $dok->nama_file }}</span>
+                                @endif
                                 @if($dok->ukuran_file)
                                 <span class="me-3"><i class="ti ti-database me-1"></i>{{ $dok->ukuran_file }}</span>
                                 @endif
+                                @if($dok->link_drive)
+                                <span class="me-3 text-success fw-bold"><i class="ti ti-brand-google-drive me-1"></i>Google Drive Link</span>
+                                @endif
                                 <span><i class="ti ti-clock me-1"></i>{{ $dok->created_at->diffForHumans() }}</span>
                             </div>
+                            @if($modul === 'evaluasi')
+                            <div class="mt-2">
+                                @if($dok->target_user_id)
+                                    <span class="badge bg-purple-lt border border-purple-subtle"><i class="ti ti-arrow-forward-up me-1"></i>Tertuju: {{ $dok->targetUser->name ?? 'UPT' }}</span>
+                                @else
+                                    <span class="badge bg-secondary-lt border border-secondary-subtle"><i class="ti ti-users me-1"></i>Khusus Semua BKHIT/BBKHIT</span>
+                                @endif
+                            </div>
+                            @endif
                             @if($dok->keterangan)
-                            <div class="text-muted small mt-1 fst-italic">{{ Str::limit($dok->keterangan, 100) }}</div>
+                            <div class="text-muted small mt-2 fst-italic border-start border-2 ps-2">{{ Str::limit($dok->keterangan, 120) }}</div>
                             @endif
                         </div>
                         {{-- Aksi --}}
                         <div class="flex-shrink-0 d-flex gap-2">
                             <a href="{{ route('seminar.download', $dok->id) }}"
-                               class="btn btn-sm btn-outline-primary"
-                               title="Download dokumen">
-                                <i class="ti ti-download me-1"></i>Unduh
+                               class="btn btn-sm {{ $dok->path_file ? 'btn-outline-primary' : 'btn-outline-success' }}"
+                               {{ !$dok->path_file ? 'target="_blank"' : '' }}
+                               title="{{ $dok->path_file ? 'Download dokumen' : 'Buka link Google Drive' }}">
+                                <i class="ti {{ $dok->path_file ? 'ti-download' : 'ti-external-link' }} me-1"></i>
+                                {{ $dok->path_file ? 'Unduh' : 'Buka Link' }}
                             </a>
                             @if(Auth::id() === $dok->user_id || Auth::user()->isPusat())
                             <button type="button" class="btn btn-sm btn-outline-danger btn-icon" title="Hapus dokumen ini"

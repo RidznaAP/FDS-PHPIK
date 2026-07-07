@@ -141,7 +141,7 @@
                         <div class="card-body p-4 pt-2">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label required fw-bold mb-2">Jenis Ikan / Komoditas</label>
+                                    <label class="form-label required fw-bold mb-2">Jenis Ikan / Media Pembawa</label>
                                     <input type="text" name="jenis_ikan"
                                         class="form-control @error('jenis_ikan') is-invalid @enderror"
                                         value="{{ old('jenis_ikan', $item->jenis_ikan) }}" required>

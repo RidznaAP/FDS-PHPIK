@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard — SIP-HPIK')
+@section('title', 'Dashboard   SIP-HPIK')
 @section('page_title', 'Dashboard')
-@section('page_subtitle', 'Ringkasan Nasional Pemantauan HPIK — Deputi Karantina Ikan')
+@section('page_subtitle', 'Ringkasan Nasional Pemantauan HPIK   Deputi Karantina Ikan')
 
 @section('page_actions')
 <span class="badge fs-6 px-3 py-2
@@ -16,11 +16,11 @@
 @section('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-/* ── Dashboard Specific ──────────────────────────────── */
+/*   Dashboard Specific   */
 .greeting-banner {
     background: linear-gradient(135deg, #0a1628 0%, #1a2f5e 50%, #1d4ed8 100%);
     border-radius: 16px;
-    padding: 28px 32px;
+    padding: 10px 32px;
     position: relative;
     overflow: hidden;
 }
@@ -51,6 +51,9 @@
 .kpi-card .kpi-number {
     font-size: 2.4rem; font-weight: 800;
     line-height: 1; letter-spacing: -1.5px;
+}
+@media (max-width: 767.98px) {
+    .kpi-card .kpi-number { font-size: 1.8rem; }
 }
 .kpi-card .kpi-trend {
     font-size: 0.75rem; font-weight: 600; display: inline-flex;
@@ -125,6 +128,94 @@
 /* Progress bar inside chart */
 .media-bar-row { margin-bottom: 12px; }
 .media-bar-row:last-child { margin-bottom: 0; }
+
+/* Banner Enhancements */
+.bg-white-transparent { background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1); }
+.btn-white-transparent { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s; }
+.btn-white-transparent:hover { background: #fff; color: #1e3a8a; }
+
+.banner-illustration-wrapper {
+    position: relative;
+    padding: 10px;
+    z-index: 1;
+}
+.banner-illu-img {
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.3));
+    animation: floating 6s ease-in-out infinite;
+    max-height: 160px;
+    border-radius: 15px;
+}
+
+/* Isometric Map Styles from Login */
+.map-visual-container {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 20px;
+}
+.map-grid-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 200%; z-index: 1;
+    background-image: linear-gradient(rgba(56, 189, 248, 0.15) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(800px) rotateX(60deg) translateY(-50px) scale(1.5);
+    opacity: 0.4;
+}
+.mini-ping {
+    position: absolute; width: 6px; height: 6px; background: #38bdf8;
+    border-radius: 50%; box-shadow: 0 0 10px 1px rgba(56, 189, 248, 0.8);
+    z-index: 2;
+}
+.mini-ping::after {
+    content: ''; position: absolute; top: -10px; left: -10px;
+    width: 26px; height: 26px; border: 1.5px solid #38bdf8; border-radius: 50%;
+    opacity: 0; animation: miniRadarPing 3s infinite cubic-bezier(0.1, 0.7, 0.1, 1);
+}
+@keyframes miniRadarPing {
+    0% { transform: scale(0.1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+.ping-red { background: #ef4444; box-shadow: 0 0 10px 1px rgba(239, 68, 68, 0.8); }
+.ping-red::after { border-color: #ef4444; }
+
+.glow-effect {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+    z-index: -1;
+    filter: blur(20px);
+    animation: pulse-glow 4s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+}
+.wave { display: inline-block; animation: wave-animation 2.5s infinite; transform-origin: 70% 70%; }
+@keyframes wave-animation {
+    0% { transform: rotate( 0.0deg) }
+    10% { transform: rotate(14.0deg) }
+    20% { transform: rotate(-8.0deg) }
+    30% { transform: rotate(14.0deg) }
+    40% { transform: rotate(-4.0deg) }
+    50% { transform: rotate(10.0deg) }
+    60% { transform: rotate( 0.0deg) }
+    100% { transform: rotate( 0.0deg) }
+}
+.animate-pulse { animation: shadow-pulse 2s infinite; }
+@keyframes shadow-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
 </style>
 @endsection
 
@@ -135,47 +226,49 @@
     $greeting = $hour < 10 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
     $roleLabel = Auth::user()->isUpt() ? 'Admin BKHIT' : (Auth::user()->isBbkhit() ? 'Admin BBKHIT' : 'Admin Pusat');
     $progressPct = $totalPerencanaan > 0 ? round($totalApproved / $totalPerencanaan * 100) : 0;
+    
+    // Dynamic column for KPI cards
+    $kpiColClass = Auth::user()->isBkhit() ? 'col-6 col-lg-4' : 'col-6 col-lg-3';
 @endphp
 
-{{-- ═══════════════════════════════════════════════════════════
+{{--  
      GREETING BANNER
-═══════════════════════════════════════════════════════════ --}}
+  --}}
 <div class="greeting-banner mb-4 shadow-sm">
-    <div class="row align-items-center g-3">
-        <div class="col">
-            <div class="text-white-50 small mb-1">
-                <i class="ti ti-calendar me-1"></i>{{ now()->translatedFormat('l, d F Y') }}
+    <div class="row align-items-center g-3 position-relative" style="z-index: 2;">
+        <div class="col-lg-9">
+            <div class="text-white-50 small mb-2 d-flex align-items-center gap-2">
+                <i class="ti ti-calendar fs-3"></i>
+                <span class="fw-medium">{{ now()->translatedFormat('l, d F Y') }}</span>
             </div>
-            <h2 class="text-white fw-bold mb-1" style="font-size:1.6rem;">
-                {{ $greeting }}, {{ Auth::user()->name }}! 👋
-            </h2>
-            <p class="mb-0 small" style="color:rgba(255,255,255,0.6);">
-                Login sebagai <span class="fw-semibold text-white">{{ $roleLabel }}</span>
-                &nbsp;·&nbsp; Data Nasional Agregat
-                @if($unreadNotif > 0)
-                &nbsp;·&nbsp;
-                <a href="{{ route('notifikasi.index') }}" class="text-warning fw-semibold text-decoration-none">
-                    🔔 {{ $unreadNotif }} notifikasi baru
-                </a>
-                @endif
+            <h1 class="text-white fw-extrabold mb-0" style="font-size:1.75rem; letter-spacing: -0.02em;">
+                Selamat Datang, {{ explode(' ', Auth::user()->name)[0] }}! <span class="wave"> </span>
+            </h1>
+            <p class="mb-0 small" style="color:rgba(255,255,255,0.7); white-space: nowrap;">
+                SIP-HPIK: Sistem Informasi Pemantauan Hama & Penyakit Ikan Karantina &nbsp; &nbsp; Login: <span class="text-white fw-bold">{{ $roleLabel }}</span>
             </p>
         </div>
-        <div class="col-auto d-none d-lg-flex flex-column align-items-end gap-2">
-            <div class="text-white-50 small">Tingkat Persetujuan</div>
-            <div class="text-white fw-bold" style="font-size:2rem;">{{ $progressPct }}%</div>
-            <div class="progress" style="width:120px; height:6px; background:rgba(255,255,255,0.15);">
-                <div class="progress-bar bg-success" style="width:{{ $progressPct }}%"></div>
+        <div class="col-lg-3 d-none d-lg-block text-end position-relative">
+            <div class="banner-illustration-wrapper">
+                <div class="map-visual-container">
+                    <div class="map-grid-overlay"></div>
+                    <div class="mini-ping" style="top:30%; left:40%;"></div>
+                    <div class="mini-ping delay-2" style="top:60%; left:70%;"></div>
+                    <div class="mini-ping ping-red" style="top:75%; left:30%;"></div>
+                    <div class="mini-ping" style="top:20%; left:80%;"></div>
+                </div>
+                <div class="glow-effect"></div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════════════════
-     ZONE 1 — KPI STATS
-═══════════════════════════════════════════════════════════ --}}
+{{--  
+     ZONE 1   KPI STATS
+  --}}
 <div class="row g-3 mb-4">
     {{-- Total Perencanaan --}}
-    <div class="col-6 col-lg-3">
+    <div class="{{ $kpiColClass }}">
         <div class="card kpi-card shadow-sm p-3">
             <div class="kpi-stripe bg-primary"></div>
             <div class="d-flex align-items-center gap-3 mb-3">
@@ -194,7 +287,7 @@
     </div>
 
     {{-- Total Pelaksanaan --}}
-    <div class="col-6 col-lg-3">
+    <div class="{{ $kpiColClass }}">
         <div class="card kpi-card shadow-sm p-3">
             <div class="kpi-stripe bg-success"></div>
             <div class="d-flex align-items-center gap-3 mb-3">
@@ -212,48 +305,50 @@
         </div>
     </div>
 
-    {{-- Rencana Disetujui --}}
+    {{-- UPT Aktif (Hanya untuk BBKHIT & PUSAT) --}}
+    @if(!Auth::user()->isBkhit())
     <div class="col-6 col-lg-3">
         <div class="card kpi-card shadow-sm p-3">
             <div class="kpi-stripe bg-warning"></div>
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="kpi-icon" style="background:#fffbeb;">
-                    <i class="ti ti-circle-check text-warning"></i>
+                    <i class="ti ti-building-community text-warning"></i>
                 </div>
-                <div class="text-muted small fw-semibold">Rencana Disetujui</div>
+                <div class="text-muted small fw-semibold">UPT Aktif</div>
             </div>
             <div class="kpi-number text-dark">{{ number_format($totalUptAktif) }}</div>
             <div class="mt-2">
                 <span class="kpi-trend" style="background:#fffbeb;color:#ca8a04;">
-                    <i class="ti ti-star"></i> Aktif & Berjalan
+                    <i class="ti ti-flask"></i> UPT Melakukan Uji
                 </span>
             </div>
         </div>
     </div>
+    @endif
 
-    {{-- Perencanaan Disetujui --}}
-    <div class="col-6 col-lg-3">
+    {{-- Positif Terdeteksi --}}
+    <div class="{{ $kpiColClass }}">
         <div class="card kpi-card shadow-sm p-3">
-            <div class="kpi-stripe bg-purple"></div>
+            <div class="kpi-stripe bg-danger"></div>
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="kpi-icon" style="background:#f5f3ff;">
-                    <i class="ti ti-checkbox text-purple"></i>
+                <div class="kpi-icon" style="background:#fef2f2;">
+                    <i class="ti ti-alert-triangle text-danger"></i>
                 </div>
-                <div class="text-muted small fw-semibold">Rencana Disetujui</div>
+                <div class="text-muted small fw-semibold">Positif Terdeteksi</div>
             </div>
-            <div class="kpi-number text-dark">{{ number_format($totalApproved) }}</div>
+            <div class="kpi-number text-dark">{{ number_format($rekapHasil['positif']) }}</div>
             <div class="mt-2">
-                <span class="kpi-trend" style="background:#f5f3ff;color:#7c3aed;">
-                    <i class="ti ti-check"></i> Approved
+                <span class="kpi-trend" style="background:#fef2f2;color:#dc2626;">
+                    <i class="ti ti-virus"></i> Temuan Penyakit
                 </span>
             </div>
         </div>
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════════════════
-     ZONE 2 — GRAFIK UTAMA (Pelaksanaan Bulanan + Media Pembawa)
-═══════════════════════════════════════════════════════════ --}}
+{{--  
+     ZONE 2   GRAFIK UTAMA (Pelaksanaan Bulanan + Media Pembawa)
+  --}}
 <div class="row g-3 mb-4">
     {{-- Pelaksanaan per Bulan --}}
     <div class="col-lg-7">
@@ -264,12 +359,23 @@
                 </div>
                 <div>
                     <div class="fw-bold text-dark">Pelaksanaan Pemantauan per Bulan</div>
-                    <div class="text-muted small">12 bulan terakhir — semua UPT nasional</div>
+                    <div class="text-muted small">Data bulanan tahun <b>{{ $selectedYear }}</b>   semua UPT nasional</div>
                 </div>
-                <div class="ms-auto badge bg-primary-lt text-primary px-3">Agregat</div>
+                <div class="ms-auto d-flex gap-2">
+                    <select class="form-select form-select-sm border-0 bg-primary-lt text-primary fw-bold" 
+                            style="width: 100px; cursor: pointer;" 
+                            onchange="window.location.href = '{{ route('home') }}?year=' + this.value">
+                        @foreach($availableYears as $year)
+                            <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                    <div class="badge bg-primary-lt text-primary px-3 d-none d-md-flex align-items-center">Agregat</div>
+                </div>
             </div>
             <div class="card-body p-3">
-                <canvas id="chartBulan" height="220"></canvas>
+                <div style="min-height: 220px; height: 220px; position: relative;">
+                    <canvas id="chartBulan"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -282,8 +388,8 @@
                     <i class="ti ti-fish text-success"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">Top 5 Media Pembawa</div>
-                    <div class="text-muted small">Komoditas paling banyak dipantau</div>
+                    <div class="fw-bold text-dark">Media Pembawa</div>
+                    <div class="text-muted small">Media Pembawa paling banyak dipantau</div>
                 </div>
             </div>
             <div class="card-body p-4">
@@ -310,7 +416,7 @@
                     @endforeach
                 @else
                     <div class="empty-state py-4">
-                        <div class="empty-state-icon">🐟</div>
+                        <div class="empty-state-icon"> </div>
                         <p>Belum ada data media pembawa</p>
                     </div>
                 @endif
@@ -319,9 +425,9 @@
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════════════════
-     ZONE 3 — Mixed: Jenis Penyakit + Status + Top UPT
-═══════════════════════════════════════════════════════════ --}}
+{{--  
+     ZONE 3   Mixed: Jenis Penyakit + Status + Top UPT
+  --}}
 <div class="row g-3 mb-4">
     {{-- Jenis Penyakit / HPIK Chart --}}
     <div class="col-lg-5">
@@ -331,17 +437,19 @@
                     <i class="ti ti-virus text-danger"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">Distribusi Jenis HPIK</div>
-                    <div class="text-muted small">Penyakit paling sering dipantau</div>
+                    <div class="fw-bold text-dark">HPIK Terdeteksi</div>
+                    <div class="text-muted small">Jenis penyakit paling banyak ditemukan</div>
                 </div>
             </div>
-            <div class="card-body p-3 d-flex align-items-center justify-content-center">
+            <div class="card-body p-3">
                 @if(count($chartHpikLabels) > 0)
-                    <canvas id="chartHpik" style="max-height:260px;"></canvas>
+                    <div style="min-height: 300px; height: 300px; position: relative;">
+                        <canvas id="chartHpik"></canvas>
+                    </div>
                 @else
-                    <div class="empty-state py-4">
-                        <div class="empty-state-icon">🦠</div>
-                        <p>Belum ada data jenis HPIK</p>
+                    <div class="empty-state py-4 text-center">
+                        <div class="empty-state-icon" style="font-size: 2.5rem;"> </div>
+                        <p class="text-muted">Belum ada data penyakit terdeteksi</p>
                     </div>
                 @endif
             </div>
@@ -360,12 +468,14 @@
                     <div class="text-muted small">Proporsi nasional</div>
                 </div>
             </div>
-            <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center gap-3">
-                <canvas id="chartStatus" style="max-height:180px;"></canvas>
+            <div class="card-body p-3">
+                <div style="min-height: 180px; height: 180px; position: relative; margin-bottom: 1rem;">
+                    <canvas id="chartStatus"></canvas>
+                </div>
                 <div class="w-100">
                     @foreach($statusCounts as $label => $count)
                     @php
-                        $dotColor = $label === 'Draft' ? '#64748b' : ($label === 'Menunggu' ? '#f59e0b' : '#22c55e');
+                        $dotColor = $label === 'Draft' ? '#64748b' : ($label === 'Menunggu' ? '#94a3b8' : '#22c55e');
                     @endphp
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="d-flex align-items-center gap-2 small">
@@ -388,20 +498,20 @@
                     <i class="ti ti-trophy text-warning"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">Top UPT Aktif</div>
-                    <div class="text-muted small">Berdasarkan rencana disetujui</div>
+                    <div class="fw-bold text-dark">UPT Aktif</div>
+                    <div class="text-muted small">Berdasarkan hasil uji selesai</div>
                 </div>
             </div>
             <div class="card-body px-4 py-3">
                 @if($topUpt->isEmpty())
                     <div class="empty-state py-4">
-                        <div class="empty-state-icon">🏅</div>
+                        <div class="empty-state-icon"> </div>
                         <p>Belum ada data UPT</p>
                     </div>
                 @else
                     @php
                         $rankColors = ['#f59e0b','#94a3b8','#cd7f32','#64748b','#64748b'];
-                        $rankLabels = ['🥇','🥈','🥉','4','5'];
+                        $rankLabels = [' ',' ',' ','4','5'];
                     @endphp
                     @foreach($topUpt as $i => $upt)
                     <div class="upt-rank-item">
@@ -421,9 +531,9 @@
     </div>
 </div>
 
-{{-- ═══════════════════════════════════════════════════════════
-     ZONE 4 — PETA PEMANTAUAN (Hanya Admin Pusat)
-═══════════════════════════════════════════════════════════ --}}
+{{--  
+     ZONE 4   PETA PEMANTAUAN (Hanya Admin Pusat)
+  --}}
 @if(Auth::user()->isPusat())
 <div class="card chart-card shadow-sm mb-4">
     <div class="card-header d-flex align-items-center gap-2">
@@ -435,6 +545,10 @@
             <div class="text-muted small">Titik lokasi pelaksanaan pemantauan seluruh Indonesia</div>
         </div>
         <div class="ms-auto d-flex gap-2 align-items-center">
+            <div class="form-check form-switch m-0 me-3">
+                <input class="form-check-input" type="checkbox" id="toggleHeatmap">
+                <label class="form-check-label small fw-bold text-danger" for="toggleHeatmap">  Heatmap Penyakit</label>
+            </div>
             <span class="badge bg-blue-lt text-blue px-3">
                 <i class="ti ti-map-pin me-1"></i>{{ $petaData->count() }} titik
             </span>
@@ -444,9 +558,9 @@
 </div>
 @endif
 
-{{-- ═══════════════════════════════════════════════════════════
-     ZONE 5 — DASAR HUKUM + ALUR PEMANTAUAN
-═══════════════════════════════════════════════════════════ --}}
+{{--  
+     ZONE 5   DASAR HUKUM + ALUR PEMANTAUAN
+  --}}
 <div class="row g-3">
     {{-- Aktivitas Terbaru --}}
     <div class="col-lg-8">
@@ -466,7 +580,7 @@
                         <tr>
                             <th>Tgl Pelaksanaan</th>
                             @if(!Auth::user()->isBkhit()) <th>UPT</th> @endif
-                            <th>Lokasi / Komoditas</th>
+                            <th>Lokasi / Media Pembawa</th>
                             <th>Status Lab</th>
                         </tr>
                     </thead>
@@ -474,12 +588,12 @@
                         @forelse($aktivitasTerbaru as $akt)
                         <tr>
                             <td class="text-nowrap">
-                                <div>{{ $akt->tanggal_pemantauan ? \Carbon\Carbon::parse($akt->tanggal_pemantauan)->format('d M Y') : '—' }}</div>
+                                <div>{{ $akt->tanggal_pemantauan ? \Carbon\Carbon::parse($akt->tanggal_pemantauan)->format('d M Y') : ' ' }}</div>
                                 <div class="text-muted small">{{ $akt->created_at->diffForHumans() }}</div>
                             </td>
                             @if(!Auth::user()->isBkhit())
                             <td>
-                                <div class="fw-semibold">{{ $akt->perencanaan?->user?->name ?? '—' }}</div>
+                                <div class="fw-semibold">{{ $akt->perencanaan?->user?->name ?? ' ' }}</div>
                             </td>
                             @endif
                             <td>
@@ -503,58 +617,51 @@
         </div>
     </div>
 
-    {{-- Menunggu Tindakan --}}
+    {{-- Rekap Hasil Uji Lab --}}
     <div class="col-lg-4">
         <div class="card chart-card shadow-sm h-100">
              <div class="card-header d-flex align-items-center gap-2" style="background:transparent;">
-                <div class="chart-header-icon" style="background:#fdf2f8;">
-                    <i class="ti ti-bell-ringing text-pink"></i>
+                <div class="chart-header-icon" style="background:#f1f5f9;">
+                    <i class="ti ti-flask text-primary"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">Menunggu Tindakan</div>
-                    <div class="text-muted small">Action Required</div>
+                    <div class="fw-bold text-dark">Rekap Hasil Uji Lab</div>
+                    <div class="text-muted small">Cakupan: <b>{{ Auth::user()->isBkhit() ? 'Unit Pelaksana' : (Auth::user()->isBbkhit() ? 'Regional' : 'Nasional Agregat') }}</b></div>
                 </div>
             </div>
             <div class="card-body p-4 d-flex flex-column justify-content-center gap-3">
-                @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
-                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#fffbeb; border:1px solid #fde68a;">
+                {{-- Positif --}}
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#fef2f2; border:1px solid #fee2e2;">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:42px;height:42px;background:#f59e0b;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
-                            <i class="ti ti-file-certificate fs-3"></i>
+                        <div style="width:42px;height:42px;background:#ef4444;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                            <i class="ti ti-alert-octagon fs-3"></i>
                         </div>
                         <div>
-                            <div class="fw-bold text-dark" style="font-size:1.1rem;">{{ $menungguApproval }}</div>
-                            <div class="text-muted" style="font-size:0.8rem;">Rencana Butuh Approval</div>
+                            <div class="fw-bold text-danger" style="font-size:1.1rem;">{{ number_format($rekapHasil['positif']) }}</div>
+                            <div class="text-muted" style="font-size:0.8rem;">Positif Penyakit</div>
                         </div>
                     </div>
-                    @if($menungguApproval > 0)
-                        <a href="{{ route('perencanaan.index') }}" class="btn btn-sm btn-warning">Cek Data</a>
-                    @endif
+                    <span class="badge bg-danger-lt px-2">High Risk</span>
                 </div>
-                @endif
                 
-                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#eff6ff; border:1px solid #bfdbfe;">
+                {{-- Negatif --}}
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f0fdf4; border:1px solid #dcfce7;">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width:42px;height:42px;background:#3b82f6;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
-                            <i class="ti ti-flask fs-3"></i>
+                        <div style="width:42px;height:42px;background:#22c55e;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;">
+                            <i class="ti ti-shield-check fs-3"></i>
                         </div>
                         <div>
-                            <div class="fw-bold text-dark" style="font-size:1.1rem;">{{ $menungguLab }}</div>
-                            <div class="text-muted" style="font-size:0.8rem;">Lab Belum Diisi</div>
+                            <div class="fw-bold text-success" style="font-size:1.1rem;">{{ number_format($rekapHasil['negatif']) }}</div>
+                            <div class="text-muted" style="font-size:0.8rem;">Nihil (Negatif)</div>
                         </div>
                     </div>
-                    @if($menungguLab > 0)
-                        <a href="{{ route('pelaksanaan.index') }}" class="btn btn-sm btn-primary">Isi Lab</a>
-                    @endif
+                    <span class="badge bg-success-lt px-2">Safe</span>
                 </div>
                 
-                @if($menungguApproval == 0 && $menungguLab == 0)
-                <div class="text-center p-3">
-                    <div class="text-success mb-2" style="font-size:2rem;">🎉</div>
-                    <div class="fw-semibold text-dark">Semoga harimu menyenangkan!</div>
-                    <div class="text-muted small">Tidak ada antrian tindakan saat ini.</div>
+                <div class="mt-2 pt-3 border-top d-flex justify-content-between align-items-center">
+                    <div class="text-muted small fw-bold">TOTAL SAMPEL DIUJI</div>
+                    <div class="h3 mb-0 fw-extrabold text-primary">{{ number_format($rekapHasil['total']) }}</div>
                 </div>
-                @endif
             </div>
         </div>
     </div>
@@ -565,14 +672,15 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════
+//  
 // Chart.js Global Styling
-// ═══════════════════════════════════════════════════════════════
+//  
 Chart.defaults.font.family = "'Inter', 'Geist', system-ui, sans-serif";
 Chart.defaults.color = '#64748b';
 
-// ── 1. Grafik Pelaksanaan per Bulan (Bar) ──────────────────────
+//   1. Grafik Pelaksanaan per Bulan (Bar)  
 const ctxBulan = document.getElementById('chartBulan');
 if (ctxBulan) {
     new Chart(ctxBulan, {
@@ -582,12 +690,7 @@ if (ctxBulan) {
             datasets: [{
                 label: 'Pelaksanaan',
                 data: @json($chartBulanData),
-                backgroundColor: (ctx) => {
-                    const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 300);
-                    g.addColorStop(0, 'rgba(59,130,246,0.85)');
-                    g.addColorStop(1, 'rgba(99,102,241,0.4)');
-                    return g;
-                },
+                backgroundColor: 'rgba(59,130,246,0.8)',
                 borderRadius: 8,
                 borderSkipped: false,
                 hoverBackgroundColor: '#3b82f6',
@@ -595,7 +698,7 @@ if (ctxBulan) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -628,7 +731,7 @@ if (ctxBulan) {
     });
 }
 
-// ── 2. Jenis HPIK (Polar Area / Donut) ────────────────────────
+//   2. Jenis HPIK (Polar Area / Donut)  
 const ctxHpik = document.getElementById('chartHpik');
 if (ctxHpik) {
     const hpikColors = [
@@ -636,25 +739,23 @@ if (ctxHpik) {
         '#10b981','#3b82f6','#8b5cf6','#ec4899'
     ];
     new Chart(ctxHpik, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: @json($chartHpikLabels),
             datasets: [{
+                label: 'Jumlah Terdeteksi',
                 data: @json($chartHpikData),
                 backgroundColor: hpikColors,
-                borderWidth: 2,
-                borderColor: '#fff',
-                hoverOffset: 8,
+                borderRadius: 6,
+                borderSkipped: false,
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
-            cutout: '55%',
+            maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { font: { size: 11 }, padding: 10, boxWidth: 12, usePointStyle: true }
-                },
+                legend: { display: false },
                 tooltip: {
                     backgroundColor: '#1e293b',
                     titleColor: '#f8fafc',
@@ -662,12 +763,23 @@ if (ctxHpik) {
                     padding: 12,
                     cornerRadius: 10,
                 }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: { stepSize: 1, font: { size: 10 } }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10, weight: 'bold' } }
+                }
             }
         }
     });
 }
 
-// ── 3. Status Perencanaan (Donut kecil) ────────────────────────
+//   3. Status Perencanaan (Donut kecil)  
 const ctxStatus = document.getElementById('chartStatus');
 if (ctxStatus) {
     new Chart(ctxStatus, {
@@ -676,7 +788,7 @@ if (ctxStatus) {
             labels: @json(array_keys($statusCounts)),
             datasets: [{
                 data: @json(array_values($statusCounts)),
-                backgroundColor: ['#94a3b8','#f59e0b','#22c55e'],
+                backgroundColor: ['#64748b','#94a3b8','#22c55e'],
                 borderWidth: 2,
                 borderColor: '#fff',
                 hoverOffset: 6,
@@ -684,6 +796,7 @@ if (ctxStatus) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             cutout: '65%',
             plugins: {
                 legend: { display: false },
@@ -697,36 +810,47 @@ if (ctxStatus) {
     });
 }
 
-// ═══════════════════════════════════════════════════════════════
+//  
 // PETA LEAFLET
-// ═══════════════════════════════════════════════════════════════
+//  
 const mapEl = document.getElementById('map-dashboard');
 if (mapEl) {
+    const petaData = @json($petaData);
+    const dominantProvinsi = @json($dominantProvinsi);
+    const heatmapPoints = @json($heatmapData);
+
     const map = L.map('map-dashboard', {
         center: [-2.5, 118],
         zoom: 5,
         zoomControl: true,
+        maxBounds: [[-15, 90], [15, 150]],
+        minZoom: 4
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd', maxZoom: 19
-    }).addTo(map);
+    const baseLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19
+    });
+    const baseLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19, pane: 'shadowPane'
+    });
+    baseLight.addTo(map);
+    baseLabels.addTo(map);
 
-    const petaData = @json($petaData);
-    const dominantProvinsi = @json($dominantProvinsi ?? []);
+    // 1. Heatmap Layer
+    const heatLayer = L.heatLayer(heatmapPoints, {
+        radius: 25, blur: 15, maxZoom: 10,
+        gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
+    });
 
-    // ── Overlay GeoJSON 38 Provinsi Indonesia ────────────────────────
-    fetch('https://raw.githubusercontent.com/ardian28/GeoJson-Indonesia-38-Provinsi/master/Provinsi/38%20Provinsi%20Indonesia%20-%20Provinsi.json')
+    // 2. GeoJSON Provinsi dengan Tooltip Dominan
+    fetch('https://raw.githubusercontent.com/anshori/indonesia-geojson/master/indonesia.geojson')
         .then(res => res.json())
         .then(data => {
             L.geoJSON(data, {
                 style: function(feature) {
-                    // property key dari dataset ardian28 adalah "PROVINSI"
                     let provName = (feature.properties.PROVINSI || '').toUpperCase().trim();
                     let color = 'transparent';
                     let fillOp = 0;
-
                     for (let key in dominantProvinsi) {
                         let bkKey = key.toUpperCase().trim();
                         if (provName === bkKey || provName.includes(bkKey) || bkKey.includes(provName)) {
@@ -735,28 +859,23 @@ if (mapEl) {
                             break;
                         }
                     }
-
-                    return {
-                        fillColor: color,
-                        weight: 1,
-                        opacity: 1,
-                        color: fillOp > 0 ? '#ffffff' : '#cbd5e1',
-                        fillOpacity: fillOp
-                    };
+                    return { fillColor: color, weight: 1, opacity: 1, color: fillOp > 0 ? '#ffffff' : '#cbd5e1', fillOpacity: fillOp };
                 },
                 onEachFeature: function(feature, layer) {
                     let provName = (feature.properties.PROVINSI || '').toUpperCase().trim();
                     let info = '';
-
                     for (let key in dominantProvinsi) {
                         let bkKey = key.toUpperCase().trim();
                         if (provName === bkKey || provName.includes(bkKey) || bkKey.includes(provName)) {
                             let d = dominantProvinsi[key];
-                            info = `<br><span style="font-size:0.8rem;color:#64748b;">Dominan:</span> <b style="color:${d.color}">${d.dominant}</b> (${d.count} Uji Positif)`;
+                            if (d.status === 'nihil') {
+                                info = `<br><span style="font-size:0.8rem;color:#64748b;">Status:</span> <b style="color:#22c55e;">Nihil / Aman</b> (${d.count} uji nihil)`;
+                            } else {
+                                info = `<br><span style="font-size:0.8rem;color:#64748b;">Dominan:</span> <b style="color:${d.color}">${d.dominant}</b> (${d.count} Positif)`;
+                            }
                             break;
                         }
                     }
-
                     if (info !== '') {
                         layer.bindTooltip('<b>' + feature.properties.PROVINSI + '</b>' + info, { sticky: true });
                         layer.on({
@@ -766,59 +885,66 @@ if (mapEl) {
                     }
                 }
             }).addTo(map);
-        })
-        .catch(err => console.error("Error load GeoJSON:", err));
+        });
 
+    // 3. Titik Lokasi (Markers)
+    const markerGroup = L.layerGroup();
     if (petaData.length === 0) {
-        // Tampilkan pesan jika tidak ada titik marker
         const info = L.control({position: 'topright'});
         info.onAdd = () => {
             const div = L.DomUtil.create('div');
-            div.innerHTML = `<div style="background:white;padding:10px 15px;border-radius:10px;
-                box-shadow:0 2px 10px rgba(0,0,0,0.15);font-size:13px;color:#64748b;">
-                📍 Belum ada titik lokasi/marker pengujian masuk.
-            </div>`;
+            div.innerHTML = `<div style="background:white;padding:8px 12px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1);font-size:12px;color:#64748b;">Belum ada titik lokasi pengujian.</div>`;
             return div;
         };
         info.addTo(map);
     } else {
-        const bounds = [];
         petaData.forEach(p => {
-            bounds.push([p.lat, p.lng]);
-            
-            // Map color logic
-            let hex = '#3b82f6'; // default blue
-            if (p.warna === 'hijau') hex = '#22c55e';
-            else if (p.warna === 'kuning') hex = '#eab308';
-            else if (p.warna === 'merah') hex = '#ef4444';
+            let hex = '#3b82f6';
+            if (p.hasil_lab === 'Positif') hex = '#ef4444';
+            else if (p.hasil_lab === 'Negatif') hex = '#22c55e';
+            else if (p.hasil_lab === 'Inkonklusif') hex = '#f59e0b';
+            else if (p.hasil_lab === 'Belum Diuji') hex = '#94a3b8';
 
             const markerIcon = L.divIcon({
-                className: '',
-                html: `<div style="
-                    width:14px;height:14px;border-radius:50%;
-                    background:${hex};border:3px solid #fff;
-                    box-shadow:0 2px 8px ${hex}80;">
-                </div>`,
-                iconSize: [14, 14],
-                iconAnchor: [7, 7],
+                className: 'custom-marker',
+                html: `<div style="width:16px;height:16px;display:flex;align-items:center;justify-content:center;"><div style="width:6px;height:6px;border-radius:50%;background:${hex};box-shadow:0 0 4px ${hex};transition:opacity 0.3s;"></div></div>`,
+                iconSize: [16, 16], iconAnchor: [8, 8]
             });
 
             L.marker([p.lat, p.lng], { icon: markerIcon })
-                .addTo(map)
                 .bindPopup(`
-                    <div style="min-width:200px;font-family:'Inter',sans-serif;">
-                        <div style="font-weight:700;font-size:.95rem;margin-bottom:8px;color:#1e293b;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">
-                            📍 ${p.lokasi}
+                    <div style="min-width:220px;font-family:'Inter',sans-serif;">
+                        <div style="background:${hex};color:white;padding:8px 12px;margin:-1px -1px 0 -1px;border-radius:6px 6px 0 0;font-weight:600;text-align:center;">
+                            ${p.jenis_hpik}
                         </div>
-                        <table style="font-size:.82rem;width:100%;color:#475569;">
-                            <tr><td style="padding:2px 0;color:#94a3b8;">Provinsi</td><td style="padding:2px 0 2px 8px;font-weight:600;">${p.provinsi}</td></tr>
-                            <tr><td style="padding:2px 0;color:#94a3b8;">Komoditas</td><td style="padding:2px 0 2px 8px;font-weight:600;">${p.komoditas}</td></tr>
-                            <tr><td style="padding:2px 0;color:#94a3b8;">UPT</td><td style="padding:2px 0 2px 8px;font-weight:600;">${p.upt}</td></tr>
-                            <tr><td style="padding:2px 0;color:#94a3b8;">Tanggal</td><td style="padding:2px 0 2px 8px;">${p.tanggal}</td></tr>
-                            <tr><td style="padding:2px 0;color:#94a3b8;">Hasil Lab</td><td style="padding:2px 0 2px 8px;"><span class="badge" style="background:${hex};color:#fff;">${p.hasil_lab}</span></td></tr>
-                        </table>
+                        <div style="padding:10px 12px;font-size:13px;line-height:1.7;">
+                            <div><b>  Lokasi:</b> ${p.lokasi || '-'}</div>
+                            <div><b>Wilayah:</b> ${p.kab_kota}, ${p.provinsi}</div>
+                            <div><b>  UPT:</b> ${p.upt}</div>
+                            <div><b>  Tanggal:</b> ${p.tanggal}</div>
+                            <div><b>  Media:</b> ${p.komoditas}</div>
+                            <div><b>  Hasil:</b> <span class="badge" style="background:${hex}; color:white; font-size:11px;">${p.hasil_raw}</span></div>
+                            <a href="/pelaksanaan/${p.id}/detail" class="btn btn-primary btn-sm w-100 mt-2" style="font-size:11px; font-weight:600; color:white;">
+                                <i class="ti ti-eye me-1"></i>Lihat Detail
+                            </a>
+                        </div>
                     </div>
-                `, { maxWidth: 260 });
+                `, { maxWidth: 300 }).addTo(markerGroup);
+        });
+        markerGroup.addTo(map);
+    }
+
+    // 4. Toggle Heatmap Listener
+    const toggleHeatmap = document.getElementById('toggleHeatmap');
+    if (toggleHeatmap) {
+        toggleHeatmap.addEventListener('change', function() {
+            if (this.checked) {
+                heatLayer.addTo(map);
+                document.querySelectorAll('.custom-marker div').forEach(el => el.style.opacity = '0.4');
+            } else {
+                map.removeLayer(heatLayer);
+                document.querySelectorAll('.custom-marker div').forEach(el => el.style.opacity = '1');
+            }
         });
     }
 }
