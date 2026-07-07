@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     <title>@yield('title', 'SIP-HPIK') — Dashboard Pemantauan HPIK</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-instansi.png') }}">
 
     {{-- Tabler CSS --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
