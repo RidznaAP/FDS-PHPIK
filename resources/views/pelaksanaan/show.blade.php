@@ -25,7 +25,7 @@
     <a href="{{ route('perencanaan.show', $item->perencanaan_id) }}" class="btn btn-primary">
         <i class="ti ti-file-text me-2"></i>Lihat Rencana
     </a>
-    @if(Auth::user()->isPusat() || (Auth::user()->id === optional($item->perencanaan)->user_id))
+    @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || (Auth::user()->id === optional($item->perencanaan)->user_id))
     <a href="{{ route('pelaksanaan.edit', $item->id) }}" class="btn btn-warning">
         <i class="ti ti-edit me-2"></i>Edit
     </a>
@@ -384,7 +384,7 @@
                                 <div class="timeline-line position-absolute bg-light" style="width:2px;top:10px;bottom:0;left:-18px;height:40px"></div>
                             </div>
 
-                            @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $item->perencanaan->user_id == Auth::id()))
+                            @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $item->perencanaan->user_id == Auth::id()))
                             <div class="mt-4 pt-4 border-top d-flex gap-2">
                                 <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-warning btn-sm btn-pill px-3">
                                     <i class="ti ti-edit me-1"></i>Edit Hasil Lab
@@ -402,7 +402,7 @@
 
         @else
             {{-- ── BELUM ADA HASIL LAB: Tampilkan form input ── --}}
-            @php $canInputLab = Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat(); @endphp
+            @php $canInputLab = Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper(); @endphp
 
             <div class="card border-0 shadow-sm overflow-hidden">
                 <div class="card-header bg-azure-lt border-bottom d-flex align-items-center gap-3 py-3 px-4">

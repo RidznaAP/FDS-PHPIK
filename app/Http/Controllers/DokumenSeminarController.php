@@ -218,8 +218,8 @@ class DokumenSeminarController extends Controller
         $dok = DokumenSeminar::findOrFail($id);
         $user = Auth::user();
 
-        // Pastikan hanya pemilik atau Pusat yang bisa hapus
-        if (!$user->isPusat() && $dok->user_id !== $user->id) {
+        // Pastikan hanya pemilik, Pusat, atau Developer yang bisa hapus
+        if (!$user->isPusat() && !$user->isDeveloper() && $dok->user_id !== $user->id) {
             abort(403, 'Anda tidak berhak menghapus dokumen ini.');
         }
 

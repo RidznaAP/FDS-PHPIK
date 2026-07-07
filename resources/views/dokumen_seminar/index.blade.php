@@ -249,7 +249,7 @@
                                 <i class="ti {{ $dok->path_file ? 'ti-download' : 'ti-external-link' }} me-1"></i>
                                 {{ $dok->path_file ? 'Unduh' : 'Buka Link' }}
                             </a>
-                            @if(Auth::id() === $dok->user_id || Auth::user()->isPusat())
+                            @if(Auth::id() === $dok->user_id || Auth::user()->isPusat() || Auth::user()->isDeveloper())
                             <button type="button" class="btn btn-sm btn-outline-danger btn-icon" title="Hapus dokumen ini"
                                 onclick="confirmAction('{{ route('seminar.destroy', $dok->id) }}', 'Hapus dokumen \'{{ addslashes($dok->judul) }}\'?', 'DELETE', 'btn-danger')">
                                 <i class="ti ti-trash"></i>

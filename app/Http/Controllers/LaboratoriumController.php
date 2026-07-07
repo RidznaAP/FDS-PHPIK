@@ -284,8 +284,8 @@ class LaboratoriumController extends Controller
         $item = $laboratorium;
         $user = \Illuminate\Support\Facades\Auth::user();
         
-        // Jika bukan Pusat, pastikan pemilik data atau wilayah
-        if (!$user->isPusat()) {
+        // Jika bukan Pusat atau Developer, pastikan pemilik data atau wilayah
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             $owner = $item->pelaksanaan->perencanaan->user ?? null;
             if ($user->isBbkhit()) {
                 if ($item->pelaksanaan->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
@@ -312,8 +312,8 @@ class LaboratoriumController extends Controller
         $query = Laboratorium::whereIn('id', $ids);
 
         $user = \Illuminate\Support\Facades\Auth::user();
-        // Jika bukan Pusat, hanya boleh hapus milik sendiri atau wilayahnya
-        if (!$user->isPusat()) {
+        // Jika bukan Pusat atau Developer, hanya boleh hapus milik sendiri atau wilayahnya
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             if ($user->isBbkhit()) {
                 $childIds = \App\Models\User::where('parent_id', $user->id)->pluck('id')->push($user->id);
                 $query->whereHas('pelaksanaan.perencanaan', fn($q) => $q->whereIn('user_id', $childIds));

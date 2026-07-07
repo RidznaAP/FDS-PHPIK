@@ -534,7 +534,7 @@
 {{--  
      ZONE 4   PETA PEMANTAUAN (Hanya Admin Pusat)
   --}}
-@if(Auth::user()->isPusat())
+@if(Auth::user()->isPusat() || Auth::user()->isDeveloper())
 <div class="card chart-card shadow-sm mb-4">
     <div class="card-header d-flex align-items-center gap-2">
         <div class="chart-header-icon" style="background:#eff6ff;">

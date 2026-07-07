@@ -13,14 +13,15 @@
 @section('content')
 
 @php
-    $totalBkhit  = $users->where('role','bkhit')->count();
-    $totalBbkhit = $users->where('role','bbkhit')->count();
-    $totalPusat  = $users->where('role','pusat')->count();
+    $totalBkhit     = $users->where('role','bkhit')->count();
+    $totalBbkhit    = $users->where('role','bbkhit')->count();
+    $totalPusat     = $users->where('role','pusat')->count();
+    $totalDeveloper = $users->where('role','developer')->count();
 @endphp
 
 {{-- ─── Stat Cards ─────────────────────────────────────────────────── --}}
 <div class="row g-3 mb-4">
-    <div class="col-sm-4">
+    <div class="col-sm-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
@@ -35,7 +36,7 @@
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
@@ -50,7 +51,7 @@
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex align-items-center gap-3 py-3">
                 <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
@@ -62,6 +63,21 @@
                     <div class="h2 mb-0 fw-bold">{{ $totalPusat }}</div>
                 </div>
                 <span class="ms-auto badge bg-purple-lt text-purple px-3">Pusat</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+                <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:44px;height:44px;background:#fee2e2;">
+                    <i class="ti ti-shield-star" style="color:#dc2626;font-size:1.4rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Developer</div>
+                    <div class="h2 mb-0 fw-bold">{{ $totalDeveloper }}</div>
+                </div>
+                <span class="ms-auto badge px-3" style="background:#fee2e2;color:#dc2626;">Super Admin</span>
             </div>
         </div>
     </div>
@@ -79,9 +95,12 @@
         @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
         <select name="role" class="form-select form-select-sm" style="width:160px;" onchange="this.form.submit()">
             <option value="">👥 Semua Role</option>
-            <option value="bkhit"  {{ request('role')=='bkhit'  ? 'selected':'' }}>🟢 BKHIT</option>
-            <option value="bbkhit" {{ request('role')=='bbkhit' ? 'selected':'' }}>🟡 BBKHIT</option>
-            <option value="pusat"  {{ request('role')=='pusat'  ? 'selected':'' }}>🟣 Pusat</option>
+            <option value="bkhit"     {{ request('role')=='bkhit'     ? 'selected':'' }}>🟢 BKHIT</option>
+            <option value="bbkhit"    {{ request('role')=='bbkhit'    ? 'selected':'' }}>🟡 BBKHIT</option>
+            <option value="pusat"     {{ request('role')=='pusat'     ? 'selected':'' }}>🟣 Pusat</option>
+            @if(auth()->user()->isDeveloper())
+            <option value="developer" {{ request('role')=='developer' ? 'selected':'' }}>🔴 Developer</option>
+            @endif
         </select>
         @if(request('search') || request('role'))
             <a href="{{ route('users.index') }}" class="btn btn-sm btn-outline-secondary">
@@ -155,7 +174,9 @@
                     </td>
                     <td class="text-muted small">{{ $u->email }}</td>
                     <td>
-                        @if($u->role === 'bkhit')
+                        @if($u->role === 'developer')
+                            <span class="badge px-2" style="background:#fee2e2;color:#dc2626;">🔴 Developer</span>
+                        @elseif($u->role === 'bkhit')
                             <span class="badge bg-success-lt text-success px-2">🟢 BKHIT</span>
                         @elseif($u->role === 'bbkhit')
                             <span class="badge bg-warning-lt text-warning px-2">🟡 BBKHIT</span>
@@ -179,20 +200,34 @@
                     <td class="text-muted small">{{ $u->created_at->format('d M Y') }}</td>
                     <td>
                         <div class="d-flex gap-1">
-                            @if($u->role !== 'pusat')
-                            <a href="{{ route('users.edit', $u->id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Edit data">
-                                <i class="ti ti-pencil"></i>
-                            </a>
+                            {{-- Developer tidak bisa diedit/dihapus dari UI --}}
+                            @if($u->role !== 'developer')
+                                @if($u->role !== 'pusat' || auth()->user()->isDeveloper())
+                                <a href="{{ route('users.edit', $u->id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Edit data">
+                                    <i class="ti ti-pencil"></i>
+                                </a>
+                                @endif
                             @endif
+                            @if($u->role !== 'developer')
                             <button class="btn btn-sm btn-outline-primary btn-icon" title="Reset password"
                                 data-bs-toggle="modal" data-bs-target="#resetModal{{ $u->id }}">
                                 <i class="ti ti-key"></i>
                             </button>
-                            @if($u->role !== 'pusat')
+                            @endif
+                            @if($u->role !== 'pusat' && $u->role !== 'developer')
                             <button type="button" class="btn btn-sm btn-outline-danger btn-icon" title="Hapus akun"
                                 onclick="confirmAction(
                                     '{{ route('users.destroy', $u->id) }}',
                                     'Akun &quot;{{ $u->upt_asal ?? $u->name }}&quot; akan dihapus permanen.',
+                                    'DELETE', 'btn-danger'
+                                )">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                            @elseif($u->role === 'pusat' && auth()->user()->isDeveloper())
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-icon" title="Hapus akun Pusat"
+                                onclick="confirmAction(
+                                    '{{ route('users.destroy', $u->id) }}',
+                                    'Akun Admin Pusat &quot;{{ $u->name }}&quot; akan dihapus permanen.',
                                     'DELETE', 'btn-danger'
                                 )">
                                 <i class="ti ti-trash"></i>

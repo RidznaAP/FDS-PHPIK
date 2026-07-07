@@ -79,6 +79,24 @@
                                         </div>
                                     </label>
                                 </div>
+                                @if(auth()->user()->isDeveloper())
+                                <div class="col-6">
+                                    <label class="form-selectgroup-item flex-fill">
+                                        <input type="radio" name="role" value="pusat"
+                                            class="form-selectgroup-input"
+                                            {{ old('role') === 'pusat' ? 'checked' : '' }}>
+                                        <div class="form-selectgroup-label d-flex align-items-center p-3">
+                                            <div class="me-3">
+                                                <span class="form-selectgroup-check"></span>
+                                            </div>
+                                            <div>
+                                                <span class="form-selectgroup-title fw-bold d-block" style="color:#7c3aed;">Admin Pusat</span>
+                                                <span class="text-muted small">Kelola sistem & validasi nasional</span>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                @endif
                             </div>
                             @error('role')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>

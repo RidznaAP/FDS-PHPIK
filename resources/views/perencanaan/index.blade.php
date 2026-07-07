@@ -9,7 +9,7 @@
         <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-success">
             <i class="ti ti-download me-1"></i> Ekspor Excel
         </a>
-        @if(Auth::user()->isPusat())
+        @if(Auth::user()->isPusat() || Auth::user()->isDeveloper())
         <a href="{{ route('perencanaan.template') }}" class="btn btn-outline-info">
             <i class="ti ti-file-download me-1"></i> Unduh Template
         </a>
@@ -17,7 +17,7 @@
             <i class="ti ti-upload me-1"></i> Impor Excel
         </button>
         @endif
-        @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
+        @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper())
             <a href="{{ route('perencanaan.create') }}" class="btn btn-primary d-none d-sm-inline-flex">
                 <i class="ti ti-plus me-1"></i> Perencanaan Baru
             </a>
@@ -277,7 +277,7 @@
                             </a>
 
                             {{-- Edit (Pusat atau pemilik saat Draft/Rejected) --}}
-                            @if(Auth::user()->isPusat() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
+                            @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
                                 <a href="{{ route('perencanaan.edit', $p->id) }}"
                                    class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Edit Perencanaan">
@@ -286,7 +286,7 @@
                             @endif
 
                             {{-- Hapus (Pusat atau pemilik saat Draft/Rejected) --}}
-                            @if(Auth::user()->isPusat() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
+                            @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger"
                                         data-bs-toggle="tooltip" title="Hapus Data"
@@ -296,7 +296,7 @@
                             @endif
 
                             {{-- Ajukan Validasi (pemilik atau Pusat, status draft/rejected) --}}
-                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat()) && in_array($p->status, ['draft', 'rejected']))
+                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && in_array($p->status, ['draft', 'rejected']))
                                 <button type="button"
                                         class="btn btn-sm btn-warning"
                                         data-bs-toggle="tooltip" title="Ajukan Validasi ke BBKHIT"
@@ -306,7 +306,7 @@
                             @endif
 
                             {{-- Input Lapangan (pemilik atau Pusat, status approved) --}}
-                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat()) && $p->status === 'approved')
+                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'approved')
                                 <a href="{{ route('pelaksanaan.create', $p->id) }}"
                                    class="btn btn-sm btn-primary"
                                    data-bs-toggle="tooltip" title="Input Data Lapangan">
@@ -315,7 +315,7 @@
                             @endif
 
                             {{-- Setujui (BBKHIT/Pusat, status waiting) --}}
-                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'waiting')
+                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'waiting')
                                 <button type="button"
                                         class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Setujui Perencanaan Ini"
@@ -325,7 +325,7 @@
                             @endif
 
                             {{-- Setujui Langsung (Pusat, status draft) --}}
-                            @if(Auth::user()->isPusat() && $p->status === 'draft')
+                            @if((Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'draft')
                                 <button type="button"
                                         class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Setujui Langsung (Pusat)"
@@ -335,7 +335,7 @@
                             @endif
 
                             {{-- Badge Selesai --}}
-                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->evaluasi && $p->status !== 'waiting')
+                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->evaluasi && $p->status !== 'waiting')
                                 <span class="badge bg-green-lt text-green fw-bold" data-bs-toggle="tooltip" title="Evaluasi Selesai">
                                     <i class="ti ti-circle-check"></i>
                                 </span>
@@ -350,7 +350,7 @@
                             <div class="empty-state-icon">📋</div>
                             <h4>Belum Ada Data Perencanaan</h4>
                             <p>Belum ada rencana pemantauan HPIK yang tersimpan sesuai filter yang dipilih.</p>
-                            @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat())
+                            @if(Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper())
                                 <a href="{{ route('perencanaan.create') }}" class="btn btn-primary btn-pill px-4">
                                     <i class="ti ti-plus me-2"></i>Buat Perencanaan Baru
                                 </a>

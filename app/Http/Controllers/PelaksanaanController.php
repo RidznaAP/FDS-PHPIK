@@ -92,7 +92,7 @@ class PelaksanaanController extends Controller
         $rencana = $perencanaan->load('user');
 
         // ── Auth-scoped Check ──────────────────────────────────────
-        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat()) {
+        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat() && !$user->isDeveloper()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -140,8 +140,8 @@ class PelaksanaanController extends Controller
         $user = Auth::user();
         $item = $pelaksanaan->load(['perencanaan.user']);
 
-        // Auth check: only owner or Pusat can edit
-        if (!$user->isPusat()) {
+        // Auth check: only owner, Pusat, or Developer can edit
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
                 abort(403, 'Anda tidak memiliki akses untuk mengedit data ini.');
             }
@@ -157,7 +157,7 @@ class PelaksanaanController extends Controller
         $user = Auth::user();
 
         // Auth check
-        if (!$user->isPusat()) {
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
                 abort(403);
             }
@@ -219,7 +219,7 @@ class PelaksanaanController extends Controller
         $user = Auth::user();
         $rencana = Perencanaan::with('user')->findOrFail($request->perencanaan_id);
 
-        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat()) {
+        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat() && !$user->isDeveloper()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -252,9 +252,9 @@ class PelaksanaanController extends Controller
     {
         $item = $pelaksanaan;
         
-        // Jika bukan Pusat, pastikan pemilik data atau wilayah
+        // Jika bukan Pusat atau Developer, pastikan pemilik data atau wilayah
         $user = Auth::user();
-        if (!$user->isPusat()) {
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             $owner = $item->perencanaan->user ?? null;
             if ($user->isBbkhit()) {
                 if ($item->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
@@ -286,8 +286,8 @@ class PelaksanaanController extends Controller
         $query = Pelaksanaan::whereIn('id', $ids);
 
         $user = Auth::user();
-        // Jika bukan Pusat, hanya boleh hapus milik sendiri (Berangkat dari Perencanaan)
-        if (!$user->isPusat()) {
+        // Jika bukan Pusat atau Developer, hanya boleh hapus milik sendiri
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             if ($user->isBbkhit()) {
                 $childIds = \App\Models\User::where('parent_id', $user->id)->pluck('id')->push($user->id);
                 $query->whereHas('perencanaan', fn($q) => $q->whereIn('user_id', $childIds));

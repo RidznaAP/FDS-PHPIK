@@ -138,7 +138,7 @@
                         </li>
 
                         {{-- 5. Export Data / Laporan & Ekspor --}}
-                        @if(Auth::user()->isPusat())
+                        @if(Auth::user()->isPusat() || Auth::user()->isDeveloper())
                         <li class="nav-item {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}">
                             <a class="nav-link dropdown-toggle {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}"
                                href="#exportDataSubmenu" data-bs-toggle="collapse"
@@ -179,10 +179,17 @@
                         {{-- Manajemen Akun & Master Data --}}
                         @php $user = Auth::user(); @endphp
                         
-                        {{-- ADMIN Section Header — hanya Pusat --}}
-                        @if($user->isPusat())
+                        {{-- ADMIN Section Header — Pusat & Developer --}}
+                        @if($user->isPusat() || $user->isDeveloper())
                             <li class="nav-item mt-2">
-                                <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">ADMIN</span>
+                                @if($user->isDeveloper())
+                                    <span class="nav-link-title" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem; display:flex; align-items:center; gap:6px;">
+                                        <span style="color:#f87171;">SUPER ADMIN</span>
+                                        <span style="background:#dc2626;color:#fff;font-size:0.5rem;padding:1px 5px;border-radius:4px;letter-spacing:0.05em;">DEV</span>
+                                    </span>
+                                @else
+                                    <span class="nav-link-title text-muted" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; padding: 0.5rem 0.75rem;">ADMIN</span>
+                                @endif
                             </li>
                         @endif
 
@@ -201,8 +208,8 @@
                             </a>
                         </li>
 
-                        {{-- Manajemen Akun — hanya Pusat --}}
-                        @if($user->isPusat())
+                        {{-- Manajemen Akun — Pusat & Developer --}}
+                        @if($user->isPusat() || $user->isDeveloper())
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->is('pengguna*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                                     <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -213,8 +220,8 @@
                             </li>
                         @endif
 
-                        {{-- Master Data — hanya Pusat --}}
-                        @if($user->isPusat())
+                        {{-- Master Data — Pusat & Developer --}}
+                        @if($user->isPusat() || $user->isDeveloper())
                             <li class="nav-item dropdown {{ request()->is('master*') ? 'active' : '' }}">
                                 <a class="nav-link dropdown-toggle {{ request()->is('master*') ? 'active' : '' }}"
                                    href="#masterSubmenu" data-bs-toggle="collapse"
@@ -267,7 +274,7 @@
                     <div class="mt-auto border-top pt-3 pb-3 px-3" style="border-color: rgba(255,255,255,0.06) !important;">
                         
                         {{-- Notification badge for BBKHIT/Pusat --}}
-                        @if(Auth::user()->isBbkhit() || Auth::user()->isPusat())
+                        @if(Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper())
                             @php
                                 $pendingApprovalCount = \App\Models\Perencanaan::where('status', 'submitted')->count();
                             @endphp

@@ -147,13 +147,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/pdf', [\App\Http\Controllers\LaporanController::class, 'exportPdf'])->name('laporan.pdf');
     Route::get('/laporan/formulir', [\App\Http\Controllers\LaporanController::class, 'exportFormulir'])->name('laporan.formulir');
 
-    // --- Audit Log (Pusat) ---
-    Route::middleware('role:pusat')->group(function () {
+    // --- Audit Log (Pusat & Developer) ---
+    Route::middleware('role:pusat,developer')->group(function () {
         Route::get('/pengaturan/audit-log', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit.index');
     });
 
-    // --- Manajemen Pengguna (hanya Pusat) ---
-    Route::middleware('role:pusat')->group(function () {
+    // --- Manajemen Pengguna (Pusat & Developer) ---
+    Route::middleware('role:pusat,developer')->group(function () {
         Route::get('/pengguna', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/pengguna/buat', [UserManagementController::class, 'create'])->name('users.create');
         Route::post('/pengguna/simpan', [UserManagementController::class, 'store'])->name('users.store');
@@ -164,8 +164,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/pengguna/update/{id}', [UserManagementController::class, 'update'])->name('users.update');
     });
 
-    // --- Master Data (hanya Pusat) ---
-    Route::middleware('role:pusat')->group(function () {
+    // --- Master Data (Pusat & Developer) ---
+    Route::middleware('role:pusat,developer')->group(function () {
         // Media Pembawa Actions
         Route::get('master/media-pembawa/export', [\App\Http\Controllers\MediaPembawaController::class, 'export'])->name('master.media-pembawa.export');
         Route::get('master/media-pembawa/template', [\App\Http\Controllers\MediaPembawaController::class, 'downloadTemplate'])->name('master.media-pembawa.template');

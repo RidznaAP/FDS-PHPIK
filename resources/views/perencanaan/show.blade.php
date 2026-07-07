@@ -19,7 +19,7 @@
     <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-secondary">
         <i class="ti ti-arrow-left me-2"></i>Kembali
     </a>
-    @if(($p->status === 'draft' || $p->status === 'rejected') && (Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat()))
+    @if(($p->status === 'draft' || $p->status === 'rejected') && (Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
     <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary">
         <i class="ti ti-edit me-2"></i>Edit
     </a>
@@ -27,7 +27,7 @@
         <i class="ti ti-send me-1"></i>Ajukan
     </button>
     @endif
-    @if($p->status === 'waiting' && (Auth::user()->isBbkhit() || Auth::user()->isPusat()))
+    @if($p->status === 'waiting' && (Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
     <button type="button" class="btn btn-danger" onclick="confirmAction('{{ route('perencanaan.reject', $p->id) }}', 'Tolak perencanaan ini? Anda bisa memasukkan alasan nanti.', 'POST', 'btn-danger')">
         <i class="ti ti-x me-1"></i>Tolak
     </button>
@@ -306,7 +306,7 @@
                         </div>
                         <h4 class="fw-bold text-muted">Belum ada realisasi</h4>
                         <p class="text-muted small px-5">Data pengambilan sampel belum tercatat. Hubungi tim lapangan untuk pembaruan data.</p>
-                        @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat()))
+                        @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
                         <div class="mt-4">
                             @if($p->pelaksanaans->count() < $p->target_uji)
                                 <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-outline-primary btn-pill">
@@ -329,7 +329,7 @@
             <div class="d-grid gap-2 mb-4">
 
                 {{-- BKHIT/BBKHIT/Pusat: Submit jika masih draft atau ditolak --}}
-                @if(($p->status === 'draft' || $p->status === 'rejected') && ($p->user_id === Auth::id() || Auth::user()->isPusat()))
+                @if(($p->status === 'draft' || $p->status === 'rejected') && ($p->user_id === Auth::id() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
                     <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-warning btn-pill w-100 fw-bold border-0 shadow-sm"
@@ -340,7 +340,7 @@
                 @endif
 
                 {{-- BBKHIT/Pusat: Approve/Reject jika sedang waiting --}}
-                @if((Auth::user()->isBbkhit() || Auth::user()->isPusat()) && $p->status === 'waiting')
+                @if((Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'waiting')
                     <div class="d-flex gap-2">
                         <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST" class="w-100">
                             @csrf
@@ -384,7 +384,7 @@
                 @endif
 
                 {{-- Pusat: Setujui Langsung jika masih draft (tanpa perlu submit) --}}
-                @if(Auth::user()->isPusat() && $p->status === 'draft')
+                @if((Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'draft')
                     <div class="alert alert-info border-0 p-3 rounded-3 shadow-sm mb-0" style="background: linear-gradient(135deg, #e0f0ff, #f0f8ff);">
                         <div class="d-flex align-items-center mb-2">
                             <i class="ti ti-shield-check text-primary me-2 fs-5"></i>
@@ -402,7 +402,7 @@
                 @endif
 
                 {{-- BKHIT/BBKHIT/Pusat: Tambah Pelaksanaan jika approved --}}
-                @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat()))
+                @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
                     @if($p->pelaksanaans->count() < $p->target_uji)
                         <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-primary btn-pill w-100 fw-bold border-0 shadow-sm">
                             <i class="ti ti-plus me-2"></i>PELAKSANAAN BARU

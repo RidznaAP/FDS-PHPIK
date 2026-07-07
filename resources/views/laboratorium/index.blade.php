@@ -165,7 +165,7 @@
                             @if($item->laboratorium)
                                 <a href="{{ route('laboratorium.show', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-primary" title="Detail Lab"><i class="ti ti-eye"></i></a>
                                 <a href="{{ route('laboratorium.edit', $item->laboratorium->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="ti ti-pencil"></i></a>
-                                @if(Auth::user()->isPusat())
+                                @if(Auth::user()->isPusat() || Auth::user()->isDeveloper())
                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus"
                                         onclick="confirmAction('{{ route('laboratorium.destroy', $item->laboratorium->id) }}', 'Hapus hasil lab ini?', 'DELETE', 'btn-danger')">
                                         <i class="ti ti-trash"></i>

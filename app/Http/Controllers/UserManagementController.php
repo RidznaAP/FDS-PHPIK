@@ -10,7 +10,7 @@ class UserManagementController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'role:pusat']);
+        $this->middleware(['auth', 'role:pusat,developer']);
     }
 
     // Daftar semua pengguna
@@ -30,10 +30,15 @@ class UserManagementController extends Controller
     // Simpan akun baru
     public function store(Request $request)
     {
+        $isDeveloper = auth()->user()->isDeveloper();
+
+        // Developer bisa membuat akun pusat, pusat hanya bisa membuat bkhit/bbkhit
+        $allowedRoles = $isDeveloper ? 'required|in:bkhit,bbkhit,pusat' : 'required|in:bkhit,bbkhit';
+
         $request->validate([
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email',
-            'role'      => 'required|in:bkhit,bbkhit',
+            'role'      => $allowedRoles,
             'upt_asal'  => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:users,id',
             'password'  => 'required|string|min:8|confirmed',
@@ -52,12 +57,19 @@ class UserManagementController extends Controller
             ->with('success', 'Akun ' . strtoupper($request->role) . ' untuk "' . $request->name . '" berhasil dibuat!');
     }
 
-    // Hapus akun (kecuali pusat sendiri)
+    // Hapus akun
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
+        $user     = User::findOrFail($id);
+        $authUser = auth()->user();
 
-        if ($user->role === 'pusat') {
+        // Tidak ada yang bisa menghapus sesama developer
+        if ($user->isDeveloper()) {
+            return back()->with('error', 'Akun Developer tidak dapat dihapus.');
+        }
+
+        // Pusat tidak bisa dihapus kecuali oleh Developer
+        if ($user->isPusat() && !$authUser->isDeveloper()) {
             return back()->with('error', 'Akun Admin Pusat tidak dapat dihapus.');
         }
 
@@ -68,28 +80,44 @@ class UserManagementController extends Controller
             ->with('success', 'Akun "' . $name . '" berhasil dihapus.');
     }
 
-    // ── #5: Form edit pengguna ──────────────────────────────────────────
+    // ── Form edit pengguna ──────────────────────────────────────────
     public function edit($id)
     {
         $user = User::findOrFail($id);
+
+        // Developer tidak bisa diedit dari UI (keamanan)
+        if ($user->isDeveloper()) {
+            return back()->with('error', 'Akun Developer tidak dapat diedit dari halaman ini.');
+        }
+
         $coordinators = User::where('role', 'bbkhit')->orderBy('name')->get();
         return view('users.edit', compact('user', 'coordinators'));
     }
 
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user     = User::findOrFail($id);
+        $authUser = auth()->user();
+
+        // Developer tidak bisa diedit
+        if ($user->isDeveloper()) {
+            return back()->with('error', 'Akun Developer tidak dapat diedit.');
+        }
+
+        $isDeveloper = $authUser->isDeveloper();
+        // Developer bisa ubah role ke pusat, pusat hanya bisa ke bkhit/bbkhit
+        $allowedRoles = $isDeveloper ? 'required|in:bkhit,bbkhit,pusat' : 'required|in:bkhit,bbkhit';
 
         $request->validate([
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email,' . $id,
-            'role'      => 'required|in:bkhit,bbkhit',
+            'role'      => $allowedRoles,
             'upt_asal'  => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:users,id',
         ]);
 
-        // Pusat tidak bisa diubah role-nya menjadi bukan pusat
-        if ($user->role === 'pusat') {
+        // Pusat tidak bisa diubah role-nya kecuali oleh Developer
+        if ($user->isPusat() && !$isDeveloper) {
             return back()->with('error', 'Akun Admin Pusat tidak dapat diubah rolenya.');
         }
 
@@ -113,7 +141,14 @@ class UserManagementController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::findOrFail($id);
+        $user     = User::findOrFail($id);
+        $authUser = auth()->user();
+
+        // Developer tidak bisa di-reset passwordnya dari UI (keamanan)
+        if ($user->isDeveloper() && !$authUser->isDeveloper()) {
+            return back()->with('error', 'Password Developer tidak dapat direset dari halaman ini.');
+        }
+
         $user->update(['password' => Hash::make($request->password)]);
 
         return back()->with('success', 'Password untuk "' . $user->name . '" berhasil direset.');

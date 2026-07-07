@@ -10,9 +10,9 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        // Hanya Pusat yang bisa melihat halaman audit log
-        if (!Auth::user()->isPusat()) {
-            abort(403, 'Akses ditolak. Fitur ini khusus untuk Admin Pusat.');
+        // Hanya Pusat dan Developer yang bisa melihat halaman audit log
+        if (!Auth::user()->isPusat() && !Auth::user()->isDeveloper()) {
+            abort(403, 'Akses ditolak. Fitur ini khusus untuk Admin Pusat dan Developer.');
         }
 
         $query = ActivityLog::with('user')->orderBy('created_at', 'desc');

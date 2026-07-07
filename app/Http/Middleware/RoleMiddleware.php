@@ -20,6 +20,12 @@ class RoleMiddleware
         }
 
         $userRole = trim(strtolower(auth()->user()->role));
+
+        // Super Admin bypass — developer selalu lolos tanpa perlu dicek role
+        if ($userRole === 'developer') {
+            return $next($request);
+        }
+
         $allowedRoles = array_map(fn($r) => trim(strtolower($r)), $roles);
 
         if (!in_array($userRole, $allowedRoles)) {

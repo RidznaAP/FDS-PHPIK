@@ -80,8 +80,8 @@ class PerencanaanImport implements ToModel, WithHeadingRow, SkipsOnError, SkipsO
         $user    = Auth::user();
         $ownerId = $user->id;
 
-        // Pusat/BBKHIT bisa import untuk UPT tertentu jika kolom 'upt' diisi
-        if (($user->isPusat() || $user->isBbkhit()) && !empty(trim($row['upt'] ?? ''))) {
+        // Pusat/Developer/BBKHIT bisa import untuk UPT tertentu jika kolom 'upt' diisi
+        if (($user->isPusat() || $user->isDeveloper() || $user->isBbkhit()) && !empty(trim($row['upt'] ?? ''))) {
             $upt = User::where('upt_asal', trim($row['upt']))->where('role', 'bkhit')->first();
             if ($upt) {
                 // BBKHIT hanya untuk wilayahnya

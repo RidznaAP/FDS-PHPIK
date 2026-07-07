@@ -109,8 +109,8 @@ class PerencanaanController extends Controller
         $user  = Auth::user();
         $total = (int) $request->tw1 + (int) $request->tw2 + (int) $request->tw3 + (int) $request->tw4;
 
-        // Force provinsi untuk non-Pusat
-        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?: $request->provinsi);
+        // Force provinsi untuk non-Pusat/non-Developer
+        $provinsi = ($user->isPusat() || $user->isDeveloper()) ? $request->provinsi : ($user->upt_asal ?: $request->provinsi);
 
         Perencanaan::create([
             'user_id'                 => Auth::id(),
@@ -160,7 +160,7 @@ class PerencanaanController extends Controller
         $user  = Auth::user();
         $total = (int) $request->tw1 + (int) $request->tw2 + (int) $request->tw3 + (int) $request->tw4;
 
-        $provinsi = $user->isPusat() ? $request->provinsi : ($user->upt_asal ?: $perencanaan->provinsi);
+        $provinsi = ($user->isPusat() || $user->isDeveloper()) ? $request->provinsi : ($user->upt_asal ?: $perencanaan->provinsi);
 
         $perencanaan->update([
             'provinsi'                => $provinsi,
@@ -255,7 +255,7 @@ class PerencanaanController extends Controller
         $user  = Auth::user();
         $query = Perencanaan::whereIn('id', $ids);
 
-        if (!$user->isPusat()) {
+        if (!$user->isPusat() && !$user->isDeveloper()) {
             $query->where('user_id', Auth::id())->where('status', 'draft');
         }
 
@@ -322,8 +322,8 @@ class PerencanaanController extends Controller
 
         $user = Auth::user();
 
-        // Pusat bisa approve dari status draft langsung (bypass waiting)
-        $allowedStatuses = $user->isPusat() ? ['waiting', 'draft'] : ['waiting'];
+        // Pusat/Developer bisa approve dari status draft langsung (bypass waiting)
+        $allowedStatuses = ($user->isPusat() || $user->isDeveloper()) ? ['waiting', 'draft'] : ['waiting'];
 
         if (!in_array($perencanaan->status, $allowedStatuses)) {
             return back()->with('error', 'Perencanaan tidak bisa disetujui dari status saat ini.');

@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             if (Auth::check()) {
                 $user = Auth::user();
-                if ($user->isBbkhit() || $user->isPusat()) {
+                if ($user->isBbkhit() || $user->isPusat() || $user->isDeveloper()) {
                     $pendingApprovalCount = Perencanaan::where('status', 'waiting')
                         ->when($user->isBbkhit(), function ($q) use ($user) {
                             $q->whereIn('user_id', function ($rq) use ($user) {

@@ -8,11 +8,11 @@ use App\Models\User;
 class PerencanaanPolicy
 {
     /**
-     * Pusat bisa melakukan apapun tanpa pembatasan.
+     * Pusat dan Developer bisa melakukan apapun tanpa pembatasan.
      */
     public function before(User $user, string $ability): bool|null
     {
-        if ($user->isPusat()) {
+        if ($user->isPusat() || $user->isDeveloper()) {
             return true;
         }
         return null;
@@ -85,7 +85,7 @@ class PerencanaanPolicy
      */
     public function approve(User $user, Perencanaan $perencanaan): bool
     {
-        if (!($user->isBbkhit() || $user->isPusat())) {
+        if (!($user->isBbkhit() || $user->isPusat() || $user->isDeveloper())) {
             return false;
         }
 

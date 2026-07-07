@@ -13,7 +13,7 @@
     <a href="{{ route('pelaksanaan.show', $lab->pelaksanaan_id) }}" class="btn btn-primary">
         <i class="ti ti-database-export me-2"></i>Data Lapangan
     </a>
-    @if(Auth::user()->isPusat() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $lab->pelaksanaan->perencanaan->user_id == Auth::id()))
+    @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || Auth::user()->isBbkhit() || (Auth::user()->isBkhit() && $lab->pelaksanaan->perencanaan->user_id == Auth::id()))
     <a href="{{ route('laboratorium.edit', $lab->id) }}" class="btn btn-warning">
         <i class="ti ti-edit me-2"></i>Edit
     </a>

@@ -154,7 +154,7 @@
                         <div class="d-flex gap-1 justify-content-end">
                             <div class="btn-group shadow-sm">
                                 <a href="{{ route('pelaksanaan.show', $item->id) }}" class="btn btn-icon btn-white border-0 text-primary" title="Detail"><i class="ti ti-eye fs-2"></i></a>
-                                @if(Auth::user()->isPusat() || optional($item->perencanaan)->user_id == Auth::id())
+                                @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || optional($item->perencanaan)->user_id == Auth::id())
                                     <a href="{{ route('pelaksanaan.edit', $item->id) }}" class="btn btn-icon btn-white border-0 text-warning" title="Edit"><i class="ti ti-pencil fs-2"></i></a>
                                     <button type="button" class="btn btn-icon btn-white border-0 text-danger" title="Hapus"
                                         onclick="confirmAction('{{ route('pelaksanaan.destroy', $item->id) }}', 'Hapus data ini?', 'DELETE', 'btn-danger')">

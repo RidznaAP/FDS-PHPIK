@@ -71,7 +71,7 @@
 
                     <div class="mb-3">
                         <label class="form-label required">Role</label>
-                        @if($user->role === 'pusat')
+                        @if($user->role === 'pusat' && !auth()->user()->isDeveloper())
                             <input type="text" class="form-control" value="Admin Pusat" disabled>
                             <input type="hidden" name="role" value="pusat">
                             <div class="text-muted small mt-1">Role Pusat tidak dapat diubah.</div>
@@ -83,6 +83,11 @@
                                 <option value="bbkhit" {{ old('role', $user->role) === 'bbkhit' ? 'selected' : '' }}>
                                     BBKHIT (Pengawas Regional)
                                 </option>
+                                @if(auth()->user()->isDeveloper())
+                                <option value="pusat" {{ old('role', $user->role) === 'pusat' ? 'selected' : '' }}>
+                                    Admin Pusat (Administrator Nasional)
+                                </option>
+                                @endif
                             </select>
                             @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         @endif

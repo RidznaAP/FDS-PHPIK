@@ -71,6 +71,19 @@ class User extends Authenticatable
         return trim(strtolower($this->role)) === 'pusat';
     }
 
+    public function isDeveloper(): bool
+    {
+        return trim(strtolower($this->role)) === 'developer';
+    }
+
+    /**
+     * Super-admin check — developer memiliki akses penuh setara atau melebihi pusat.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->isDeveloper();
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
