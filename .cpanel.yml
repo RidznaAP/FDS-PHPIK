@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/siphpikw/public_html/siphpik 
+    - export DEPLOYPATH=/home/siphpikw/public_html/siphpik
     - /bin/cp -R * $DEPLOYPATH
