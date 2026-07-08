@@ -14,6 +14,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
+    {{-- Loading Bar (Pace.js) --}}
+    <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@latest/pace-theme-default/tmpl/pace-theme-minimal.css">
+
     <style>
         /* ═══════════════════════════════════════════════════
            GLOBAL PREMIUM DESIGN SYSTEM — SIP-HPIK
@@ -175,6 +179,36 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* ── Page enter animation (Disabled) ── */
+
+        /* ── Pace.js Loading Bar ── */
+        .pace {
+            pointer-events: none;
+            user-select: none;
+        }
+        .pace-inactive { display: none; }
+        .pace .pace-progress {
+            background: #2563eb;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            box-shadow: 0 0 10px rgba(37,99,235,0.6), 0 0 5px rgba(37,99,235,0.4);
+        }
+        .pace .pace-progress-inner {
+            display: block;
+            position: absolute;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            opacity: 1;
+            transform: rotate(3deg) translate(0px, -4px);
+            box-shadow: 0 0 15px #2563eb, 0 0 8px #2563eb;
+        }
+        .pace .pace-activity {
+            display: none; /* Sembunyikan spinner, hanya tampilkan bar */
+        }
     </style>
     @yield('styles')
     @stack('styles')
