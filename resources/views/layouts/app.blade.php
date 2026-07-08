@@ -174,12 +174,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* ── Page enter animation ── */
-        @keyframes fadeInUp {
-            from { opacity:0; transform:translateY(10px); }
-            to   { opacity:1; transform:translateY(0); }
-        }
-        .page-body > .container-xl { animation: fadeInUp 0.22s ease both; }
+        /* ── Page enter animation (Disabled) ── */
     </style>
     @yield('styles')
     @stack('styles')
