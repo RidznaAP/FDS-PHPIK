@@ -6,7 +6,7 @@
 
 @section('page_actions')
     <div class="btn-list">
-        <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-success">
+        <a href="{{ route('perencanaan.export') }}" class="btn btn-outline-success" data-turbo="false">
             <i class="ti ti-download me-1"></i> Ekspor Excel
         </a>
         @if(Auth::user()->isPusat() || Auth::user()->isDeveloper())

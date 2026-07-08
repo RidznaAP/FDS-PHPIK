@@ -169,7 +169,7 @@
                             <li><i class="ti ti-check text-success me-1"></i>Target operasional per kuartal</li>
                             <li><i class="ti ti-check text-success me-1"></i>Status validasi BBKHIT/Pusat</li>
                         </ul>
-                        <a href="{{ route('laporan.export.perencanaan', ['wilayah' => request('wilayah'), 'tahun' => $selectedTahun]) }}" class="btn btn-primary w-100 btn-pill fw-bold shadow-sm">
+                        <a href="{{ route('laporan.export.perencanaan', ['wilayah' => request('wilayah'), 'tahun' => $selectedTahun]) }}" class="btn btn-primary w-100 btn-pill fw-bold shadow-sm" data-turbo="false">
                             <i class="ti ti-download me-2"></i>Download Excel Perencanaan
                         </a>
                     </div>
@@ -194,7 +194,7 @@
                             <li><i class="ti ti-check text-success me-1"></i>Hasil lab (Positif/Negatif)</li>
                             <li><i class="ti ti-check text-success me-1"></i>Prevalensi & insidensi HPIK</li>
                         </ul>
-                        <a href="{{ route('laporan.export.pelaksanaan', ['wilayah' => request('wilayah'), 'tahun' => $selectedTahun]) }}" class="btn btn-success w-100 btn-pill fw-bold shadow-sm">
+                        <a href="{{ route('laporan.export.pelaksanaan', ['wilayah' => request('wilayah'), 'tahun' => $selectedTahun]) }}" class="btn btn-success w-100 btn-pill fw-bold shadow-sm" data-turbo="false">
                             <i class="ti ti-download me-2"></i>Download Excel Pelaksanaan
                         </a>
                     </div>

@@ -9,7 +9,7 @@
     <button type="button" class="btn btn-outline-success" data-bs-toggle="collapse" data-bs-target="#collapse-import">
         <i class="ti ti-upload me-1"></i>Import Excel
     </button>
-    <a href="{{ route('master.jenis-penyakit.export') }}" class="btn btn-outline-info">
+    <a href="{{ route('master.jenis-penyakit.export') }}" class="btn btn-outline-info" data-turbo="false">
         <i class="ti ti-download me-1"></i>Export Excel
     </a>
     <a href="{{ route('master.jenis-penyakit.create') }}" class="btn btn-primary">
