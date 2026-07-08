@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-umd.js"></script>
 
     <style>
         /* ═══════════════════════════════════════════════════
@@ -293,15 +292,13 @@
     <script src="{{ asset('js/app-global.js') }}"></script>
     <script>
     // Inisialisasi Tooltip & Polling menggunakan fungsi dari app-global.js
-    function initInlineApp() {
+    document.addEventListener('DOMContentLoaded', function() {
         @auth
             if(typeof initNotifPolling === 'function') {
                 initNotifPolling('{{ route("notifikasi.jumlah") }}');
             }
         @endauth
-    }
-    document.addEventListener('DOMContentLoaded', initInlineApp);
-    document.addEventListener('turbo:load', initInlineApp);
+    });
     </script>
 
     {{-- Global Confirmation Modal (No Blur) --}}
@@ -323,7 +320,7 @@
         </div>
     </div>
     {{-- Hidden form for confirmAction --}}
-    <form id="confirmForm" method="POST" style="display:none;" data-turbo="false">
+    <form id="confirmForm" method="POST" style="display:none;">
         @csrf
         <input type="hidden" name="_method" id="confirmMethod" value="DELETE">
     </form>

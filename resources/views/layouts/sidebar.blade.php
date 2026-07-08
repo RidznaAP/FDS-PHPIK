@@ -307,7 +307,7 @@
                             <a href="{{ route('profile.index') }}" class="btn btn-dark flex-fill py-1 border-0 text-center shadow-none" style="background: rgba(255,255,255,0.06); font-size: 0.65rem;">
                                 <i class="ti ti-user-cog"></i> Profil
                             </a>
-                            <form method="POST" action="{{ route('logout') }}" class="flex-fill" data-turbo="false">
+                            <form method="POST" action="{{ route('logout') }}" class="flex-fill">
                                 @csrf
                                 <button type="submit" class="btn btn-ghost-danger w-100 py-1 text-center shadow-none" style="font-size: 0.65rem;">
                                     <i class="ti ti-logout"></i> Keluar
