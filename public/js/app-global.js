@@ -64,7 +64,7 @@ function submitConfirmForm() {
 // 2. AUTO-DISMISS FLASH MESSAGES (5 detik)
 // ══════════════════════════════════════════════════════════════
 
-document.addEventListener('DOMContentLoaded', function() {
+function initFlashMessages() {
     setTimeout(function() {
         ['flash-msg', 'flash-msg-err', 'flash-msg-warn', 'flash-msg-info'].forEach(function(id) {
             const el = document.getElementById(id);
@@ -74,17 +74,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }, 5000);
-});
+}
+document.addEventListener('DOMContentLoaded', initFlashMessages);
+document.addEventListener('turbo:load', initFlashMessages);
 
 
 // ══════════════════════════════════════════════════════════════
 // 3. BOOTSTRAP TOOLTIP INITIALIZATION (Global)
 // ══════════════════════════════════════════════════════════════
 
-document.addEventListener('DOMContentLoaded', function() {
+function initTooltips() {
     const tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltipEls.forEach(el => new bootstrap.Tooltip(el, { trigger: 'hover' }));
-});
+}
+document.addEventListener('DOMContentLoaded', initTooltips);
+document.addEventListener('turbo:load', initTooltips);
 
 
 // ══════════════════════════════════════════════════════════════
