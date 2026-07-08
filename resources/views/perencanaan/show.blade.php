@@ -87,11 +87,11 @@
                             <div class="mb-4">
                                 <label class="text-muted small fw-bold text-uppercase d-block mb-2">Jenis HPIK / Organisme Target</label>
                                 <div class="d-flex align-items-start">
-                                    <div class="bg-red-lt text-red p-2 rounded-3 me-3"><i class="ti ti-virus fs-3"></i></div>
+                                    <div class="bg-light text-muted p-2 rounded-3 me-3 border"><i class="ti ti-virus fs-3 text-primary"></i></div>
                                     <div class="d-flex flex-column gap-2 flex-grow-1">
                                         @foreach(array_map('trim', explode(',', $p->jenis_hpik)) as $hpik)
-                                            <div class="d-flex align-items-center bg-red-lt text-red px-3 py-2 rounded-3 border border-red-subtle shadow-sm" style="font-size: 0.85rem;">
-                                                <i class="ti ti-bug me-2 opacity-50"></i>
+                                            <div class="d-flex align-items-center bg-white text-dark px-3 py-2 rounded-3 border shadow-sm" style="font-size: 0.85rem;">
+                                                <i class="ti ti-bug me-2 text-muted opacity-75"></i>
                                                 <span class="fw-semibold">{{ $hpik }}</span>
                                             </div>
                                         @endforeach
@@ -103,11 +103,11 @@
                             <div class="mb-4">
                                 <label class="text-muted small fw-bold text-uppercase d-block mb-2">Kemampuan Uji UPT</label>
                                 <div class="d-flex align-items-start">
-                                    <div class="bg-indigo-lt text-indigo p-2 rounded-3 me-3"><i class="ti ti-building-community fs-3"></i></div>
+                                    <div class="bg-light text-muted p-2 rounded-3 me-3 border"><i class="ti ti-building-community fs-3 text-primary"></i></div>
                                     <div class="d-flex flex-column gap-2 flex-grow-1">
                                         @foreach(array_map('trim', explode(',', $p->kemampuan_uji_upt)) as $uji)
-                                            <div class="d-flex align-items-center bg-indigo-lt text-indigo px-3 py-2 rounded-3 border border-indigo-subtle shadow-sm" style="font-size: 0.85rem;">
-                                                <i class="ti ti-check-double me-2 opacity-50"></i>
+                                            <div class="d-flex align-items-center bg-white text-dark px-3 py-2 rounded-3 border shadow-sm" style="font-size: 0.85rem;">
+                                                <i class="ti ti-check-double me-2 text-muted opacity-75"></i>
                                                 <span class="fw-semibold">{{ $uji }}</span>
                                             </div>
                                         @endforeach
@@ -121,10 +121,10 @@
                                 <div class="col-md-6">
                                     <label class="text-muted small fw-bold text-uppercase d-block mb-2">Metode Pengujian</label>
                                     <div class="d-flex align-items-start">
-                                        <div class="bg-purple-lt text-purple p-2 rounded-3 me-3"><i class="ti ti-flask fs-3"></i></div>
+                                        <div class="bg-light text-muted p-2 rounded-3 me-3 border"><i class="ti ti-flask fs-3 text-primary"></i></div>
                                         <div class="d-flex flex-wrap gap-2">
                                             @foreach(array_map('trim', explode(',', $p->metode_pengujian)) as $metode)
-                                                <span class="badge bg-purple-lt text-purple border border-purple-subtle px-3 py-2 fs-6 rounded-3">
+                                                <span class="badge bg-white text-dark border px-3 py-2 fs-6 rounded-3 fw-semibold shadow-sm">
                                                     {{ $metode }}
                                                 </span>
                                             @endforeach
@@ -134,8 +134,8 @@
                                 <div class="col-md-6">
                                     <label class="text-muted small fw-bold text-uppercase d-block mb-2">Laboratorium Penguji</label>
                                     <div class="d-flex align-items-start">
-                                        <div class="bg-teal-lt text-teal p-2 rounded-3 me-3"><i class="ti ti-building-lab fs-3"></i></div>
-                                        <div class="bg-white text-dark px-3 py-2 rounded-3 border w-100 fw-bold shadow-sm">
+                                        <div class="bg-light text-muted p-2 rounded-3 me-3 border"><i class="ti ti-building-lab fs-3 text-primary"></i></div>
+                                        <div class="bg-white text-dark px-3 py-2 rounded-3 border w-100 fw-semibold shadow-sm">
                                             {{ $p->lab_uji }}
                                         </div>
                                     </div>
@@ -148,8 +148,8 @@
                                 <div class="col-md-6">
                                     <label class="text-muted small fw-bold text-uppercase d-block mb-1">Lokasi Pengambilan Sampel</label>
                                     <div class="d-flex align-items-center">
-                                        <div class="bg-azure-lt text-azure p-2 rounded-3 me-3"><i class="ti ti-map-2 fs-4"></i></div>
-                                        <div class="fw-bold text-azure fs-4">{{ $p->rencana_lokasi ?? '-' }}</div>
+                                        <div class="bg-light text-muted p-2 rounded-3 me-3 border"><i class="ti ti-map-2 fs-4 text-primary"></i></div>
+                                        <div class="fw-semibold text-dark fs-4">{{ $p->rencana_lokasi ?? '-' }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-3 col-6 border-start-md px-md-4">

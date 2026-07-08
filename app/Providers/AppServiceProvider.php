@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::useBootstrapFive();
         // Share pendingApprovalCount ke semua view — menggantikan query di sidebar.blade.php
         // Hanya dijalankan sekali per request, bukan per komponen/include
         View::composer('*', function ($view) {
