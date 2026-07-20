@@ -39,6 +39,21 @@
     </div>
     @endif
 
+    @if($modul === 'pelaksanaan_pasif')
+    <div class="col-12 mb-2">
+        <div class="alert alert-warning border-warning border-start border-4 bg-white shadow-sm d-flex align-items-center gap-3 py-3">
+            <i class="ti ti-file-description text-warning fs-2"></i>
+            <div>
+                <h4 class="alert-title mb-1">Pelaksanaan Pasif — Dokumen Pendukung</h4>
+                <p class="text-muted mb-0 small">
+                    Unggah dokumen-dokumen yang berkaitan dengan kegiatan Pelaksanaan Pasif, seperti dokumen laporan hasil pemantauan, berita acara, surat tugas, atau dokumen administratif lainnya yang mendukung kegiatan pemantauan HPIK.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+
     @php
         // Semua role admin diizinkan untuk mengunggah dokumen
         $canUpload = true;

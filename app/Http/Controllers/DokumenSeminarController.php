@@ -12,7 +12,7 @@ use App\Models\User;
 class DokumenSeminarController extends Controller
 {
     /**
-     * Tampilkan daftar dokumen seminar per modul (pelaporan / evaluasi)
+     * Tampilkan daftar dokumen seminar per modul (pelaporan / evaluasi / pelaksanaan_pasif)
      */
     public function index(string $modul)
     {
@@ -43,10 +43,26 @@ class DokumenSeminarController extends Controller
                       ->orWhere('target_user_id', $user->id);
                 });
             }
+        } elseif ($modul === 'pelaksanaan_pasif') {
+            // Pelaksanaan Pasif: BKHIT hanya lihat milik sendiri
+            if ($user->isBkhit()) {
+                $query->where('user_id', $user->id);
+            }
+            // BBKHIT lihat milik sendiri + unit bawah koordinasi
+            elseif ($user->isBbkhit()) {
+                $bkhitIds = User::where('parent_id', $user->id)->pluck('id')->push($user->id);
+                $query->whereIn('user_id', $bkhitIds);
+            }
+            // Pusat: lihat semua
         }
 
         $dokumens = $query->paginate(15)->withQueryString();
-        $judulModul = $modul === 'pelaporan' ? 'Pelaporan' : 'Evaluasi';
+        $judulModul = match($modul) {
+            'pelaporan'        => 'Pelaporan',
+            'evaluasi'         => 'Evaluasi',
+            'pelaksanaan_pasif' => 'Pelaksanaan Pasif',
+            default            => ucfirst($modul),
+        };
         
         $uptUsers = collect();
         if ($modul === 'evaluasi') {
@@ -143,7 +159,12 @@ class DokumenSeminarController extends Controller
         ]);
 
         // ── Kirim Notifikasi ───────────────────────────
-        $judulModul = $modul === 'pelaporan' ? 'Pelaporan' : 'Evaluasi';
+        $judulModul = match($modul) {
+            'pelaporan'        => 'Pelaporan',
+            'evaluasi'         => 'Evaluasi',
+            'pelaksanaan_pasif' => 'Pelaksanaan Pasif',
+            default            => ucfirst($modul),
+        };
         $judulNotif = "📄 Dokumen {$judulModul} Baru dari {$user->name}";
         
         $targetMsg = "";
@@ -157,7 +178,7 @@ class DokumenSeminarController extends Controller
 
         $penerima = collect();
 
-        if ($modul === 'pelaporan') {
+        if ($modul === 'pelaporan' || $modul === 'pelaksanaan_pasif') {
             // Notifikasi ke BBKHIT Koordinator & Semua Pusat
             if ($user->parent_id) {
                 $penerima->push($user->parent_id);

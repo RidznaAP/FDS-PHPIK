@@ -96,25 +96,66 @@
                             </a>
                         </li>
 
-                        {{-- 2. Pelaksanaan --}}
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->is('pelaksanaan*') ? 'active' : '' }}" href="{{ route('pelaksanaan.index') }}">
+                        {{-- 2. Pelaksanaan (dropdown bertingkat) --}}
+                        @php
+                            $pelaksanaanActive = request()->is('pelaksanaan*') || request()->is('laboratorium*') || request()->is('seminar/pelaksanaan_pasif*');
+                        @endphp
+                        <li class="nav-item {{ $pelaksanaanActive ? 'active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ $pelaksanaanActive ? 'active' : '' }}"
+                               href="#pelaksanaanSubmenu" data-bs-toggle="collapse"
+                               aria-expanded="{{ $pelaksanaanActive ? 'true' : 'false' }}">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <i class="ti ti-map-pin" style="font-size:1.2rem;"></i>
                                 </span>
                                 <span class="nav-link-title">Pelaksanaan</span>
                             </a>
+                            <div class="collapse {{ $pelaksanaanActive ? 'show' : '' }}" id="pelaksanaanSubmenu">
+                                <ul class="nav nav-sm flex-column ms-3 border-start border-secondary ps-2 mt-1">
+
+                                    {{-- Pelaksanaan Aktif (sub-dropdown) --}}
+                                    @php
+                                        $aktifActive = request()->is('pelaksanaan*') || request()->is('laboratorium*');
+                                    @endphp
+                                    <li class="nav-item">
+                                        <a class="nav-link py-1 dropdown-toggle {{ $aktifActive ? 'active' : '' }}"
+                                           href="#pelaksanaanAktifSubmenu" data-bs-toggle="collapse"
+                                           aria-expanded="{{ $aktifActive ? 'true' : 'false' }}">
+                                            <i class="ti ti-activity me-1" style="font-size:0.9rem;"></i>
+                                            Pelaksanaan Aktif
+                                        </a>
+                                        <div class="collapse {{ $aktifActive ? 'show' : '' }}" id="pelaksanaanAktifSubmenu">
+                                            <ul class="nav nav-sm flex-column ms-3 border-start border-secondary ps-2 mt-1">
+                                                <li class="nav-item">
+                                                    <a class="nav-link py-1 {{ request()->is('pelaksanaan*') ? 'active' : '' }}"
+                                                       href="{{ route('pelaksanaan.index') }}">
+                                                        <i class="ti ti-droplet me-1" style="font-size:0.9rem;"></i>
+                                                        Pengambilan Sampel
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link py-1 {{ request()->is('laboratorium*') ? 'active' : '' }}"
+                                                       href="{{ route('laboratorium.index') }}">
+                                                        <i class="ti ti-microscope me-1" style="font-size:0.9rem;"></i>
+                                                        Uji Laboratorium
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </li>
+
+                                    {{-- Pelaksanaan Pasif --}}
+                                    <li class="nav-item">
+                                        <a class="nav-link py-1 {{ request()->is('seminar/pelaksanaan_pasif*') ? 'active' : '' }}"
+                                           href="{{ route('pelaksanaan-pasif.index') }}">
+                                            <i class="ti ti-file-description me-1" style="font-size:0.9rem;"></i>
+                                            Pelaksanaan Pasif
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </div>
                         </li>
 
-                        {{-- 3. Laboratorium --}}
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->is('laboratorium*') ? 'active' : '' }}" href="{{ route('laboratorium.index') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-microscope" style="font-size:1.2rem;"></i>
-                                </span>
-                                <span class="nav-link-title">Laboratorium</span>
-                            </a>
-                        </li>
 
                         {{-- 3. Pelaporan (upload file seminar) --}}
                         <li class="nav-item">
@@ -137,6 +178,18 @@
                             </a>
                         </li>
 
+                        {{-- 5. Regulasi Informasi (semua role: lihat; pusat: tambah) --}}
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->is('regulasi-informasi*') ? 'active' : '' }}"
+                               href="{{ route('regulasi.index') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <i class="ti ti-clipboard-text" style="font-size:1.2rem;"></i>
+                                </span>
+                                <span class="nav-link-title">Regulasi Informasi</span>
+                            </a>
+                        </li>
+
+
                         {{-- 5. Export Data / Laporan & Ekspor --}}
                         @if(Auth::user()->isPusat() || Auth::user()->isDeveloper())
                         <li class="nav-item {{ request()->is('peta*') || request()->is('laporan*') ? 'active' : '' }}">
@@ -146,7 +199,7 @@
                                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                                     <i class="ti ti-file-export" style="font-size:1.2rem;"></i>
                                 </span>
-                                <span class="nav-link-title">Data & Laporan</span>
+                                <span class="nav-link-title">Data Pemantauan</span>
                             </a>
                             <div class="collapse {{ request()->is('peta*') || request()->is('laporan*') ? 'show' : '' }}" id="exportDataSubmenu">
                                 <ul class="nav nav-sm flex-column ms-3 border-start border-secondary ps-2 mt-1">
@@ -159,7 +212,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link py-1 {{ request()->is('laporan*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
                                             <i class="ti ti-file-spreadsheet me-1" style="font-size:0.9rem;"></i>
-                                            Laporan & Ekspor
+                                            Export Data
                                         </a>
                                     </li>
                                 </ul>

@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\DokumenSeminarController;
 use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\RegulasiInformasiController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -122,6 +123,11 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('seminar.index', 'pelaporan');
     })->name('pelaporan.index');
 
+    // --- Modul Pelaksanaan Pasif (Upload Dokumen) ---
+    Route::get('/pelaksanaan-pasif', function () {
+        return redirect()->route('seminar.index', 'pelaksanaan_pasif');
+    })->name('pelaksanaan-pasif.index');
+
     // --- Modul Evaluasi Penetapan (Daftar Evaluasi) ---
     Route::get('/evaluasi', [EvaluasiController::class, 'index'])->name('evaluasi.index');
 
@@ -134,10 +140,21 @@ Route::middleware('auth')->group(function () {
     // PENTING: route spesifik (download, hapus) harus SEBELUM {modul} wildcard
     Route::get('/seminar/download/{id}', [DokumenSeminarController::class, 'download'])->name('seminar.download');
     Route::delete('/seminar/hapus/{id}', [DokumenSeminarController::class, 'destroy'])->name('seminar.destroy');
-    Route::get('/seminar/{modul}', [DokumenSeminarController::class, 'index'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.index');
-    Route::post('/seminar/{modul}/upload', [DokumenSeminarController::class, 'store'])->whereIn('modul', ['pelaporan', 'evaluasi'])->name('seminar.store');
+    Route::get('/seminar/{modul}', [DokumenSeminarController::class, 'index'])->whereIn('modul', ['pelaporan', 'evaluasi', 'pelaksanaan_pasif'])->name('seminar.index');
+    Route::post('/seminar/{modul}/upload', [DokumenSeminarController::class, 'store'])->whereIn('modul', ['pelaporan', 'evaluasi', 'pelaksanaan_pasif'])->name('seminar.store');
     // --- Modul Peta Pemantauan ---
     Route::get('/peta', [\App\Http\Controllers\PetaController::class, 'index'])->name('peta.index');
+
+    // --- Regulasi Informasi (semua role bisa lihat & download) ---
+    Route::get('/regulasi-informasi', [RegulasiInformasiController::class, 'index'])->name('regulasi.index');
+    Route::get('/regulasi-informasi/download/{id}', [RegulasiInformasiController::class, 'download'])->name('regulasi.download');
+    // Tambah & hapus hanya Pusat & Developer
+    Route::middleware('role:pusat,developer')->group(function () {
+        Route::get('/regulasi-informasi/tambah', [RegulasiInformasiController::class, 'create'])->name('regulasi.create');
+        Route::post('/regulasi-informasi/simpan', [RegulasiInformasiController::class, 'store'])->name('regulasi.store');
+        Route::delete('/regulasi-informasi/hapus/{id}', [RegulasiInformasiController::class, 'destroy'])->name('regulasi.destroy');
+    });
+
 
     // --- Modul Laporan & Ekspor ---
     Route::get('/laporan', [\App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
