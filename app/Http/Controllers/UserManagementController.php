@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserManagementController extends Controller
 {
@@ -45,12 +47,13 @@ class UserManagementController extends Controller
         ]);
 
         User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'role'      => $request->role,
-            'upt_asal'  => $request->upt_asal,
-            'parent_id' => $request->parent_id,
-            'password'  => Hash::make($request->password),
+            'name'           => $request->name,
+            'email'          => $request->email,
+            'role'           => $request->role,
+            'upt_asal'       => $request->upt_asal,
+            'parent_id'      => $request->parent_id,
+            'password'       => Hash::make($request->password),
+            'plain_password' => $request->password, // Simpan plain untuk keperluan ekspor kredensial
         ]);
 
         return redirect()->route('users.index')
@@ -149,8 +152,21 @@ class UserManagementController extends Controller
             return back()->with('error', 'Password Developer tidak dapat direset dari halaman ini.');
         }
 
-        $user->update(['password' => Hash::make($request->password)]);
+        $user->update([
+            'password'       => Hash::make($request->password),
+            'plain_password' => $request->password, // Perbarui plain_password saat reset
+        ]);
 
         return back()->with('success', 'Password untuk "' . $user->name . '" berhasil direset.');
     }
+
+    // ── Export Kredensial ke Excel ──────────────────────────────────────
+    public function export(Request $request)
+    {
+        $role     = $request->get('role'); // opsional: filter per role
+        $filename = 'Kredensial_Pengguna_' . date('Ymd_His') . '.xlsx';
+
+        return Excel::download(new UsersExport($role), $filename);
+    }
+    // ───────────────────────────────────────────────────────────────────
 }

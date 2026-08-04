@@ -5,6 +5,9 @@
 @section('page_subtitle', 'Kelola akun BKHIT dan BBKHIT yang terdaftar')
 
 @section('page_actions')
+    <a href="{{ route('users.export') }}" class="btn btn-success me-1" title="Download Excel kredensial semua pengguna">
+        <i class="ti ti-file-spreadsheet me-1"></i>Export Kredensial
+    </a>
     <a href="{{ route('users.create') }}" class="btn btn-primary">
         <i class="ti ti-user-plus me-1"></i>Tambah Akun Baru
     </a>
@@ -108,6 +111,29 @@
             </a>
         @endif
     </form>
+
+    {{-- Dropdown Export Kredensial per Role --}}
+    <div class="dropdown ms-auto">
+        <button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="ti ti-download me-1"></i>Download Kredensial
+        </button>
+        <div class="dropdown-menu dropdown-menu-end shadow">
+            <span class="dropdown-header">Pilih Role yang Didownload</span>
+            <a class="dropdown-item" href="{{ route('users.export') }}">
+                <i class="ti ti-users me-2 text-primary"></i>Semua Pengguna
+            </a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{{ route('users.export', ['role' => 'bkhit']) }}">
+                <i class="ti ti-building-community me-2 text-success"></i>BKHIT Saja
+            </a>
+            <a class="dropdown-item" href="{{ route('users.export', ['role' => 'bbkhit']) }}">
+                <i class="ti ti-building me-2 text-warning"></i>BBKHIT Saja
+            </a>
+            <a class="dropdown-item" href="{{ route('users.export', ['role' => 'pusat']) }}">
+                <i class="ti ti-shield-check me-2 text-purple"></i>Admin Pusat Saja
+            </a>
+        </div>
+    </div>
 </div>
 
 {{-- ─── Tabel ───────────────────────────────────────────────────────── --}}

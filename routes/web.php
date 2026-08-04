@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function () {
     // --- Manajemen Pengguna (Pusat & Developer) ---
     Route::middleware('role:pusat,developer')->group(function () {
         Route::get('/pengguna', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/pengguna/export', [UserManagementController::class, 'export'])->name('users.export');
         Route::get('/pengguna/buat', [UserManagementController::class, 'create'])->name('users.create');
         Route::post('/pengguna/simpan', [UserManagementController::class, 'store'])->name('users.store');
         Route::delete('/pengguna/hapus/{id}', [UserManagementController::class, 'destroy'])->name('users.destroy');

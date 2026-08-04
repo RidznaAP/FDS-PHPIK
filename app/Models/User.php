@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'plain_password',
         'role',
         'upt_asal',
         'parent_id',
@@ -91,6 +92,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'plain_password', // Sembunyikan dari response JSON/API
         'remember_token',
     ];
 
