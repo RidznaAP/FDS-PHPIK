@@ -14,7 +14,10 @@ class DokumenSeminarController extends Controller
     /**
      * Tampilkan daftar dokumen seminar per modul (pelaporan / evaluasi / pelaksanaan_pasif)
      */
-    public function index(string $modul)
+    /**
+     * Tampilkan daftar dokumen seminar per modul (pelaporan / evaluasi / pelaksanaan_pasif)
+     */
+    public function index(Request $request, string $modul)
     {
         $user = Auth::user();
 
@@ -56,6 +59,55 @@ class DokumenSeminarController extends Controller
             // Pusat: lihat semua
         }
 
+        // ── Filter Tahun ──────────────────────────────────────────────────────
+        if ($request->filled('tahun')) {
+            $query->whereYear('created_at', $request->tahun);
+        }
+
+        // ── Filter Role Pengunggah ───────────────────────────────────────────
+        if ($request->filled('role')) {
+            $roleFilter = $request->role;
+            $query->whereHas('user', function($uq) use ($roleFilter) {
+                $uq->where('role', $roleFilter);
+            });
+        }
+
+        // ── Search ────────────────────────────────────────────────────────────
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                  ->orWhere('keterangan', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                        ->orWhere('upt_asal', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // ── Daftar Tahun Tersedia per Modul ──────────────────────────────────
+        $availableYears = DokumenSeminar::where('jenis_modul', $modul)
+            ->selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        if (empty($availableYears)) {
+            $availableYears = [date('Y')];
+        }
+
+        // ── Penentuan Hak Akses Unggah (canUpload) ──────────────────────────
+        // Pelaporan & Pelaksanaan Pasif: Hanya BKHIT & BBKHIT yang mengunggah ke Pusat. Pusat hanya meninjau/membaca.
+        // Evaluasi: Pusat & BBKHIT yang mengunggah evaluasi untuk disebarkan ke BKHIT. BKHIT hanya membaca.
+        if ($modul === 'pelaporan' || $modul === 'pelaksanaan_pasif') {
+            $canUpload = !($user->isPusat() || $user->isDeveloper());
+        } elseif ($modul === 'evaluasi') {
+            $canUpload = $user->isPusat() || $user->isBbkhit() || $user->isDeveloper();
+        } else {
+            $canUpload = true;
+        }
+
         $dokumens = $query->paginate(15)->withQueryString();
         $judulModul = match($modul) {
             'pelaporan'        => 'Pelaporan',
@@ -63,13 +115,15 @@ class DokumenSeminarController extends Controller
             'pelaksanaan_pasif' => 'Pelaksanaan Pasif',
             default            => ucfirst($modul),
         };
-        
+
         $uptUsers = collect();
         if ($modul === 'evaluasi') {
             $uptUsers = User::where('role', '!=', 'pusat')->orderBy('name')->get();
         }
 
-        return view('dokumen_seminar.index', compact('dokumens', 'modul', 'judulModul', 'uptUsers'));
+        return view('dokumen_seminar.index', compact(
+            'dokumens', 'modul', 'judulModul', 'uptUsers', 'availableYears', 'canUpload'
+        ));
     }
 
     /**
