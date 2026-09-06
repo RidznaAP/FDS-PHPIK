@@ -32,6 +32,7 @@ class PerencanaanImport implements ToModel, WithHeadingRow, SkipsOnError, SkipsO
     public function rules(): array
     {
         return [
+            'tahun'      => ['nullable', 'numeric'],
             'provinsi'   => ['nullable', 'string'],
             'kab_kota'   => ['nullable', 'string'],
             'jenis_mp'   => ['nullable', 'string'],
@@ -100,8 +101,11 @@ class PerencanaanImport implements ToModel, WithHeadingRow, SkipsOnError, SkipsO
         $tw4   = (int) ($row['tw4'] ?? 0);
         $total = $tw1 + $tw2 + $tw3 + $tw4;
 
+        $tahun = !empty($row['tahun']) ? (int) $row['tahun'] : (int) date('Y');
+
         return new Perencanaan([
             'user_id'                 => $ownerId,
+            'tahun'                   => $tahun,
             'provinsi'                => $provinsi,
             'kab_kota'                => trim($row['kab_kota'] ?? '-') ?: '-',
             'jenis_mp'                => trim($row['jenis_mp'] ?? '-') ?: '-',

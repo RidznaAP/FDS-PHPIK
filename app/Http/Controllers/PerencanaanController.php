@@ -53,7 +53,7 @@ class PerencanaanController extends Controller
 
         // ── Filter Tahun ──────────────────────────────────────────────────────
         if ($request->filled('tahun')) {
-            $query->whereYear('created_at', $request->tahun);
+            $query->where('tahun', $request->tahun);
         }
 
         // ── Filter Status ─────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ class PerencanaanController extends Controller
         }
 
         // ── Dropdown Tahun (role-scoped) ────────────────────────────────────
-        $yearQuery = Perencanaan::selectRaw('YEAR(created_at) as tahun');
+        $yearQuery = Perencanaan::select('tahun');
         if ($user->isBkhit()) {
             $yearQuery->where('user_id', $user->id);
         } elseif ($user->isBbkhit()) {
@@ -114,6 +114,7 @@ class PerencanaanController extends Controller
 
         Perencanaan::create([
             'user_id'                 => Auth::id(),
+            'tahun'                   => date('Y'),
             'provinsi'                => $provinsi,
             'kab_kota'                => $request->kab_kota,
             'jenis_mp'                => $request->jenis_mp,

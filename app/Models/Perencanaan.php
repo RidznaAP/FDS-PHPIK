@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Perencanaan extends Model
 {
     protected $fillable = [
-        'user_id', 'provinsi', 'kab_kota', 'jenis_mp', 'jenis_hpik',
+        'user_id', 'tahun', 'provinsi', 'kab_kota', 'jenis_mp', 'jenis_hpik',
         'kemampuan_uji_upt', 'metode_pengujian', 'lab_uji', 'target_uji',
         'tw1', 'tw2', 'tw3', 'tw4', 'total_pengujian',
         'rencana_lokasi', 'rencana_jumlah_sampel', 'rencana_metode_sampling',

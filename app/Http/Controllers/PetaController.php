@@ -16,7 +16,7 @@ class PetaController extends Controller
     {
         // ── Tahun filter ──────────────────────────────────────────────────────
         $availableYears = Pelaksanaan::selectRaw('YEAR(created_at) as year')
-            ->union(Perencanaan::selectRaw('YEAR(created_at) as year'))
+            ->union(Perencanaan::selectRaw('tahun as year'))
             ->distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
         if (empty($availableYears)) $availableYears = [date('Y')];
         $selectedYear = $request->get('year', date('Y'));

@@ -39,7 +39,7 @@ class HomeController extends Controller
 
         // ── Filter Tahun & Daftar Tahun Tersedia ────────────────────────────
         $availableYears = Pelaksanaan::selectRaw('YEAR(created_at) as year')
-            ->union(Perencanaan::selectRaw('YEAR(created_at) as year'))
+            ->union(Perencanaan::selectRaw('tahun as year'))
             ->distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
             
         if (empty($availableYears)) $availableYears = [date('Y')];
@@ -49,13 +49,13 @@ class HomeController extends Controller
         // ═══════════════════════════════════════════════════════════════
         // ZONE 1 — KPI Stats (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
-        $totalPerencanaan = Perencanaan::whereYear('created_at', $selectedYear)
+        $totalPerencanaan = Perencanaan::where('tahun', $selectedYear)
             ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
         
         $totalPelaksanaan = Pelaksanaan::whereYear('created_at', $selectedYear)
             ->when($userIds !== null, fn($q) => $q->whereHas('perencanaan', fn($rq) => $rq->whereIn('user_id', $userIds)))->count();
         
-        $totalApproved    = Perencanaan::whereYear('created_at', $selectedYear)
+        $totalApproved    = Perencanaan::where('tahun', $selectedYear)
             ->where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count();
 
         // UPT Aktif: Total institusi UPT (BKHIT) yang telah memiliki hasil uji lab di tahun terpilih
@@ -73,7 +73,7 @@ class HomeController extends Controller
 
         // ── Filter Tahun & Daftar Tahun Tersedia ────────────────────────────
         $availableYears = Pelaksanaan::selectRaw('YEAR(created_at) as year')
-            ->union(Perencanaan::selectRaw('YEAR(created_at) as year'))
+            ->union(Perencanaan::selectRaw('tahun as year'))
             ->distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
             
         if (empty($availableYears)) $availableYears = [date('Y')];
@@ -102,7 +102,7 @@ class HomeController extends Controller
         // ═══════════════════════════════════════════════════════════════
         // ZONE 2B — Top 5 Media Pembawa Dominan (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
-        $mediaPembawaRaw = Perencanaan::whereYear('created_at', $selectedYear)
+        $mediaPembawaRaw = Perencanaan::where('tahun', $selectedYear)
             ->whereNotNull('jenis_mp')
             ->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))
             ->pluck('jenis_mp');
@@ -128,7 +128,7 @@ class HomeController extends Controller
                   ->whereYear('created_at', $selectedYear)
                   ->whereIn('perencanaan_id', function($sq) use ($userIds, $selectedYear) {
                       $sq->select('id')->from('perencanaans')
-                        ->whereYear('created_at', $selectedYear)
+                        ->where('tahun', $selectedYear)
                         ->whereIn('user_id', $userIds);
                   });
             });
@@ -172,9 +172,9 @@ class HomeController extends Controller
         // ZONE 3B — Status Perencanaan (Filtered by Year)
         // ═══════════════════════════════════════════════════════════════
         $statusCounts = [
-            'Draft'     => Perencanaan::whereYear('created_at', $selectedYear)->where('status', 'draft')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
-            'Menunggu'  => Perencanaan::whereYear('created_at', $selectedYear)->where('status', 'waiting')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
-            'Disetujui' => Perencanaan::whereYear('created_at', $selectedYear)->where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Draft'     => Perencanaan::where('tahun', $selectedYear)->where('status', 'draft')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Menunggu'  => Perencanaan::where('tahun', $selectedYear)->where('status', 'waiting')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
+            'Disetujui' => Perencanaan::where('tahun', $selectedYear)->where('status', 'approved')->when($userIds !== null, fn($q) => $q->whereIn('user_id', $userIds))->count(),
         ];
 
         // ═══════════════════════════════════════════════════════════════
@@ -183,7 +183,7 @@ class HomeController extends Controller
         $topUpt = User::where('role', 'bkhit')
             ->when($user->isBbkhit(), fn($q) => $q->where('parent_id', $user->id))
             ->withCount(['perencanaan as pelaksanaan_count' => function ($q) use ($selectedYear) {
-                $q->whereYear('created_at', $selectedYear)->whereHas('pelaksanaans.laboratorium');
+                $q->where('tahun', $selectedYear)->whereHas('pelaksanaans.laboratorium');
             }])
             ->orderByDesc('pelaksanaan_count')
             ->limit(5)
@@ -276,7 +276,7 @@ class HomeController extends Controller
                   ->whereYear('created_at', $selectedYear)
                   ->whereIn('perencanaan_id', function($sq) use ($userIds, $selectedYear) {
                       $sq->select('id')->from('perencanaans')
-                        ->whereYear('created_at', $selectedYear)
+                        ->where('tahun', $selectedYear)
                         ->whereIn('user_id', $userIds);
                   });
             });

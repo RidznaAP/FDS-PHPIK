@@ -1,6 +1,7 @@
 <table>
     <thead>
         <tr>
+            <th>tahun</th>
             <th>provinsi</th>
             <th>kab_kota</th>
             <th>jenis_mp</th>
@@ -22,6 +23,7 @@
     <tbody>
         {{-- Baris contoh --}}
         <tr>
+            <td>2024</td>
             <td>Jawa Barat</td>
             <td>Kota Bandung</td>
             <td>Ikan Lele</td>

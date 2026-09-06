@@ -712,8 +712,12 @@ document.addEventListener('DOMContentLoaded', function() {
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    .leaflet-container { background: #f8fafc; border-radius: 0; }
-    #full-map { z-index: 10; }
+    #full-map {
+        z-index: 10;
+        /* Ocean / sea background colour */
+        background: linear-gradient(135deg, #b8d9ed 0%, #9fcde6 50%, #87bedc 100%);
+    }
+    #full-map .leaflet-tile-pane { display: none !important; }
 </style>
 @endpush
 @push('scripts')
@@ -724,26 +728,51 @@ document.addEventListener('DOMContentLoaded', function() {
         var fullMap = L.map('full-map', {
             zoomControl: true,
             scrollWheelZoom: true,
-            attributionControl: false
+            attributionControl: false,
+            maxBounds: [[-15, 88], [16, 152]],
+            minZoom: 4
         }).setView([-2.5, 118], 5);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19, subdomains: 'abcd'
-        }).addTo(fullMap);
+        // Attribution kecil
+        L.control.attribution({ position: 'bottomleft', prefix: false })
+            .addAttribution('Geometri: <a href="https://github.com/ardian28/GeoJson-Indonesia-38-Provinsi" target="_blank">Ardian28/BIG</a>')
+            .addTo(fullMap);
 
-        // Custom Marker
+        // Load GeoJSON Provinsi dari lokal
+        fetch('{{ asset('geojson/indonesia-provinces.geojson') }}')
+            .then(res => res.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: {
+                        fillColor:   '#e8edf2',
+                        fillOpacity: 0.7,
+                        color:       '#94a3b8',
+                        weight:      0.8
+                    },
+                    interactive: false
+                }).addTo(fullMap);
+
+                // Setelah provinsi dimuat, zoom ke marker
+                fullMap.setView(markerPos, 10);
+            })
+            .catch(() => {
+                // Fallback: langsung zoom jika GeoJSON gagal
+                fullMap.setView(markerPos, 10);
+            });
+
+        // Marker lokasi pengambilan sampel
         L.circleMarker(markerPos, {
             radius: 12,
             fillColor: '#206bc4',
             color: '#fff',
             weight: 3,
             fillOpacity: 0.9
-        }).addTo(fullMap).bindPopup('<div class="fw-bold">Lokasi Pengambilan</div><div>{{ $item->lokasi_pengambilan_sampel }}</div>').openPopup();
+        }).addTo(fullMap)
+          .bindPopup('<div class="fw-bold">Lokasi Pengambilan</div><div>{{ $item->lokasi_pengambilan_sampel }}</div>')
+          .openPopup();
 
         // Fix leaflet map sizing in cards
-        setTimeout(() => {
-            fullMap.invalidateSize();
-        }, 300);
+        setTimeout(() => fullMap.invalidateSize(), 300);
     });
 </script>
 @endpush

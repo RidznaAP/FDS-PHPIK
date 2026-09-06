@@ -2,6 +2,7 @@
     <thead>
         <tr>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">NAMA INSTANSI</th>
+            <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">TAHUN</th>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">PROVINSI</th>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">NO.</th>
             <th rowspan="3" align="center" valign="center" style="font-weight: bold; background-color: #003366; color: #FFFFFF;">KABUPATEN/<br>KOTA</th>
@@ -33,6 +34,7 @@
         @foreach($data as $index => $row)
         <tr>
             <td valign="center">{{ $row->user->upt_asal ?? $row->user->name ?? '-' }}</td>
+            <td align="center" valign="center">{{ $row->tahun }}</td>
             <td valign="center">{{ $row->provinsi }}</td>
             <td align="center" valign="center">{{ $index + 1 }}</td>
             <td valign="center">{{ $row->kab_kota }}</td>

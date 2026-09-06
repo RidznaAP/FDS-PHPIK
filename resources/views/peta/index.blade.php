@@ -7,9 +7,33 @@
 @section('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    #map { height: 540px; width: 100%; border-radius: 0 0 8px 8px; }
+    /* ── Map Container ─────────────────────────────────────────────── */
+    #map {
+        height: 540px;
+        width: 100%;
+        border-radius: 0 0 8px 8px;
+        /* Ocean / sea background colour */
+        background: linear-gradient(135deg, #b8d9ed 0%, #9fcde6 50%, #87bedc 100%);
+    }
 
-    /* Filter Panel */
+    /* Hide default Leaflet tile pane (not used) */
+    .leaflet-tile-pane { display: none !important; }
+
+    /* Province label tooltips */
+    .prov-label {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #334155;
+        text-align: center;
+        white-space: nowrap;
+        pointer-events: none;
+        text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+    }
+
+    /* ── Filter Panel ──────────────────────────────────────────────── */
     .filter-panel {
         background: #fff;
         border: 1px solid #e2e8f0;
@@ -35,6 +59,22 @@
         border: 2px solid rgba(255,255,255,0.8);
     }
 
+    /* ── GeoJSON badge (map info) ──────────────────────────────────── */
+    .map-badge-geojson {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(4px);
+        border-radius: 6px;
+        padding: 3px 8px;
+        font-size: 0.6rem;
+        color: #64748b;
+        z-index: 1000;
+        pointer-events: none;
+        border: 1px solid #e2e8f0;
+    }
+
     @media print {
         body * { visibility: hidden; }
         .card, #map, #map * { visibility: visible; }
@@ -44,11 +84,11 @@
     }
 
     /* Clean Capture Helper */
-    .capturing .leaflet-control-container, 
-    .capturing .card-header, 
+    .capturing .leaflet-control-container,
+    .capturing .card-header,
     .capturing .filter-panel,
-    .capturing .btn-group-toggle { 
-        display: none !important; 
+    .capturing .btn-group-toggle {
+        display: none !important;
     }
     .capturing #map { border-radius: 8px !important; }
 
@@ -301,8 +341,9 @@
                     </div>
                 </div>
             </div>
-            <div class="card-body p-0" id="map-container-capture">
+            <div class="card-body p-0 position-relative" id="map-container-capture">
                 <div id="map"></div>
+                <div class="map-badge-geojson">🗺️ GeoJSON · BIG/Ardian28 · 38 Provinsi</div>
             </div>
         </div>
     </div>
@@ -314,97 +355,66 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // === TILE LAYERS ===
-    const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd', maxZoom: 19, crossOrigin: true
-    });
-    const baseLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd', maxZoom: 19, crossOrigin: true,
-        pane: 'shadowPane'
-    });
-    const voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd', maxZoom: 20, crossOrigin: true
-    });
-    const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-        maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'],
-        attribution: '&copy; Google Maps'
-    });
-    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-        maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'],
-        attribution: '&copy; Google Maps'
-    });
+    // ═══════════════════════════════════════════════════════════════
+    // PETA BERBASIS GEOJSON MURNI — tanpa tile layer eksternal
+    // Seluruh geometri wilayah dimuat dari file lokal.
+    // ═══════════════════════════════════════════════════════════════
 
-    const map = L.map('map', { 
-        zoomControl: false,
+    // Inisialisasi peta — TANPA tile layer
+    const map = L.map('map', {
+        zoomControl: true,
         scrollWheelZoom: false,
         doubleClickZoom: false,
         touchZoom: false,
         boxZoom: false,
         dragging: true,
-        maxBounds: [[-15, 90], [15, 150]],
-        minZoom: 4
+        maxBounds: [[-15, 88], [16, 152]],
+        minZoom: 4,
+        attributionControl: false   // kita buat sendiri
     }).setView([-2.0, 116.0], 5);
-    
-    cartoLight.addTo(map);
-    baseLabels.addTo(map);
 
-    // ── Load World GeoJSON (Fokus Indonesia) ────────────────────────
-    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
-        .then(res => res.json())
-        .then(worldData => {
-            L.geoJSON(worldData, {
-                style: function(f) {
-                    const isIndo = f.id === 'IDN' || f.properties.name === 'Indonesia';
-                    return {
-                        fillColor: isIndo ? 'transparent' : '#f1f5f9',
-                        fillOpacity: isIndo ? 0 : 0.9,
-                        color: 'transparent',
-                        weight: 0,
-                        interactive: false
-                    };
-                }
-            }).addTo(map);
-        });
+    // Posisi tombol zoom agar tidak menutupi filter
+    map.zoomControl.setPosition('bottomright');
 
-    L.control.layers({
-        '🗺️ Carto Light (Dashboard)': cartoLight,
-        '🗺️ Voyager': voyager,
-        '🛰️ Google Hybrid': googleHybrid,
-        '📍 Google Streets': googleStreets,
-    }, {}, { position: 'topright', collapsed: true }).addTo(map);
+    // Attribution kecil di sudut kiri bawah
+    L.control.attribution({ position: 'bottomleft', prefix: false })
+        .addAttribution('Geometri: <a href="https://github.com/ardian28/GeoJson-Indonesia-38-Provinsi" target="_blank">Ardian28/BIG</a>')
+        .addTo(map);
 
-    // === COLOR MAP ===
+    // ── Warna marker sesuai hasil lab ──────────────────────────────
     function getMarkerColor(hasilLab) {
-        if (hasilLab === 'Positif') return '#ef4444';      // Red
-        if (hasilLab === 'Negatif') return '#22c55e';      // Green
-        if (hasilLab === 'Belum Diuji') return '#94a3b8';  // Grey
-        return '#3b82f6';                                  // Blue
+        if (hasilLab === 'Positif')    return '#ef4444';  // merah
+        if (hasilLab === 'Negatif')    return '#22c55e';  // hijau
+        if (hasilLab === 'Belum Diuji') return '#94a3b8'; // abu
+        return '#3b82f6';                                 // biru
     }
 
-    // === DATA MARKERS ===
-    const markers = @json($markers);
-    const markerLayer = L.layerGroup().addTo(map);
+    // ── Data dari Controller ────────────────────────────────────────
+    const markers        = @json($markers);
     const dominantProvinsi = @json($dominantProvinsi);
+
+    // ── Layer marker titik ─────────────────────────────────────────
+    const markerLayer = L.layerGroup().addTo(map);
 
     markers.forEach(function(item) {
         const color = getMarkerColor(item.hasil_lab);
 
         const markerIcon = L.divIcon({
             className: 'custom-marker',
-            html: `<div style="width:16px;height:16px;display:flex;align-items:center;justify-content:center;">
-                       <div style="width:6px;height:6px;border-radius:50%;background:${color};box-shadow:0 0 4px ${color};"></div>
+            html: `<div style="width:18px;height:18px;display:flex;align-items:center;justify-content:center;">
+                       <div style="width:9px;height:9px;border-radius:50%;
+                            background:${color};
+                            box-shadow:0 0 0 3px ${color}44, 0 0 6px ${color}88;
+                            border:2px solid rgba(255,255,255,0.9);"></div>
                    </div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
         });
 
         const circle = L.marker([item.lat, item.lng], { icon: markerIcon });
         markerLayer.addLayer(circle);
 
-        const hasilBadgeClass = item.hasil_lab === 'Positif' ? 'bg-danger' : 
+        const hasilBadgeClass = item.hasil_lab === 'Positif' ? 'bg-danger' :
                                (item.hasil_lab === 'Negatif' ? 'bg-success' : 'bg-secondary');
 
         circle.bindPopup(`
@@ -418,8 +428,10 @@
                     <div><b>🏢 UPT:</b> ${item.upt}</div>
                     <div><b>📅 Tanggal:</b> ${item.tanggal}</div>
                     <div><b>🐟 Media:</b> ${item.jenis_mp}</div>
-                    <div><b>🔬 Hasil:</b> <span class="badge ${hasilBadgeClass}" style="font-size:11px; color:white;">${item.hasil_raw}</span></div>
-                    <a href="/pelaksanaan/${item.id}/detail" class="btn btn-primary btn-sm w-100 mt-2" style="font-size:11px; font-weight:600; color:white;">
+                    <div><b>🔬 Hasil:</b> <span class="badge ${hasilBadgeClass}" style="font-size:11px;color:white;">${item.hasil_raw}</span></div>
+                    <a href="/pelaksanaan/${item.id}/detail"
+                       class="btn btn-primary btn-sm w-100 mt-2"
+                       style="font-size:11px;font-weight:600;color:white;">
                         <i class="ti ti-eye me-1"></i>Lihat Detail Dokumen
                     </a>
                 </div>
@@ -428,103 +440,182 @@
 
         circle.bindTooltip(
             `<b>${item.lokasi || item.kab_kota}</b><br><small style="color:${color};">${item.jenis_hpik}</small>`,
-            { direction: 'top', offset: [0, -8] }
+            { direction: 'top', offset: [0, -10] }
         );
     });
 
-    // === GEOJSON PROVINSI (Same as Dashboard) ===
-    const geoJsonLayer = L.layerGroup().addTo(map);
-    
+    // ═══════════════════════════════════════════════════════════════
+    // GEOJSON PROVINSI — dimuat dari file lokal
+    // ═══════════════════════════════════════════════════════════════
+    const geoJsonLayer     = L.layerGroup().addTo(map);  // lapisan polygon
+    const labelLayer       = L.layerGroup().addTo(map);  // lapisan label
+    let   geoJsonRawData   = null;   // simpan untuk re-style mode
+    let   geoJsonLeaflet   = null;   // instance L.geoJSON
+
+    // Cocokkan nama provinsi antara GeoJSON dan data dominantProvinsi
+    function matchProvince(provName) {
+        const upper = (provName || '').toUpperCase().trim();
+        for (let key in dominantProvinsi) {
+            const bk = key.toUpperCase().trim();
+            if (upper === bk || upper.includes(bk) || bk.includes(upper)) {
+                return dominantProvinsi[key];
+            }
+        }
+        return null;
+    }
+
+    // Style provinsi berdasarkan mode & data
+    function getProvinceStyle(f, mode) {
+        const d = matchProvince(f.properties.PROVINSI);
+        if (mode === 'wilayah') {
+            // Choropleth penuh
+            if (d) {
+                return {
+                    fillColor:   d.color,
+                    fillOpacity: 0.75,
+                    color:       '#ffffff',
+                    weight:      1.2
+                };
+            }
+            return { fillColor: '#dde3ea', fillOpacity: 0.65, color: '#a0aec0', weight: 0.8 };
+        } else {
+            // Mode Titik — polygon tipis sebagai kontur
+            if (d) {
+                return {
+                    fillColor:   d.color,
+                    fillOpacity: 0.18,
+                    color:       '#94a3b8',
+                    weight:      0.8
+                };
+            }
+            return { fillColor: '#e8edf2', fillOpacity: 0.55, color: '#a0aec0', weight: 0.7 };
+        }
+    }
+
+    // Buat label (tooltip permanen) untuk mode wilayah
+    function addProvinceLabels(data) {
+        labelLayer.clearLayers();
+        data.features.forEach(function(f) {
+            try {
+                const name = f.properties.PROVINSI || '';
+                if (!name) return;
+                // Hitung centroid sederhana dari bbox
+                const coords = f.geometry.coordinates;
+                const geomType = f.geometry.type;
+                let pts = [];
+                if (geomType === 'Polygon') pts = coords[0];
+                else if (geomType === 'MultiPolygon') {
+                    // ambil polygon terbesar
+                    let maxLen = 0;
+                    coords.forEach(poly => { if (poly[0].length > maxLen) { maxLen = poly[0].length; pts = poly[0]; } });
+                }
+                if (!pts.length) return;
+                const lngs = pts.map(p => p[0]);
+                const lats = pts.map(p => p[1]);
+                const clat = (Math.min(...lats) + Math.max(...lats)) / 2;
+                const clng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+
+                const shortName = name.replace(/^PROVINSI\s*/i, '')
+                                      .replace('KEPULAUAN ', 'KEP. ')
+                                      .replace('KALIMANTAN ', 'KAL. ')
+                                      .replace('SULAWESI ', 'SUL. ');
+
+                L.tooltip({ permanent: true, direction: 'center', className: 'prov-label', interactive: false })
+                    .setLatLng([clat, clng])
+                    .setContent(shortName)
+                    .addTo(labelLayer);
+            } catch(e) { /* skip jika ada feature bermasalah */ }
+        });
+    }
+
+    // Muat GeoJSON dari file lokal
     function loadProvincialOverlay() {
-        fetch('https://raw.githubusercontent.com/ardian28/GeoJson-Indonesia-38-Provinsi/master/Provinsi/38%20Provinsi%20Indonesia%20-%20Provinsi.json')
-            .then(res => res.json())
+        fetch('{{ asset('geojson/indonesia-provinces.geojson') }}')
+            .then(res => {
+                if (!res.ok) throw new Error('Gagal memuat GeoJSON: ' + res.status);
+                return res.json();
+            })
             .then(data => {
-                L.geoJSON(data, {
-                    style: function(f) {
-                        let provName = (f.properties.PROVINSI || '').toUpperCase().trim();
-                        let color = 'transparent';
-                        let fillOp = 0;
-                        
-                        for(let key in dominantProvinsi) {
-                            let bkKey = key.toUpperCase().trim();
-                            if (provName === bkKey || provName.includes(bkKey) || bkKey.includes(provName)) {
-                                color = dominantProvinsi[key].color;
-                                fillOp = 0.5;
-                                break;
-                            }
-                        }
-                        return { fillColor: color, weight: 1, opacity: 1, color: fillOp > 0 ? '#ffffff' : '#cbd5e1', fillOpacity: fillOp };
-                    },
+                geoJsonRawData = data;
+
+                geoJsonLeaflet = L.geoJSON(data, {
+                    style: f => getProvinceStyle(f, currentMode),
                     onEachFeature: function(f, l) {
-                        let provName = (f.properties.PROVINSI || '').toUpperCase().trim();
+                        const d = matchProvince(f.properties.PROVINSI);
                         let info = '';
-                        for(let key in dominantProvinsi) {
-                            let bkKey = key.toUpperCase().trim();
-                            if (provName === bkKey || provName.includes(bkKey) || bkKey.includes(provName)) {
-                                let d = dominantProvinsi[key];
-                                if (d.status === 'nihil') {
-                                    info = `<br><span style="font-size:0.8rem;color:#64748b;">Status:</span> <b style="color:#22c55e;">Nihil / Aman</b> (${d.count} uji nihil)`;
-                                } else {
-                                    info = `<br><span style="font-size:0.8rem;color:#64748b;">Dominan:</span> <b style="color:${d.color}">${d.dominant}</b> (${d.count} Uji Positif)`;
-                                }
-                                break;
+                        if (d) {
+                            if (d.status === 'nihil') {
+                                info = `<br><span style="font-size:0.8rem;color:#64748b;">Status:</span> <b style="color:#22c55e;">Nihil / Aman</b> (${d.count} uji nihil)`;
+                            } else {
+                                info = `<br><span style="font-size:0.8rem;color:#64748b;">Dominan:</span> <b style="color:${d.color}">${d.dominant}</b> (${d.count} Uji Positif)`;
                             }
                         }
-                        if (info !== '') {
-                            l.bindTooltip('<b>' + f.properties.PROVINSI + '</b>' + info, { sticky: true });
-                            l.on({
-                                mouseover: function(e) { e.target.setStyle({ fillOpacity: 0.8, weight: 2 }); },
-                                mouseout: function(e)  { e.target.setStyle({ fillOpacity: 0.5, weight: 1 }); }
-                            });
-                        }
+
+                        l.bindTooltip('<b>' + f.properties.PROVINSI + '</b>' + info, { sticky: true });
+
+                        l.on({
+                            mouseover: function(e) {
+                                e.target.setStyle({ fillOpacity: Math.min((e.target.options.fillOpacity || 0.5) + 0.25, 0.92), weight: 2 });
+                            },
+                            mouseout: function(e) {
+                                geoJsonLeaflet.resetStyle(e.target);
+                            }
+                        });
                     }
                 }).addTo(geoJsonLayer);
+            })
+            .catch(err => {
+                console.error('GeoJSON load error:', err);
             });
     }
 
     loadProvincialOverlay();
 
-    // === MODE TAMPILAN (Adjusted for consistency) ===
+    // ═══════════════════════════════════════════════════════════════
+    // MODE TAMPILAN
+    // ═══════════════════════════════════════════════════════════════
     let currentMode = 'marker';
+
     function switchMode(mode) {
         currentMode = mode;
         const btnMarker = document.getElementById('btn-mode-marker');
         const btnWilayah = document.getElementById('btn-mode-wilayah');
-        const panelDl = document.getElementById('panel-download-tematik');
-        
-        if(btnMarker) btnMarker.classList.toggle('active', mode === 'marker');
-        if(btnWilayah) btnWilayah.classList.toggle('active', mode === 'wilayah');
-        if(panelDl) panelDl.classList.toggle('d-none', mode !== 'wilayah');
+        const panelDl   = document.getElementById('panel-download-tematik');
+
+        if (btnMarker) btnMarker.classList.toggle('active', mode === 'marker');
+        if (btnWilayah) btnWilayah.classList.toggle('active', mode === 'wilayah');
+        if (panelDl)   panelDl.classList.toggle('d-none', mode !== 'wilayah');
+
+        // Re-style semua polygon
+        if (geoJsonLeaflet) {
+            geoJsonLeaflet.eachLayer(l => {
+                if (l.feature) l.setStyle(getProvinceStyle(l.feature, mode));
+            });
+        }
 
         if (mode === 'marker') {
             markerLayer.addTo(map);
-            geoJsonLayer.eachLayer(layer => {
-                layer.setStyle({ fillOpacity: 0.5 });
-            });
+            labelLayer.clearLayers();   // hapus label provinsi
         } else {
-            // "Wilayah" mode in detailed view usually means thematic map only
             markerLayer.remove();
-            geoJsonLayer.eachLayer(layer => {
-                layer.setStyle({ fillOpacity: 0.8 });
-            });
+            if (geoJsonRawData) addProvinceLabels(geoJsonRawData);  // tampilkan label
         }
     }
 
-    function downloadPetaTematik() {
-        captureMap('Peta_Wilayah_HPIK_');
-    }
-
-    function downloadPeta() {
-        captureMap('Peta_Titik_HPIK_');
-    }
+    // ── Download ───────────────────────────────────────────────────
+    function downloadPetaTematik() { captureMap('Peta_Wilayah_HPIK_'); }
+    function downloadPeta()        { captureMap('Peta_Titik_HPIK_');   }
 
     function captureMap(filenamePrefix) {
         const mapContainer = document.getElementById('map-container-capture');
         const oldCenter = map.getCenter();
-        const oldZoom = map.getZoom();
-        
+        const oldZoom   = map.getZoom();
+
         const overlay = document.createElement('div');
-        overlay.style = "position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#206bc4;border-radius:8px;";
+        overlay.style = 'position:absolute;top:0;left:0;right:0;bottom:0;' +
+                        'background:rgba(255,255,255,0.85);z-index:10000;' +
+                        'display:flex;align-items:center;justify-content:center;' +
+                        'font-weight:bold;color:#206bc4;border-radius:8px;';
         overlay.innerHTML = '<div class="text-center"><div class="spinner-border mb-2 text-primary"></div><br>Sedang Menyiapkan Gambar Peta...</div>';
         mapContainer.appendChild(overlay);
 
@@ -532,48 +623,42 @@
 
         setTimeout(() => {
             mapContainer.classList.add('capturing');
-
             html2canvas(mapContainer, {
                 useCORS: true,
                 scale: 2,
                 logging: false,
-                backgroundColor: '#ffffff',
+                backgroundColor: '#9fcde6',  // warna laut
                 allowTaint: true,
-                ignoreElements: (el) => {
-                    return el === overlay;
-                }
+                ignoreElements: el => el === overlay
             }).then(canvas => {
-                let link = document.createElement('a');
-                link.download = filenamePrefix + new Date().toISOString().slice(0,10) + '.png';
+                const link = document.createElement('a');
+                link.download = filenamePrefix + new Date().toISOString().slice(0, 10) + '.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
 
                 mapContainer.classList.remove('capturing');
-                if(overlay.parentNode) mapContainer.removeChild(overlay);
+                if (overlay.parentNode) mapContainer.removeChild(overlay);
                 map.setView(oldCenter, oldZoom, { animate: false });
             }).catch(err => {
-                console.error("Capture Error:", err);
-                if(overlay.parentNode) mapContainer.removeChild(overlay);
-                alert("Gagal mengunduh peta. Silakan gunakan fitur 'Print' browser sebagai alternatif.");
+                console.error('Capture Error:', err);
+                if (overlay.parentNode) mapContainer.removeChild(overlay);
+                alert('Gagal mengunduh peta. Silakan gunakan fitur \'Print\' browser sebagai alternatif.');
             });
         }, 1500);
     }
 
+    // ── Fullscreen ─────────────────────────────────────────────────
     function toggleFullScreen() {
         const mapElem = document.getElementById('map-container-capture');
         if (!document.fullscreenElement) {
-            mapElem.requestFullscreen().catch(err => {
-                alert(`Error: ${err.message}`);
-            });
+            mapElem.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
         } else {
             document.exitFullscreen();
         }
     }
 
     document.addEventListener('fullscreenchange', () => {
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 300);
+        setTimeout(() => map.invalidateSize(), 300);
     });
 </script>
 @endsection
