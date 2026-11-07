@@ -385,7 +385,8 @@
 
                 {{-- BKHIT/BBKHIT/Pusat: Tambah Pelaksanaan jika approved --}}
                 @if($p->status === 'approved' && (Auth::user()->isUpt() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
-                    @if($p->pelaksanaans->count() < $p->target_uji)
+                    @php $target = (int) $p->target_uji; @endphp
+                    @if($target === 0 || $p->pelaksanaans->count() < $target)
                         <a href="{{ route('pelaksanaan.create', $p->id) }}" class="btn btn-primary btn-pill w-100 fw-bold border-0 shadow-sm">
                             <i class="ti ti-plus me-2"></i>PELAKSANAAN BARU
                         </a>

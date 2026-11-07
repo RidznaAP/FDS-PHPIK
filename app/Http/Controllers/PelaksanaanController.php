@@ -96,7 +96,8 @@ class PelaksanaanController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        if ($rencana->pelaksanaans()->count() >= $rencana->target_uji) {
+        $targetUji = (int) $rencana->target_uji;
+        if ($targetUji > 0 && $rencana->pelaksanaans()->count() >= $targetUji) {
             return redirect()->route('perencanaan.show', $rencana->id)->with('error', 'Target uji sudah terpenuhi. Tidak dapat menambahkan pelaksanaan baru.');
         }
 
@@ -238,7 +239,8 @@ class PelaksanaanController extends Controller
         }
 
         // ── Target Uji Validation ──────────────────────────────────
-        if ($rencana->pelaksanaans()->count() >= $rencana->target_uji) {
+        $targetUji = (int) $rencana->target_uji;
+        if ($targetUji > 0 && $rencana->pelaksanaans()->count() >= $targetUji) {
             return back()->withInput()->with('error', 'Target uji sudah terpenuhi. Tidak dapat menambahkan pelaksanaan baru.');
         }
 
