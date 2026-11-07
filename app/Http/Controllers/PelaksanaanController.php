@@ -92,7 +92,7 @@ class PelaksanaanController extends Controller
         $rencana = $perencanaan->load('user');
 
         // ── Auth-scoped Check ──────────────────────────────────────
-        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat() && !$user->isDeveloper()) {
+        if ($rencana->user_id != $user->id && (!$rencana->user || $rencana->user->parent_id != $user->id) && !$user->isPusat() && !$user->isDeveloper()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -110,7 +110,7 @@ class PelaksanaanController extends Controller
         $item = $pelaksanaan->load(['perencanaan.user', 'laboratorium']);
 
         // ── Auth-scoped Check ──────────────────────────────────────
-        if ($user->isBkhit() && $item->perencanaan->user_id !== $user->id) {
+        if ($user->isBkhit() && $item->perencanaan->user_id != $user->id) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -127,7 +127,7 @@ class PelaksanaanController extends Controller
         $item = $pelaksanaan->load(['perencanaan.user', 'laboratorium']);
 
         // ── Auth-scoped Check ──────────────────────────────────────
-        if ($user->isBkhit() && $item->perencanaan->user_id !== $user->id) {
+        if ($user->isBkhit() && $item->perencanaan->user_id != $user->id) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -145,10 +145,10 @@ class PelaksanaanController extends Controller
             if (!$item->perencanaan) {
                 abort(403, 'Anda tidak memiliki akses untuk mengedit data ini.');
             }
-            $isOwner = $item->perencanaan->user_id === $user->id;
+            $isOwner = $item->perencanaan->user_id == $user->id;
             $isBbkhitKoordinator = $user->isBbkhit()
                 && $item->perencanaan->user
-                && $item->perencanaan->user->parent_id === $user->id;
+                && $item->perencanaan->user->parent_id == $user->id;
             if (!$isOwner && !$isBbkhitKoordinator) {
                 abort(403, 'Anda tidak memiliki akses untuk mengedit data ini.');
             }
@@ -168,10 +168,10 @@ class PelaksanaanController extends Controller
             if (!$item->perencanaan) {
                 abort(403);
             }
-            $isOwner = $item->perencanaan->user_id === $user->id;
+            $isOwner = $item->perencanaan->user_id == $user->id;
             $isBbkhitKoordinator = $user->isBbkhit()
                 && $item->perencanaan->user
-                && $item->perencanaan->user->parent_id === $user->id;
+                && $item->perencanaan->user->parent_id == $user->id;
             if (!$isOwner && !$isBbkhitKoordinator) {
                 abort(403);
             }
@@ -233,7 +233,7 @@ class PelaksanaanController extends Controller
         $user = Auth::user();
         $rencana = Perencanaan::with('user')->findOrFail($request->perencanaan_id);
 
-        if ($rencana->user_id !== $user->id && (!$rencana->user || $rencana->user->parent_id !== $user->id) && !$user->isPusat() && !$user->isDeveloper()) {
+        if ($rencana->user_id != $user->id && (!$rencana->user || $rencana->user->parent_id != $user->id) && !$user->isPusat() && !$user->isDeveloper()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -271,11 +271,11 @@ class PelaksanaanController extends Controller
         if (!$user->isPusat() && !$user->isDeveloper()) {
             $owner = $item->perencanaan->user ?? null;
             if ($user->isBbkhit()) {
-                if ($item->perencanaan->user_id !== $user->id && ($owner && $owner->parent_id !== $user->id)) {
+                if ($item->perencanaan->user_id != $user->id && ($owner && $owner->parent_id != $user->id)) {
                     abort(403, 'Akses ditolak: Data ini berada di luar koordinasi Anda.');
                 }
             } else {
-                if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
+                if (!$item->perencanaan || $item->perencanaan->user_id != $user->id) {
                     abort(403, 'Akses ditolak: Anda hanya dapat menghapus data milik Anda sendiri.');
                 }
             }
