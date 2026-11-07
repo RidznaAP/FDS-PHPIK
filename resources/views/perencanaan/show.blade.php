@@ -19,22 +19,30 @@
     <a href="{{ route('perencanaan.index') }}" class="btn btn-outline-secondary">
         <i class="ti ti-arrow-left me-2"></i>Kembali
     </a>
-    @if(($p->status === 'draft' || $p->status === 'rejected') && (Auth::user()->isBkhit() || Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
+    @can('update', $p)
     <a href="{{ route('perencanaan.edit', $p->id) }}" class="btn btn-primary">
         <i class="ti ti-edit me-2"></i>Edit
     </a>
+    @endcan
+    @can('submit', $p)
     <button type="button" class="btn btn-warning" onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan validasi perencanaan ini?', 'POST', 'btn-warning')">
         <i class="ti ti-send me-1"></i>Ajukan
     </button>
-    @endif
-    @if($p->status === 'waiting' && (Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
-    <button type="button" class="btn btn-danger" onclick="confirmAction('{{ route('perencanaan.reject', $p->id) }}', 'Tolak perencanaan ini? Anda bisa memasukkan alasan nanti.', 'POST', 'btn-danger')">
+    @endcan
+    @can('reject', $p)
+    @if($p->status === 'waiting')
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-reject-{{ $p->id }}">
         <i class="ti ti-x me-1"></i>Tolak
     </button>
+    @endif
+    @endcan
+    @can('approve', $p)
+    @if($p->status === 'waiting')
     <button type="button" class="btn btn-success" onclick="confirmAction('{{ route('perencanaan.approve', $p->id) }}', 'Setujui perencanaan ini?', 'POST', 'btn-success')">
         <i class="ti ti-check me-1"></i>Setujui
     </button>
     @endif
+    @endcan
 </div>
 @endsection
 
@@ -329,7 +337,7 @@
             <div class="d-grid gap-2 mb-4">
 
                 {{-- BKHIT/BBKHIT/Pusat: Submit jika masih draft atau ditolak --}}
-                @if(($p->status === 'draft' || $p->status === 'rejected') && ($p->user_id === Auth::id() || Auth::user()->isPusat() || Auth::user()->isDeveloper()))
+                @can('submit', $p)
                     <form action="{{ route('perencanaan.submit', $p->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-warning btn-pill w-100 fw-bold border-0 shadow-sm"
@@ -337,10 +345,11 @@
                             <i class="ti ti-send me-2"></i>AJUKAN KEMBALI
                         </button>
                     </form>
-                @endif
+                @endcan
 
                 {{-- BBKHIT/Pusat: Approve/Reject jika sedang waiting --}}
-                @if((Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'waiting')
+                @if($p->status === 'waiting')
+                @can('approve', $p)
                     <div class="d-flex gap-2">
                         <form action="{{ route('perencanaan.approve', $p->id) }}" method="POST" class="w-100">
                             @csrf
@@ -353,34 +362,7 @@
                             <i class="ti ti-circle-x me-1"></i>TOLAK
                         </button>
                     </div>
-
-                    {{-- Modal Reject --}}
-                    <div class="modal fade" id="modal-reject-{{ $p->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="color: #1e293b;">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content border-danger border-4 border-top">
-                                <div class="modal-header">
-                                    <h5 class="modal-title fw-bold text-danger"><i class="ti ti-alert-triangle me-2"></i>Tolak Perencanaan</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form action="{{ route('perencanaan.reject', $p->id) }}" method="POST">
-                                    @csrf
-                                    <div class="modal-body p-4 text-start">
-                                        <div class="mb-4 text-muted small">
-                                            Anda akan menolak pengajuan perencanaan ini. Data yang ditolak akan dikembalikan ke UPT bersangkutan beserta catatan Anda.
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label required fw-bold mb-2">Catatan Penolakan / Revisi</label>
-                                            <textarea name="alasan_penolakan" class="form-control" rows="4" placeholder="Tuliskan alasan mengapa perencanaan ini ditolak..." required></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer bg-light">
-                                        <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-danger btn-pill px-4 fw-bold">Kirim Penolakan</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                @endcan
                 @endif
 
                 {{-- Pusat: Setujui Langsung jika masih draft (tanpa perlu submit) --}}
@@ -504,6 +486,39 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Tolak: diletakkan di luar .animate-fade-in untuk menghindari masalah stacking context CSS transform --}}
+@can('reject', $p)
+@if($p->status === 'waiting')
+<div class="modal fade" id="modal-reject-{{ $p->id }}" tabindex="-1" role="dialog" aria-hidden="true" style="color: #1e293b;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-danger border-4 border-top">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-danger"><i class="ti ti-alert-triangle me-2"></i>Tolak Perencanaan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('perencanaan.reject', $p->id) }}" method="POST">
+                @csrf
+                <div class="modal-body p-4 text-start">
+                    <div class="mb-4 text-muted small">
+                        Anda akan menolak pengajuan perencanaan ini. Data yang ditolak akan dikembalikan ke UPT bersangkutan beserta catatan Anda.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required fw-bold mb-2">Catatan Penolakan / Revisi</label>
+                        <textarea name="alasan_penolakan" class="form-control" rows="4" placeholder="Tuliskan alasan mengapa perencanaan ini ditolak..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger btn-pill px-4 fw-bold">Kirim Penolakan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endcan
+
 @endsection
 
 

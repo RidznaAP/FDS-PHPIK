@@ -140,9 +140,16 @@ class PelaksanaanController extends Controller
         $user = Auth::user();
         $item = $pelaksanaan->load(['perencanaan.user']);
 
-        // Auth check: only owner, Pusat, or Developer can edit
+        // Auth check: only owner, Pusat, Developer, or BBKHIT coordinator can edit
         if (!$user->isPusat() && !$user->isDeveloper()) {
-            if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
+            if (!$item->perencanaan) {
+                abort(403, 'Anda tidak memiliki akses untuk mengedit data ini.');
+            }
+            $isOwner = $item->perencanaan->user_id === $user->id;
+            $isBbkhitKoordinator = $user->isBbkhit()
+                && $item->perencanaan->user
+                && $item->perencanaan->user->parent_id === $user->id;
+            if (!$isOwner && !$isBbkhitKoordinator) {
                 abort(403, 'Anda tidak memiliki akses untuk mengedit data ini.');
             }
         }
@@ -158,7 +165,14 @@ class PelaksanaanController extends Controller
 
         // Auth check
         if (!$user->isPusat() && !$user->isDeveloper()) {
-            if (!$item->perencanaan || $item->perencanaan->user_id !== $user->id) {
+            if (!$item->perencanaan) {
+                abort(403);
+            }
+            $isOwner = $item->perencanaan->user_id === $user->id;
+            $isBbkhitKoordinator = $user->isBbkhit()
+                && $item->perencanaan->user
+                && $item->perencanaan->user->parent_id === $user->id;
+            if (!$isOwner && !$isBbkhitKoordinator) {
                 abort(403);
             }
         }

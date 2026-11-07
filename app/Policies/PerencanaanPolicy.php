@@ -54,21 +54,36 @@ class PerencanaanPolicy
     }
 
     /**
-     * Hanya pemilik yang bisa edit, dan hanya saat status Draft.
+     * Hanya pemilik yang bisa edit, dan hanya saat status Draft atau Rejected.
+     * BBKHIT koordinator juga bisa edit data BKHIT bawahannya.
      */
     public function update(User $user, Perencanaan $perencanaan): bool
     {
-        return $perencanaan->user_id === $user->id
-            && $perencanaan->status === 'draft';
+        if (!in_array($perencanaan->status, ['draft', 'rejected'])) {
+            return false;
+        }
+
+        // Pemilik data
+        if ($perencanaan->user_id === $user->id) {
+            return true;
+        }
+
+        // BBKHIT koordinator bisa edit data BKHIT bawahannya
+        if ($user->isBbkhit()) {
+            $owner = User::find($perencanaan->user_id);
+            return $owner && $owner->parent_id === $user->id;
+        }
+
+        return false;
     }
 
     /**
-     * Hanya pemilik yang bisa hapus, dan hanya saat status Draft.
+     * Hanya pemilik yang bisa hapus, dan hanya saat status Draft atau Rejected.
      */
     public function delete(User $user, Perencanaan $perencanaan): bool
     {
         return $perencanaan->user_id === $user->id
-            && $perencanaan->status === 'draft';
+            && in_array($perencanaan->status, ['draft', 'rejected']);
     }
 
     /**
@@ -81,7 +96,8 @@ class PerencanaanPolicy
     }
 
     /**
-     * Approve: BBKHIT hanya untuk wilayah koordinasinya, Pusat semua.
+     * Approve: BBKHIT hanya untuk wilayah koordinasinya (BKHIT yg parent_id-nya = id BBKHIT).
+     * Juga izinkan BBKHIT approve data miliknya sendiri.
      */
     public function approve(User $user, Perencanaan $perencanaan): bool
     {
@@ -90,9 +106,13 @@ class PerencanaanPolicy
         }
 
         if ($user->isBbkhit()) {
+            // Milik sendiri
+            if ($perencanaan->user_id === $user->id) {
+                return true;
+            }
+            // Milik BKHIT bawahan koordinasinya
             $owner = User::find($perencanaan->user_id);
-            return $perencanaan->user_id === $user->id
-                || ($owner && $owner->parent_id === $user->id);
+            return $owner && $owner->parent_id === $user->id;
         }
 
         return true;
