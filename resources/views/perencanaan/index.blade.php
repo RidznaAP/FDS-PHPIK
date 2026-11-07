@@ -276,37 +276,37 @@
                                 <i class="ti ti-eye"></i>
                             </a>
 
-                            {{-- Edit (Pusat atau pemilik saat Draft/Rejected) --}}
-                            @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
+                            {{-- Edit --}}
+                            @can('update', $p)
                                 <a href="{{ route('perencanaan.edit', $p->id) }}"
                                    class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Edit Perencanaan">
                                     <i class="ti ti-pencil"></i>
                                 </a>
-                            @endif
+                            @endcan
 
-                            {{-- Hapus (Pusat atau pemilik saat Draft/Rejected) --}}
-                            @if(Auth::user()->isPusat() || Auth::user()->isDeveloper() || ((Auth::user()->isBkhit() || Auth::user()->isBbkhit()) && $p->user_id === Auth::id() && in_array($p->status, ['draft','rejected'])))
+                            {{-- Hapus --}}
+                            @can('delete', $p)
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger"
                                         data-bs-toggle="tooltip" title="Hapus Data"
                                         onclick="confirmAction('{{ route('perencanaan.destroy', $p->id) }}', 'Hapus perencanaan ini secara permanen?', 'DELETE', 'btn-danger')">
                                     <i class="ti ti-trash"></i>
                                 </button>
-                            @endif
+                            @endcan
 
-                            {{-- Ajukan Validasi (pemilik atau Pusat, status draft/rejected) --}}
-                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && in_array($p->status, ['draft', 'rejected']))
+                            {{-- Ajukan Validasi --}}
+                            @can('submit', $p)
                                 <button type="button"
                                         class="btn btn-sm btn-warning"
                                         data-bs-toggle="tooltip" title="Ajukan Validasi ke BBKHIT"
                                         onclick="confirmAction('{{ route('perencanaan.submit', $p->id) }}', 'Ajukan perencanaan ini untuk validasi?', 'POST', 'btn-warning', '📤', 'Ajukan Validasi?')">
                                     <i class="ti ti-send"></i>
                                 </button>
-                            @endif
+                            @endcan
 
-                            {{-- Input Lapangan (pemilik atau Pusat, status approved) --}}
-                            @if(($p->user_id === Auth::id() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'approved')
+                            {{-- Input Lapangan (pemilik, BBKHIT koordinator, atau Pusat saat approved) --}}
+                            @if($p->status === 'approved' && (Auth::user()->isPusat() || Auth::user()->isDeveloper() || $p->user_id == Auth::id() || (Auth::user()->isBbkhit() && optional($p->user)->parent_id == Auth::id())))
                                 <a href="{{ route('pelaksanaan.create', $p->id) }}"
                                    class="btn btn-sm btn-primary"
                                    data-bs-toggle="tooltip" title="Input Data Lapangan">
@@ -315,7 +315,8 @@
                             @endif
 
                             {{-- Setujui (BBKHIT/Pusat, status waiting) --}}
-                            @if((Auth::user()->isBbkhit() || Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'waiting')
+                            @can('approve', $p)
+                            @if($p->status === 'waiting')
                                 <button type="button"
                                         class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Setujui Perencanaan Ini"
@@ -323,6 +324,7 @@
                                     <i class="ti ti-check"></i>
                                 </button>
                             @endif
+                            @endcan
 
                             {{-- Setujui Langsung (Pusat, status draft) --}}
                             @if((Auth::user()->isPusat() || Auth::user()->isDeveloper()) && $p->status === 'draft')
